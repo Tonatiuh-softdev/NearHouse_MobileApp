@@ -31,7 +31,7 @@ import com.equipo4.nearhome.ui.profile.ProfileScreen
 import com.equipo4.nearhome.ui.saved.SavedScreen
 import com.equipo4.nearhome.ui.publicacion.detail.DetailPublicacionScreen
 import com.equipo4.nearhome.ui.splash.SplashScreen
-import com.equipo4.nearhome.util.SessionManager
+import com.equipo4.nearhome.data.local.SessionManager
 
 object AppRoutes {
     const val SPLASH = "splash"
