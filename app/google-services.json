@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "424289712499",
+    "project_id": "nearhouse-70367",
+    "storage_bucket": "nearhouse-70367.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:424289712499:android:bb51c1f96ae3b303286d06",
+        "android_client_info": {
+          "package_name": "com.equipo4.nearhome"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "424289712499-i61u2i0pu7m7vq9qbrpmhqo28d2hrrmd.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.equipo4.nearhome",
+            "certificate_hash": "44f233bad48755a85fde5646196ed1d4203220bf"
+          }
+        },
+        {
+          "client_id": "424289712499-tcqb92huv82t8ggmnd1k8kcm2vaflu9g.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAyxjUAbSQnNpUeUPS44xbX773EV5r4QdQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "424289712499-tcqb92huv82t8ggmnd1k8kcm2vaflu9g.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
