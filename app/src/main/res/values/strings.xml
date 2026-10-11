@@ -1,3 +1,40 @@
 <resources>
     <string name="app_name">NearHouse</string>
+    <string name="admin_management_title">Gestión de NearHouse</string>
+    <string name="admin_reports">Reportes</string>
+    <string name="admin_users">Usuarios</string>
+    <string name="admin_ads">Anuncios</string>
+    <string name="reports_title">Reportes</string>
+    <string name="reports_subtitle_history">Historial de resoluciones</string>
+    <string name="reports_subtitle_day_to_day">Bandeja al día</string>
+    <string name="tab_pending">Pendientes</string>
+    <string name="tab_attended">Atendidos</string>
+    <string name="type_publication">Publicación</string>
+    <string name="type_user">Usuario</string>
+    <string name="status_attended">Atendido</string>
+    <string name="empty_pending_title">No hay reportes pendientes por revisar</string>
+    <string name="empty_pending_subtitle">La bandeja está al día. Los nuevos reportes aparecerán aquí en cuanto se reciban.</string>
+    <string name="consult_attended_reports">Consultar reportes atendidos</string>
+    <string name="more_recent_first">Más recientes primero</string>
+    <string name="apply_measure_and_attend">Aplicar medida y atender</string>
+    <string name="close_without_measure">Cerrar sin aplicar medida</string>
+    <string name="report_attended_label">ATENDIDO</string>
+    <string name="return_to_list">Volver al listado</string>
+    <string name="reported_publication">Publicación reportada</string>
+    <string name="reported_user">Usuario reportado</string>
+    <string name="evidences_title">Evidencias</string>
+    <string name="description_title">Descripción</string>
+    <string name="motive_title">Motivo</string>
+    <string name="measure_applied_prefix">Medida aplicada: %s</string>
+    <string name="closed_without_measure">Cerrado sin aplicar medida</string>
+    <string name="attended_date_prefix">Atendido · %s</string>
+
+    <plurals name="pending_reports_subtitle">
+        <item quantity="one">1 pendiente por revisar</item>
+        <item quantity="other">%d pendientes por revisar</item>
+    </plurals>
+    <plurals name="evidences_count">
+        <item quantity="one">1 evidencia</item>
+        <item quantity="other">%d evidencias</item>
+    </plurals>
 </resources>

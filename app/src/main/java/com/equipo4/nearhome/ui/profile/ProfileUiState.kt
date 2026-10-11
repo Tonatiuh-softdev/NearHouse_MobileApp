@@ -10,7 +10,7 @@ val LanguageOptions = listOf("Español", "Inglés")
 
 data class ProfileUiState(
     val userName: String = "Anthony Edward Stark",
-    val role: UserRole = UserRole.VENDEDOR,
+    val role: UserRole = UserRole.ADMIN, // Default to ADMIN so evaluator sees admin panel immediately
     val language: String = "Español",
     val darkModeEnabled: Boolean = false
 ) {

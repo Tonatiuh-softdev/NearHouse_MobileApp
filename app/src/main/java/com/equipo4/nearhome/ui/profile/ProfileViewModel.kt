@@ -18,4 +18,6 @@ class ProfileViewModel : ViewModel() {
     fun onLanguageSelected(language: String) = _uiState.update { it.copy(language = language) }
 
     fun onDarkModeSelected(enabled: Boolean) = _uiState.update { it.copy(darkModeEnabled = enabled) }
+
+    fun onRoleSelected(role: UserRole) = _uiState.update { it.copy(role = role) }
 }

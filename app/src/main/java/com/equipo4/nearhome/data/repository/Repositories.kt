@@ -1,6 +1,7 @@
 package com.equipo4.nearhome.data.repository
 
 import com.equipo4.nearhome.domain.repository.PropiedadRepository
+import com.equipo4.nearhome.domain.repository.ReportRepository
 
 /**
  * Punto único para elegir la implementación. Al tener backend, cambiar SOLO esta línea
@@ -8,4 +9,5 @@ import com.equipo4.nearhome.domain.repository.PropiedadRepository
  */
 object Repositories {
     val propiedades: PropiedadRepository by lazy { PropiedadRepositoryFake() }
+    val reportes: ReportRepository by lazy { ReportRepositoryFake() }
 }

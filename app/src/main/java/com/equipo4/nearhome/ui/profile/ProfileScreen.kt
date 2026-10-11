@@ -18,6 +18,7 @@ import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.MenuBook
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Verified
 import androidx.compose.material3.*
@@ -47,13 +48,14 @@ private val NavyColor = Color(0xFF0B2C4D)
 private val SelectedRowBg = Color(0xFFEDEDED)
 private val SubtitleGray = Color(0xFF6B7280)
 
-private enum class SettingSheetType { LANGUAGE, DARK_MODE }
+private enum class SettingSheetType { LANGUAGE, DARK_MODE, ROLE }
 
 @Composable
 fun ProfileScreen(
     viewModel: ProfileViewModel = viewModel(),
     onMyListingsClick: () -> Unit = {},
     onAccountClick: () -> Unit = {},
+    onAdminPanelClick: () -> Unit = {},
     onTermsClick: () -> Unit = {},
     onPrivacyClick: () -> Unit = {},
     onLogoutClick: () -> Unit = {},
@@ -73,7 +75,20 @@ fun ProfileScreen(
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
         ) {
-            ProfileHeader(uiState)
+            ProfileHeader(
+                uiState = uiState,
+                onRoleClick = { openSheet = SettingSheetType.ROLE }
+            )
+
+            if (uiState.role == UserRole.ADMIN) {
+                SectionHeader("Administración")
+                ProfileRow(
+                    icon = Icons.Outlined.Security,
+                    label = "Panel de administración",
+                    showDivider = true,
+                    onClick = onAdminPanelClick
+                )
+            }
 
             SectionHeader("Perfil")
             if (uiState.canManageListings) {
@@ -124,6 +139,17 @@ fun ProfileScreen(
             onSelect = { viewModel.onDarkModeSelected(it == "Activado") },
             onDismiss = { openSheet = null }
         )
+        SettingSheetType.ROLE -> SettingSheet(
+            title = "Rol de usuario",
+            subtitle = "Cambia el rol para probar vistas de Comprador, Vendedor o Administrador.",
+            options = UserRole.values().map { it.label },
+            selected = uiState.role.label,
+            onSelect = { label ->
+                val selectedRole = UserRole.values().firstOrNull { it.label == label } ?: UserRole.ADMIN
+                viewModel.onRoleSelected(selectedRole)
+            },
+            onDismiss = { openSheet = null }
+        )
         null -> Unit
     }
 
@@ -139,7 +165,7 @@ fun ProfileScreen(
 }
 
 @Composable
-private fun ProfileHeader(uiState: ProfileUiState) {
+private fun ProfileHeader(uiState: ProfileUiState, onRoleClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -147,7 +173,6 @@ private fun ProfileHeader(uiState: ProfileUiState) {
             .padding(horizontal = 24.dp, vertical = 20.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Sin foto de perfil real todavía: círculo con ícono de persona.
         Box(
             modifier = Modifier.size(60.dp).background(AvatarBg, CircleShape),
             contentAlignment = Alignment.Center
@@ -158,13 +183,29 @@ private fun ProfileHeader(uiState: ProfileUiState) {
         Column {
             Text(uiState.userName, fontSize = 16.sp, color = TextDark)
             Spacer(Modifier.height(4.dp))
-            Surface(color = ChipBg, shape = RoundedCornerShape(10.dp)) {
-                Text(
-                    uiState.role.label,
-                    color = ChipText,
-                    fontSize = 11.sp,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
-                )
+            Surface(
+                color = ChipBg,
+                shape = RoundedCornerShape(10.dp),
+                modifier = Modifier.clickable(onClick = onRoleClick)
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        uiState.role.label,
+                        color = ChipText,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Icon(
+                        Icons.Default.ArrowDropDown,
+                        contentDescription = "Cambiar rol",
+                        tint = ChipText,
+                        modifier = Modifier.size(14.dp)
+                    )
+                }
             }
         }
     }
@@ -212,7 +253,6 @@ private fun ProfileRow(
     }
 }
 
-/** Fila de ajuste con valor y flechita; al tocarla abre un bottom sheet con las opciones. */
 @Composable
 private fun SettingRow(
     icon: ImageVector,
@@ -235,7 +275,6 @@ private fun SettingRow(
     )
 }
 
-/** Bottom sheet de selección (Idioma / Modo oscuro): título, X, subtítulo y opciones con palomita. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SettingSheet(
@@ -309,7 +348,6 @@ private fun SettingSheet(
     }
 }
 
-/** Alerta de confirmación para cerrar sesión. */
 @Composable
 private fun LogoutDialog(onCancel: () -> Unit, onConfirm: () -> Unit) {
     Dialog(onDismissRequest = onCancel) {
@@ -342,7 +380,6 @@ private fun LogoutDialog(onCancel: () -> Unit, onConfirm: () -> Unit) {
     }
 }
 
-/** clickable sin ripple (evita el sombreado gris al presionar). */
 @Composable
 private fun Modifier.noRippleClickable(onClick: () -> Unit): Modifier =
     clickable(
