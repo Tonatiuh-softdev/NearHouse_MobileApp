@@ -145,7 +145,8 @@ fun ReportCardItem(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 val dateText = if (report.status == ReportStatus.ATENDIDO) {
-                    report.attendedDate ?: report.date
+                    val rawDate = report.attendedDate ?: report.date
+                    if (rawDate.startsWith("Atendido")) rawDate else "Atendido · $rawDate"
                 } else {
                     report.date
                 }

@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.util.Calendar
-import java.util.Locale
 
 class ReportDetailViewModel(val reportId: String) : ViewModel() {
     private val reportRepository = Repositories.reportes
@@ -61,9 +60,7 @@ class ReportDetailViewModel(val reportId: String) : ViewModel() {
         val day = calendar.get(Calendar.DAY_OF_MONTH)
         val monthNames = arrayOf("ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic")
         val month = monthNames[calendar.get(Calendar.MONTH)]
-        val hour = String.format(Locale.getDefault(), "%02d", calendar.get(Calendar.HOUR_OF_DAY))
-        val minute = String.format(Locale.getDefault(), "%02d", calendar.get(Calendar.MINUTE))
-        return "$day $month - $hour:$minute"
+        return "Atendido · $day $month"
     }
 }
 
