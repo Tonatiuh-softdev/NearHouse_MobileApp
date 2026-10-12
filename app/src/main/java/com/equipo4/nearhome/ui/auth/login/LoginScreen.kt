@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -26,6 +27,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -43,19 +45,23 @@ fun LoginScreen(
     viewModel: LoginViewModel = viewModel(),
     onNavigateToRegister: () -> Unit = {},
     onNavigateToForgotPassword: () -> Unit = {},
-    onLoginSuccess: () -> Unit = {} // 👈 Parámetro agregado para la navegación
+    onLoginSuccess: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    // Navega a Home SÓLO cuando la API responde con éxito
+    LaunchedEffect(uiState.isSuccess) {
+        if (uiState.isSuccess) {
+            onLoginSuccess()
+        }
+    }
 
     LoginContent(
         uiState = uiState,
         onEmailChange = viewModel::onEmailChanged,
         onPasswordChange = viewModel::onPasswordChanged,
         onTogglePasswordVisibility = viewModel::togglePasswordVisibility,
-        onLoginClick = {
-            viewModel.onLoginClicked()
-            onLoginSuccess() // 👈 Dispara la transición hacia Home
-        },
+        onLoginClick = viewModel::onLoginClicked,
         onGoogleLoginClick = viewModel::onGoogleLoginClicked,
         onForgotPasswordClick = onNavigateToForgotPassword,
         onRegisterClick = onNavigateToRegister
@@ -84,10 +90,8 @@ private fun LoginContent(
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Margen superior inicial (Y: ~89px en Figma)
             Spacer(modifier = Modifier.height(44.dp))
 
-            // Logo: 60px x 59px
             Image(
                 painter = painterResource(id = R.drawable.ic_nearhouse_logo),
                 contentDescription = "NearHouse Logo",
@@ -96,7 +100,6 @@ private fun LoginContent(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Título: ¡BIENVENIDO A NEARHOUSE!
             Text(
                 text = "¡BIENVENIDO A NEARHOUSE!",
                 fontSize = 20.sp,
@@ -107,7 +110,6 @@ private fun LoginContent(
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            // Subtítulo: Inicio de Sesión
             Text(
                 text = "Inicio de Sesión",
                 fontSize = 16.sp,
@@ -172,7 +174,7 @@ private fun LoginContent(
                         IconButton(onClick = onTogglePasswordVisibility) {
                             Icon(
                                 imageVector = if (uiState.isPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                                contentDescription = "Mostrar contraseña",
+                                contentDescription = "Mostrar u ocultar contraseña",
                                 tint = Color.Gray
                             )
                         }
@@ -193,6 +195,20 @@ private fun LoginContent(
             }
 
             Spacer(modifier = Modifier.height(10.dp))
+
+            // Muestra mensaje de error devuelto por la API / Red
+            if (uiState.errorMessage != null) {
+                Text(
+                    text = uiState.errorMessage!!,
+                    color = MaterialTheme.colorScheme.error,
+                    fontSize = 13.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp)
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+            }
 
             // Enlace "¿Olvidaste tu contraseña?"
             Row(
@@ -227,11 +243,19 @@ private fun LoginContent(
                     .fillMaxWidth()
                     .height(40.dp)
             ) {
-                Text(
-                    text = "Continuar",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                if (uiState.isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = Color.White,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(
+                        text = "Continuar",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(18.dp))
@@ -283,10 +307,8 @@ private fun LoginContent(
                 }
             }
 
-            // Distancia exacta de Figma: 32px hasta el divisor inferior
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Sección "No tengo cuenta"
             HorizontalDivider(color = Color(0xFFEEEEEE), thickness = 1.dp)
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -302,7 +324,6 @@ private fun LoginContent(
                 modifier = Modifier.clickable { onRegisterClick() }
             )
 
-            // Colchón inferior para pantallas pequeñas
             Spacer(modifier = Modifier.height(24.dp))
         }
     }
