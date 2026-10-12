@@ -20,6 +20,20 @@ class SessionManager(context: Context) {
         prefs.edit().putBoolean(KEY_LOGGED_IN, value).apply()
     }
 
+    /** El inicio de sesión debe llamar esto con el nombre y el rol tal como vienen de la base de datos. */
+    fun saveUser(name: String, role: String) {
+        prefs.edit().putString(KEY_USER_NAME, name).putString(KEY_USER_ROLE, role).apply()
+    }
+
+    fun getUserName(): String? = prefs.getString(KEY_USER_NAME, null)
+
+    fun getUserRole(): String? = prefs.getString(KEY_USER_ROLE, null)
+
+    /** Cierra sesión y borra nombre y rol para que no se quede el usuario anterior. */
+    fun clearSession() {
+        prefs.edit().clear().apply()
+    }
+
     fun hasInternet(): Boolean {
         val cm = appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
             ?: return false
@@ -29,5 +43,7 @@ class SessionManager(context: Context) {
 
     private companion object {
         const val KEY_LOGGED_IN = "logged_in"
+        const val KEY_USER_NAME = "user_name"
+        const val KEY_USER_ROLE = "user_role"
     }
 }
