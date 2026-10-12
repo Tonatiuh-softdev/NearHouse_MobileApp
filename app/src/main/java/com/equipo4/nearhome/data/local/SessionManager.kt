@@ -14,6 +14,7 @@ class SessionManager(context: Context) {
         private const val KEY_ROL = "KEY_ROL"
     }
 
+    // --- Estado de la sesión ---
     fun setLoggedIn(isLoggedIn: Boolean) {
         prefs.edit().putBoolean(KEY_IS_LOGGED_IN, isLoggedIn).apply()
     }
@@ -22,6 +23,7 @@ class SessionManager(context: Context) {
         return prefs.getBoolean(KEY_IS_LOGGED_IN, false) || getToken() != null
     }
 
+    // --- Guardar sesión tras el Login ---
     fun saveSession(token: String, userId: Int, nombre: String, rol: String) {
         prefs.edit().apply {
             putBoolean(KEY_IS_LOGGED_IN, true)
@@ -35,6 +37,20 @@ class SessionManager(context: Context) {
 
     fun getToken(): String? = prefs.getString(KEY_TOKEN, null)
 
+    // --- Métodos requeridos por ProfileViewModel ---
+    fun getUserName(): String? = prefs.getString(KEY_NOMBRE, null)
+
+    fun getUserRole(): String? = prefs.getString(KEY_ROL, null)
+
+    fun saveUser(name: String, role: String) {
+        prefs.edit().apply {
+            putString(KEY_NOMBRE, name)
+            putString(KEY_ROL, role)
+            apply()
+        }
+    }
+
+    // --- Cerrar sesión ---
     fun clearSession() {
         prefs.edit().clear().apply()
     }
