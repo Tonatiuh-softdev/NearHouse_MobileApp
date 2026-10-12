@@ -47,6 +47,8 @@
     <string name="role_seller">Vendedor</string>
     <string name="role_admin">Administrador</string>
     <string name="role_super_admin">Super administrador</string>
+    <string name="profile_role_sheet_title">Rol de usuario</string>
+    <string name="profile_role_sheet_subtitle">Solo para pruebas: cambia el rol para ver las vistas de cada usuario.</string>
 
     <!-- Perfil -->
     <string name="profile_default_name">Usuario</string>
