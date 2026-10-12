@@ -18,6 +18,7 @@ import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.MenuBook
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.AdminPanelSettings
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Verified
 import androidx.compose.material3.*
@@ -26,12 +27,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.equipo4.nearhome.R
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
 import kotlinx.coroutines.launch
 
@@ -47,19 +52,52 @@ private val NavyColor = Color(0xFF0B2C4D)
 private val SelectedRowBg = Color(0xFFEDEDED)
 private val SubtitleGray = Color(0xFF6B7280)
 
-private enum class SettingSheetType { LANGUAGE, DARK_MODE }
+private enum class SettingSheetType { LANGUAGE, DARK_MODE, ROLE }
 
 @Composable
 fun ProfileScreen(
     viewModel: ProfileViewModel = viewModel(),
     onMyListingsClick: () -> Unit = {},
     onAccountClick: () -> Unit = {},
+    onAdminPanelClick: () -> Unit = {},
     onTermsClick: () -> Unit = {},
     onPrivacyClick: () -> Unit = {},
     onLogoutClick: () -> Unit = {},
     onBottomTabSelected: (Int) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    // El cambio de rol solo existe en builds de prueba (debug); en producción el rol viene de la sesión.
+    val isDebuggable = (context.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0
+    ProfileContent(
+        uiState = uiState,
+        onRoleSelected = if (isDebuggable) viewModel::onRoleSelected else null,
+        onLanguageSelected = viewModel::onLanguageSelected,
+        onDarkModeSelected = viewModel::onDarkModeSelected,
+        onMyListingsClick = onMyListingsClick,
+        onAccountClick = onAccountClick,
+        onAdminPanelClick = onAdminPanelClick,
+        onTermsClick = onTermsClick,
+        onPrivacyClick = onPrivacyClick,
+        onLogoutClick = onLogoutClick,
+        onBottomTabSelected = onBottomTabSelected
+    )
+}
+
+@Composable
+fun ProfileContent(
+    uiState: ProfileUiState,
+    onRoleSelected: ((UserRole) -> Unit)? = null,
+    onLanguageSelected: (String) -> Unit = {},
+    onDarkModeSelected: (Boolean) -> Unit = {},
+    onMyListingsClick: () -> Unit = {},
+    onAccountClick: () -> Unit = {},
+    onAdminPanelClick: () -> Unit = {},
+    onTermsClick: () -> Unit = {},
+    onPrivacyClick: () -> Unit = {},
+    onLogoutClick: () -> Unit = {},
+    onBottomTabSelected: (Int) -> Unit = {}
+) {
     var openSheet by remember { mutableStateOf<SettingSheetType?>(null) }
     var showLogoutDialog by remember { mutableStateOf(false) }
 
@@ -73,35 +111,53 @@ fun ProfileScreen(
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
         ) {
-            ProfileHeader(uiState)
+            ProfileHeader(
+                uiState = uiState,
+                onRoleClick = onRoleSelected?.let { { openSheet = SettingSheetType.ROLE } }
+            )
 
-            SectionHeader("Perfil")
-            if (uiState.canManageListings) {
-                ProfileRow(Icons.Outlined.Verified, "Mis anuncios", showDivider = true, onClick = onMyListingsClick)
+            SectionHeader(stringResource(R.string.profile_section_profile))
+            if (uiState.showMyListings) {
+                ProfileRow(
+                    Icons.Outlined.Verified, stringResource(R.string.profile_my_listings),
+                    showDivider = uiState.showAccountAdmin || uiState.showAdminPanel, onClick = onMyListingsClick
+                )
             }
-            ProfileRow(Icons.Outlined.Settings, "Administración de la cuenta", onClick = onAccountClick)
+            if (uiState.showAccountAdmin) {
+                ProfileRow(
+                    Icons.Outlined.Settings, stringResource(R.string.profile_account_admin),
+                    showDivider = uiState.showAdminPanel, onClick = onAccountClick
+                )
+            }
+            if (uiState.showAdminPanel) {
+                ProfileRow(
+                    icon = Icons.Outlined.AdminPanelSettings,
+                    label = stringResource(R.string.profile_admin_panel),
+                    onClick = onAdminPanelClick
+                )
+            }
 
-            SectionHeader("Ajustes")
+            SectionHeader(stringResource(R.string.profile_section_settings))
             SettingRow(
                 icon = Icons.Outlined.Language,
-                label = "Idioma",
+                label = stringResource(R.string.profile_language),
                 value = uiState.language,
                 showDivider = true,
                 onClick = { openSheet = SettingSheetType.LANGUAGE }
             )
             SettingRow(
                 icon = Icons.Outlined.DarkMode,
-                label = "Modo oscuro",
+                label = stringResource(R.string.profile_dark_mode),
                 value = uiState.darkModeLabel,
                 onClick = { openSheet = SettingSheetType.DARK_MODE }
             )
 
-            SectionHeader("Información")
-            ProfileRow(Icons.Outlined.Description, "Terminos y condiciones", showDivider = true, onClick = onTermsClick)
-            ProfileRow(Icons.Outlined.MenuBook, "Politicas y privacidad", onClick = onPrivacyClick)
+            SectionHeader(stringResource(R.string.profile_section_info))
+            ProfileRow(Icons.Outlined.Description, stringResource(R.string.profile_terms), showDivider = true, onClick = onTermsClick)
+            ProfileRow(Icons.Outlined.MenuBook, stringResource(R.string.profile_privacy), onClick = onPrivacyClick)
 
-            SectionHeader("Sesión")
-            ProfileRow(Icons.AutoMirrored.Outlined.Logout, "Cerrar sesión", showDivider = true, onClick = { showLogoutDialog = true })
+            SectionHeader(stringResource(R.string.profile_section_session))
+            ProfileRow(Icons.AutoMirrored.Outlined.Logout, stringResource(R.string.profile_logout), showDivider = true, onClick = { showLogoutDialog = true })
 
             Spacer(Modifier.height(16.dp))
         }
@@ -109,21 +165,34 @@ fun ProfileScreen(
 
     when (openSheet) {
         SettingSheetType.LANGUAGE -> SettingSheet(
-            title = "Idioma",
-            subtitle = "Selecciona el idioma de la aplicación.",
+            title = stringResource(R.string.profile_language),
+            subtitle = stringResource(R.string.profile_language_subtitle),
             options = LanguageOptions,
             selected = uiState.language,
-            onSelect = viewModel::onLanguageSelected,
+            onSelect = onLanguageSelected,
             onDismiss = { openSheet = null }
         )
         SettingSheetType.DARK_MODE -> SettingSheet(
-            title = "Modo oscuro",
-            subtitle = "Elige cómo quieres ver la aplicación.",
+            title = stringResource(R.string.profile_dark_mode),
+            subtitle = stringResource(R.string.profile_dark_mode_subtitle),
             options = listOf("Activado", "Desactivado"),
             selected = uiState.darkModeLabel,
-            onSelect = { viewModel.onDarkModeSelected(it == "Activado") },
+            onSelect = { onDarkModeSelected(it == "Activado") },
             onDismiss = { openSheet = null }
         )
+        SettingSheetType.ROLE -> {
+            val roleLabels = UserRole.entries.associateWith { stringResource(it.labelRes) }
+            SettingSheet(
+                title = stringResource(R.string.profile_role_sheet_title),
+                subtitle = stringResource(R.string.profile_role_sheet_subtitle),
+                options = roleLabels.values.toList(),
+                selected = roleLabels.getValue(uiState.role),
+                onSelect = { label ->
+                    roleLabels.entries.firstOrNull { it.value == label }?.let { onRoleSelected?.invoke(it.key) }
+                },
+                onDismiss = { openSheet = null }
+            )
+        }
         null -> Unit
     }
 
@@ -139,7 +208,7 @@ fun ProfileScreen(
 }
 
 @Composable
-private fun ProfileHeader(uiState: ProfileUiState) {
+private fun ProfileHeader(uiState: ProfileUiState, onRoleClick: (() -> Unit)? = null) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -147,7 +216,6 @@ private fun ProfileHeader(uiState: ProfileUiState) {
             .padding(horizontal = 24.dp, vertical = 20.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Sin foto de perfil real todavía: círculo con ícono de persona.
         Box(
             modifier = Modifier.size(60.dp).background(AvatarBg, CircleShape),
             contentAlignment = Alignment.Center
@@ -156,14 +224,19 @@ private fun ProfileHeader(uiState: ProfileUiState) {
         }
         Spacer(Modifier.width(16.dp))
         Column {
-            Text(uiState.userName, fontSize = 16.sp, color = TextDark)
+            Text(uiState.userName.ifBlank { stringResource(R.string.profile_default_name) }, fontSize = 16.sp, color = TextDark)
             Spacer(Modifier.height(4.dp))
-            Surface(color = ChipBg, shape = RoundedCornerShape(10.dp)) {
+            Surface(
+                color = ChipBg,
+                shape = RoundedCornerShape(10.dp),
+                modifier = if (onRoleClick != null) Modifier.clickable(onClick = onRoleClick) else Modifier
+            ) {
                 Text(
-                    uiState.role.label,
+                    stringResource(uiState.role.labelRes),
                     color = ChipText,
                     fontSize = 11.sp,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                 )
             }
         }
@@ -212,7 +285,6 @@ private fun ProfileRow(
     }
 }
 
-/** Fila de ajuste con valor y flechita; al tocarla abre un bottom sheet con las opciones. */
 @Composable
 private fun SettingRow(
     icon: ImageVector,
@@ -235,7 +307,6 @@ private fun SettingRow(
     )
 }
 
-/** Bottom sheet de selección (Idioma / Modo oscuro): título, X, subtítulo y opciones con palomita. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SettingSheet(
@@ -274,7 +345,7 @@ private fun SettingSheet(
                 )
                 Icon(
                     Icons.Default.Close,
-                    contentDescription = "Cerrar",
+                    contentDescription = stringResource(R.string.common_close),
                     tint = TextDark,
                     modifier = Modifier.align(Alignment.CenterEnd).size(22.dp).noRippleClickable { close() }
                 )
@@ -309,14 +380,13 @@ private fun SettingSheet(
     }
 }
 
-/** Alerta de confirmación para cerrar sesión. */
 @Composable
 private fun LogoutDialog(onCancel: () -> Unit, onConfirm: () -> Unit) {
     Dialog(onDismissRequest = onCancel) {
         Surface(shape = RoundedCornerShape(12.dp), color = Color.White) {
             Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    "¿Estás seguro de que quieres cerrar sesión?",
+                    stringResource(R.string.logout_confirm_message),
                     fontSize = 14.sp,
                     color = TextDark,
                     textAlign = TextAlign.Center
@@ -328,21 +398,20 @@ private fun LogoutDialog(onCancel: () -> Unit, onConfirm: () -> Unit) {
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(6.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB0B5BC), contentColor = Color.White)
-                    ) { Text("No", fontSize = 13.sp) }
+                    ) { Text(stringResource(R.string.logout_cancel), fontSize = 13.sp) }
                     Button(
                         onClick = onConfirm,
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(6.dp),
                         contentPadding = PaddingValues(horizontal = 8.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = NavyColor, contentColor = Color.White)
-                    ) { Text("Cerrar sesión", fontSize = 13.sp, maxLines = 1) }
+                    ) { Text(stringResource(R.string.profile_logout), fontSize = 13.sp, maxLines = 1) }
                 }
             }
         }
     }
 }
 
-/** clickable sin ripple (evita el sombreado gris al presionar). */
 @Composable
 private fun Modifier.noRippleClickable(onClick: () -> Unit): Modifier =
     clickable(

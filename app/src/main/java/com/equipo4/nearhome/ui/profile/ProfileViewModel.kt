@@ -1,21 +1,33 @@
 package com.equipo4.nearhome.ui.profile
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import com.equipo4.nearhome.util.SessionManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-/**
- * Datos de usuario de prueba (sin backend). Idioma y modo oscuro solo cambian el estado de esta
- * pantalla por ahora; aplicarlos a toda la app queda pendiente.
- */
-class ProfileViewModel : ViewModel() {
+/** Lee nombre y rol de la sesión guardada. Idioma y modo oscuro solo afectan esta pantalla por ahora. */
+class ProfileViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val _uiState = MutableStateFlow(ProfileUiState())
+    private val session = SessionManager(application)
+
+    private val _uiState = MutableStateFlow(
+        ProfileUiState(
+            userName = session.getUserName().orEmpty(),
+            role = UserRole.fromDb(session.getUserRole())
+        )
+    )
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
 
     fun onLanguageSelected(language: String) = _uiState.update { it.copy(language = language) }
+
+    /** Solo para pruebas: cambia el rol y lo guarda en la sesión para que persista. */
+    fun onRoleSelected(role: UserRole) {
+        session.saveUser(_uiState.value.userName, role.dbValue)
+        _uiState.update { it.copy(role = role) }
+    }
 
     fun onDarkModeSelected(enabled: Boolean) = _uiState.update { it.copy(darkModeEnabled = enabled) }
 }

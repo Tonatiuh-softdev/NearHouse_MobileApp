@@ -17,6 +17,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.equipo4.nearhome.ui.admin.AdminPanelScreen
+import com.equipo4.nearhome.ui.admin.reports.ReportsScreen
+import com.equipo4.nearhome.ui.admin.reports.ReportDetailScreen
+import com.equipo4.nearhome.ui.admin.reports.ReportConfirmationScreen
 import com.equipo4.nearhome.ui.auth.completeprofile.CompleteProfileScreen
 import com.equipo4.nearhome.ui.auth.forgot_password.ForgotPasswordScreen
 import com.equipo4.nearhome.ui.auth.forgot_password.ForgotPasswordViewModel
@@ -47,6 +51,10 @@ object AppRoutes {
     const val PUBLICACION_DETAIL = "publicacion_detail"
     const val TERMS_AND_CONDITIONS = "terms_and_conditions"
     const val PRIVACY_POLICY = "privacy_policy"
+    const val ADMIN_PANEL = "admin_panel"
+    const val ADMIN_REPORTS = "admin_reports"
+    const val ADMIN_REPORT_DETAIL = "admin_report_detail"
+    const val ADMIN_REPORT_CONFIRMATION = "admin_report_confirmation"
 }
 
 class MainActivity : ComponentActivity() {
@@ -235,18 +243,89 @@ fun NearHouseApp() {
             )
         }
 
-        // Pantalla: Perfil (Vendedor/Arrendador)
+        // Pantalla: Perfil (Vendedor/Arrendador/Admin)
         composable(AppRoutes.PROFILE) {
             ProfileScreen(
+                onMyListingsClick = {},
+                onAccountClick = {},
+                onAdminPanelClick = {
+                    navController.navigate(AppRoutes.ADMIN_PANEL)
+                },
                 onTermsClick = { navController.navigate(AppRoutes.TERMS_AND_CONDITIONS) },
                 onPrivacyClick = { navController.navigate(AppRoutes.PRIVACY_POLICY) },
                 onLogoutClick = {
-                    sessionManager.setLoggedIn(false)
+                    sessionManager.clearSession()
                     navController.navigate(AppRoutes.LOGIN) {
                         popUpTo(0) { inclusive = true }
                     }
                 },
                 onBottomTabSelected = onBottomTab
+            )
+        }
+
+        // Pantalla: Panel de administración
+        composable(AppRoutes.ADMIN_PANEL) {
+            AdminPanelScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onNavigateToReports = {
+                    navController.navigate(AppRoutes.ADMIN_REPORTS)
+                },
+                onNavigateToUsers = {},
+                onNavigateToAds = {},
+                onBottomTabSelected = onBottomTab
+            )
+        }
+
+        // Pantalla: Reportes
+        composable(AppRoutes.ADMIN_REPORTS) {
+            ReportsScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onReportClick = { reportId ->
+                    navController.navigate("${AppRoutes.ADMIN_REPORT_DETAIL}/$reportId")
+                },
+                onBottomTabSelected = onBottomTab
+            )
+        }
+
+        // Pantalla: Detalle del Reporte
+        composable(
+            route = "${AppRoutes.ADMIN_REPORT_DETAIL}/{reportId}",
+            arguments = listOf(navArgument("reportId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val reportId = backStackEntry.arguments?.getString("reportId") ?: ""
+            ReportDetailScreen(
+                reportId = reportId,
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onNavigateToConfirmation = { id ->
+                    navController.navigate("${AppRoutes.ADMIN_REPORT_CONFIRMATION}/$id") {
+                        popUpTo("${AppRoutes.ADMIN_REPORT_DETAIL}/$reportId") { inclusive = true }
+                    }
+                },
+                onPropertyClick = { propertyId ->
+                    navController.navigate("${AppRoutes.PUBLICACION_DETAIL}/$propertyId")
+                }
+            )
+        }
+
+        // Pantalla: Confirmación de Reporte Atendido
+        composable(
+            route = "${AppRoutes.ADMIN_REPORT_CONFIRMATION}/{reportId}",
+            arguments = listOf(navArgument("reportId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val reportId = backStackEntry.arguments?.getString("reportId") ?: ""
+            ReportConfirmationScreen(
+                reportId = reportId,
+                onReturnToList = {
+                    navController.navigate(AppRoutes.ADMIN_REPORTS) {
+                        popUpTo(AppRoutes.ADMIN_REPORTS) { inclusive = true }
+                    }
+                }
             )
         }
 
