@@ -546,29 +546,3 @@ private fun HerramientasBottomSheet(
         }
     }
 }
-
-@Composable
-private fun PhotoGallery(
-    images: List<Int>,
-    modifier: Modifier = Modifier,
-    content: @Composable BoxScope.() -> Unit = {}
-) {
-    val totalPages = images.ifEmpty { listOf(1) }.size
-    val pagerState = rememberPagerState(pageCount = { totalPages })
-
-    Box(modifier = modifier) {
-        HorizontalPager(
-            state = pagerState,
-            modifier = Modifier.fillMaxSize()
-        ) { page ->
-            val imageRes = images.getOrNull(page) ?: R.drawable.prop_depto_sala
-            Image(
-                painter = painterResource(id = imageRes),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
-            )
-        }
-        content()
-    }
-}

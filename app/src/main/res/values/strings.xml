@@ -37,10 +37,6 @@
         <item quantity="one">1 evidencia</item>
         <item quantity="other">%d evidencias</item>
     </plurals>
-    <plurals name="selected_filters_count">
-        <item quantity="one">1 filtro seleccionado</item>
-        <item quantity="other">%d filtros seleccionados</item>
-    </plurals>
 
     <!-- Comunes -->
     <string name="common_back">Regresar</string>
