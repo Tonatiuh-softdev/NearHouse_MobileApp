@@ -21,15 +21,17 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.equipo4.nearhome.ui.admin.AdminPanelScreen
-import com.equipo4.nearhome.ui.admin.listings.AdminListingDetailScreen
-import com.equipo4.nearhome.ui.admin.listings.AdminListingsScreen
-import com.equipo4.nearhome.ui.admin.listings.ListingActionScreen
-import com.equipo4.nearhome.ui.admin.listings.ListingFiltersScreen
-import com.equipo4.nearhome.ui.admin.listings.AdminListingsViewModel
-import com.equipo4.nearhome.domain.model.ListingAction
 import com.equipo4.nearhome.ui.admin.reports.ReportsScreen
 import com.equipo4.nearhome.ui.admin.reports.ReportDetailScreen
 import com.equipo4.nearhome.ui.admin.reports.ReportConfirmationScreen
+import com.equipo4.nearhome.ui.admin.users_crud.UsersListScreen
+import com.equipo4.nearhome.ui.admin.users_crud.UsersListViewModel
+import com.equipo4.nearhome.ui.admin.users_crud.FilterUsersScreen
+import com.equipo4.nearhome.ui.admin.users_crud.FilterUsersViewModel
+import com.equipo4.nearhome.ui.admin.users_crud.FilterUsersViewModelFactory
+import com.equipo4.nearhome.ui.admin.users_crud.detail.UserDetailScreen
+import com.equipo4.nearhome.ui.admin.users_crud.block.BlockUserScreen
+import com.equipo4.nearhome.ui.admin.users_crud.delete.DeleteUserScreen
 import com.equipo4.nearhome.ui.auth.completeprofile.CompleteProfileScreen
 import com.equipo4.nearhome.ui.auth.forgot_password.ForgotPasswordScreen
 import com.equipo4.nearhome.ui.auth.forgot_password.ForgotPasswordViewModel
@@ -64,12 +66,12 @@ object AppRoutes {
     const val ADMIN_REPORTS = "admin_reports"
     const val ADMIN_REPORT_DETAIL = "admin_report_detail"
     const val ADMIN_REPORT_CONFIRMATION = "admin_report_confirmation"
+    const val ADMIN_USERS = "admin_users"
+    const val ADMIN_USERS_FILTER = "admin_users_filter"
+    const val ADMIN_USER_DETAIL = "admin_user_detail"
+    const val ADMIN_USER_BLOCK = "admin_user_block"
+    const val ADMIN_USER_DELETE = "admin_user_delete"
     const val ADMIN_LISTINGS = "admin_listings"
-    const val ADMIN_LISTING_FILTERS = "admin_listing_filters"
-    const val ADMIN_LISTING_DETAIL = "admin_listing_detail"
-    const val ADMIN_LISTING_ACTION = "admin_listing_action"
-    /** Clave del aviso verde que se pasa entre pantallas de Anuncios. */
-    const val LISTING_MESSAGE = "listing_message"
 }
 
 class MainActivity : ComponentActivity() {
@@ -271,7 +273,7 @@ fun NearHouseApp() {
                 onTermsClick = { navController.navigate(AppRoutes.TERMS_AND_CONDITIONS) },
                 onPrivacyClick = { navController.navigate(AppRoutes.PRIVACY_POLICY) },
                 onLogoutClick = {
-                    sessionManager.clearSession()
+                    sessionManager.setLoggedIn(false)
                     navController.navigate(AppRoutes.LOGIN) {
                         popUpTo(0) { inclusive = true }
                     }
@@ -289,9 +291,11 @@ fun NearHouseApp() {
                 onNavigateToReports = {
                     navController.navigate(AppRoutes.ADMIN_REPORTS)
                 },
-                onNavigateToUsers = {},
+                onNavigateToUsers = {
+                    navController.navigate(AppRoutes.ADMIN_USERS)
+                },
                 onNavigateToAds = {
-                    navController.navigate(AppRoutes.ADMIN_LISTINGS)
+                    // Stub
                 },
                 onBottomTabSelected = onBottomTab
             )
@@ -307,6 +311,91 @@ fun NearHouseApp() {
                     navController.navigate("${AppRoutes.ADMIN_REPORT_DETAIL}/$reportId")
                 },
                 onBottomTabSelected = onBottomTab
+            )
+        }
+
+        // Pantalla: Usuarios (Admin)
+        composable(AppRoutes.ADMIN_USERS) {
+            val parentEntry = remember { navController.getBackStackEntry(AppRoutes.ADMIN_USERS) }
+            val usersViewModel: UsersListViewModel = viewModel(parentEntry)
+            UsersListScreen(
+                viewModel = usersViewModel,
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onFilterClick = {
+                    navController.navigate(AppRoutes.ADMIN_USERS_FILTER)
+                },
+                onUserClick = { userId ->
+                    navController.navigate("${AppRoutes.ADMIN_USER_DETAIL}/$userId")
+                },
+                onBottomTabSelected = onBottomTab
+            )
+        }
+
+        // Pantalla: Filtrar Usuarios
+        composable(AppRoutes.ADMIN_USERS_FILTER) {
+            val parentEntry = remember { navController.getBackStackEntry(AppRoutes.ADMIN_USERS) }
+            val usersViewModel: UsersListViewModel = viewModel(parentEntry)
+            val initialRoles by usersViewModel.selectedRolesFilter.collectAsState()
+            val initialStatuses by usersViewModel.selectedStatusesFilter.collectAsState()
+            val filterViewModel: FilterUsersViewModel = viewModel(
+                factory = FilterUsersViewModelFactory(initialRoles, initialStatuses)
+            )
+
+            FilterUsersScreen(
+                viewModel = filterViewModel,
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onApplyFilters = { roles, statuses ->
+                    usersViewModel.applyFilters(roles, statuses)
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        // Pantalla: Detalle de Usuario (Admin)
+        composable(
+            route = "${AppRoutes.ADMIN_USER_DETAIL}/{userId}",
+            arguments = listOf(navArgument("userId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val userId = backStackEntry.arguments?.getString("userId") ?: ""
+            UserDetailScreen(
+                userId = userId,
+                onBackClick = { navController.popBackStack() },
+                onBlockClick = { id -> navController.navigate("${AppRoutes.ADMIN_USER_BLOCK}/$id") },
+                onDeleteClick = { id -> navController.navigate("${AppRoutes.ADMIN_USER_DELETE}/$id") }
+            )
+        }
+
+        // Pantalla: Bloquear / Suspender Usuario
+        composable(
+            route = "${AppRoutes.ADMIN_USER_BLOCK}/{userId}",
+            arguments = listOf(navArgument("userId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val userId = backStackEntry.arguments?.getString("userId") ?: ""
+            BlockUserScreen(
+                userId = userId,
+                onBackClick = { navController.popBackStack() },
+                onBlockSuccess = { _ ->
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        // Pantalla: Eliminar Usuario
+        composable(
+            route = "${AppRoutes.ADMIN_USER_DELETE}/{userId}",
+            arguments = listOf(navArgument("userId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val userId = backStackEntry.arguments?.getString("userId") ?: ""
+            DeleteUserScreen(
+                userId = userId,
+                onBackClick = { navController.popBackStack() },
+                onDeleteSuccess = { _ ->
+                    navController.popBackStack(AppRoutes.ADMIN_USERS, inclusive = false)
+                }
             )
         }
 
@@ -346,79 +435,6 @@ fun NearHouseApp() {
                     }
                 }
             )
-        }
-
-        // Pantalla: Anuncios (administración)
-        composable(AppRoutes.ADMIN_LISTINGS) { entry ->
-            val message by entry.savedStateHandle
-                .getStateFlow<String?>(AppRoutes.LISTING_MESSAGE, null).collectAsState()
-            AdminListingsScreen(
-                message = message,
-                onMessageShown = { entry.savedStateHandle[AppRoutes.LISTING_MESSAGE] = null },
-                onBackClick = { navController.popBackStack() },
-                onFiltersClick = { navController.navigate(AppRoutes.ADMIN_LISTING_FILTERS) },
-                onListingClick = { id -> navController.navigate("${AppRoutes.ADMIN_LISTING_DETAIL}/$id") },
-                onBottomTabSelected = onBottomTab
-            )
-        }
-
-        // Pantalla: Filtrar anuncios (comparte el ViewModel de la lista)
-        composable(AppRoutes.ADMIN_LISTING_FILTERS) { entry ->
-            val parent = remember(entry) { navController.getBackStackEntry(AppRoutes.ADMIN_LISTINGS) }
-            ListingFiltersScreen(
-                viewModel = viewModel<AdminListingsViewModel>(parent),
-                onBackClick = { navController.popBackStack() },
-                onApplied = { navController.popBackStack() }
-            )
-        }
-
-        // Pantalla: Detalle del anuncio
-        composable(
-            route = "${AppRoutes.ADMIN_LISTING_DETAIL}/{listingId}",
-            arguments = listOf(navArgument("listingId") { type = NavType.StringType })
-        ) { entry ->
-            val id = entry.arguments?.getString("listingId") ?: ""
-            val message by entry.savedStateHandle
-                .getStateFlow<String?>(AppRoutes.LISTING_MESSAGE, null).collectAsState()
-            AdminListingDetailScreen(
-                listingId = id,
-                message = message,
-                onMessageShown = { entry.savedStateHandle[AppRoutes.LISTING_MESSAGE] = null },
-                onBackClick = { navController.popBackStack() },
-                onActionClick = { action ->
-                    navController.navigate("${AppRoutes.ADMIN_LISTING_ACTION}/$id/${action.name}")
-                }
-            )
-        }
-
-        // Pantalla: Confirmación (Aprobar, Rechazar, Desactivar, Reactivar o Eliminar)
-        composable(
-            route = "${AppRoutes.ADMIN_LISTING_ACTION}/{listingId}/{action}",
-            arguments = listOf(
-                navArgument("listingId") { type = NavType.StringType },
-                navArgument("action") { type = NavType.StringType }
-            )
-        ) { entry ->
-            val id = entry.arguments?.getString("listingId") ?: ""
-            val action = runCatching { ListingAction.valueOf(entry.arguments?.getString("action") ?: "") }.getOrNull()
-            if (action != null) {
-                ListingActionScreen(
-                    listingId = id,
-                    action = action,
-                    onBackClick = { navController.popBackStack() },
-                    onConfirmed = { message ->
-                        // Regresa al Detalle con el aviso verde.
-                        navController.previousBackStackEntry?.savedStateHandle?.set(AppRoutes.LISTING_MESSAGE, message)
-                        navController.popBackStack()
-                    },
-                    onDeleted = { message ->
-                        // Borra Detalle y Eliminar del historial y vuelve a la lista.
-                        navController.getBackStackEntry(AppRoutes.ADMIN_LISTINGS)
-                            .savedStateHandle[AppRoutes.LISTING_MESSAGE] = message
-                        navController.popBackStack(AppRoutes.ADMIN_LISTINGS, inclusive = false)
-                    }
-                )
-            }
         }
 
         // Pantalla 6b: Home (Mapa de inmuebles)
