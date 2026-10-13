@@ -1,6 +1,7 @@
 package com.equipo4.nearhome
 
 import android.graphics.Color
+import com.equipo4.nearhome.ui.theme.NearHomeTheme
 import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -86,7 +87,9 @@ class MainActivity : ComponentActivity() {
         )
         super.onCreate(savedInstanceState)
         setContent {
-            NearHouseApp()
+            NearHomeTheme {
+                NearHouseApp()
+            }
         }
     }
 }
