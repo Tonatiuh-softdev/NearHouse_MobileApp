@@ -9,6 +9,7 @@ enum class SignUpStep {
 data class SignUpUiState(
     val step: SignUpStep = SignUpStep.FORM,
     val email: String = "",
+    val emailErrorMessage: String? = null,
     val password: String = "",
     val confirmPassword: String = "",
     val isTermsAccepted: Boolean = false,
@@ -20,6 +21,9 @@ data class SignUpUiState(
     val canResendCode: Boolean = false,
     val isLoading: Boolean = false
 ) {
+    // 🔹 Limpia espacios accidentales al inicio y al final
+    private val cleanEmail: String get() = email.trim()
+
     private val allowedDomains = listOf("gmail", "hotmail", "outlook", "ucol")
     private val allowedExtensions = listOf("com", "mx", "edu.mx", "org", "net")
 
@@ -37,11 +41,11 @@ data class SignUpUiState(
         }
     }
 
-    // Validaciones de Correo
+    // Validaciones de Correo sobre cleanEmail
     val isEmailValid: Boolean
         get() {
-            if (email.isBlank() || !email.contains("@")) return false
-            val parts = email.split("@", limit = 2)
+            if (cleanEmail.isBlank() || !cleanEmail.contains("@")) return false
+            val parts = cleanEmail.split("@", limit = 2)
             if (parts.size != 2) return false
 
             val localPart = parts[0]
@@ -50,40 +54,27 @@ data class SignUpUiState(
             if (localPart.isEmpty() || domainPart.isEmpty()) return false
             if (!hasValidDomainExtension(domainPart)) return false
 
-            return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
+            return android.util.Patterns.EMAIL_ADDRESS.matcher(cleanEmail).matches()
         }
 
     val showEmailError: Boolean
-        get() = email.isNotEmpty() && !isEmailValid
+        get() = email.isNotEmpty() && (!isEmailValid || emailErrorMessage != null)
 
-    val emailErrorMessage: String?
+    val displayEmailError: String?
         get() {
-            if (email.isEmpty()) return null
-            if (!email.contains("@")) return "El correo debe incluir '@'"
+            if (emailErrorMessage != null) return emailErrorMessage
+            if (cleanEmail.isEmpty()) return null
+            if (!cleanEmail.contains("@")) return "El correo debe incluir '@'"
 
-            val parts = email.split("@", limit = 2)
+            val parts = cleanEmail.split("@", limit = 2)
             val localPart = parts[0]
             val domainPart = parts.getOrNull(1)?.lowercase().orEmpty()
 
-            if (localPart.isEmpty()) {
-                return "Debe ingresar el correo antes del '@'"
-            }
-
-            if (domainPart.isEmpty()) {
-                return "Debe ingresar el dominio después del '@'"
-            }
-
-            if (!isDomainBaseAllowed(domainPart)) {
-                return "Solo se permiten dominios gmail, hotmail, outlook o ucol"
-            }
-
-            if (!hasValidDomainExtension(domainPart)) {
-                return "Debe incluir una extensión válida (ej: .com, .mx, .edu.mx)"
-            }
-
-            if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                return "Formato de correo electrónico inválido"
-            }
+            if (localPart.isEmpty()) return "Debe ingresar el correo antes del '@'"
+            if (domainPart.isEmpty()) return "Debe ingresar el dominio después del '@'"
+            if (!isDomainBaseAllowed(domainPart)) return "Solo se permiten dominios gmail, hotmail, outlook o ucol"
+            if (!hasValidDomainExtension(domainPart)) return "Debe incluir una extensión válida (ej: .com, .mx, .edu.mx)"
+            if (!android.util.Patterns.EMAIL_ADDRESS.matcher(cleanEmail).matches()) return "Formato de correo electrónico inválido"
 
             return null
         }

@@ -80,12 +80,16 @@ private val NavyButtonColor = Color(0xFF0B2C4D)
 private val BlueLinkColor = Color(0xFF3897F0)
 private val TextGrayDisclaimer = Color(0xFF8E8E93)
 private val GoogleButtonBg = Color(0xFFEEEEEE)
+private val PrimaryNavy = Color(0xFF0B2C4D)
+private val GrayInputBg = Color(0xFFF5F5F5)
+private val GrayInputBorder = Color(0xFFE0E0E0)
+private val ErrorRed = Color(0xFFE53935)
 
 @Composable
 fun SignUpScreen(
     viewModel: SignUpViewModel = viewModel(),
     onNavigateToLogin: () -> Unit = {},
-    onSignUpSuccess: () -> Unit = {},
+    onSignUpSuccess: () -> Unit = {}, // Dispara la transición a 'Completar Perfil' al verificar el correo
     onNavigateToTerms: () -> Unit = {},
     onNavigateToPrivacy: () -> Unit = {}
 ) {
@@ -116,7 +120,7 @@ fun SignUpScreen(
         SignUpStep.SUCCESS -> {
             LaunchedEffect(Unit) {
                 delay(1500)
-                onSignUpSuccess()
+                onSignUpSuccess() // Avanza automáticamente a la pantalla de Completar Perfil
             }
             VerifiedSuccessContent()
         }
@@ -179,10 +183,10 @@ private fun SignUpFormContent(
                     keyboardType = KeyboardType.Email
                 )
 
-                if (uiState.showEmailError && uiState.emailErrorMessage != null) {
+                if (uiState.showEmailError && uiState.displayEmailError != null) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = uiState.emailErrorMessage!!,
+                        text = uiState.displayEmailError!!,
                         color = ErrorRed,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold
@@ -240,7 +244,7 @@ private fun SignUpFormContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Checkbox y Texto interactivo de Términos y condiciones y Política de Privacidad
+            // Checkbox y Términos y condiciones
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -277,9 +281,7 @@ private fun SignUpFormContent(
 
                 ClickableText(
                     text = termsAnnotatedString,
-                    style = TextStyle(
-                        lineHeight = 16.sp
-                    ),
+                    style = TextStyle(lineHeight = 16.sp),
                     modifier = Modifier.weight(1f),
                     onClick = { offset ->
                         termsAnnotatedString.getStringAnnotations(tag = "TERMS", start = offset, end = offset)
@@ -317,7 +319,15 @@ private fun SignUpFormContent(
                     .fillMaxWidth()
                     .height(40.dp)
             ) {
-                Text("Enviar código de verificación", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                if (uiState.isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = Color.White,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text("Enviar código de verificación", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                }
             }
 
             Spacer(modifier = Modifier.height(18.dp))
@@ -437,7 +447,7 @@ private fun OtpVerificationContent(
         Spacer(modifier = Modifier.height(28.dp))
 
         Image(
-            painter = painterResource(id = R.drawable.ic_correo),
+            painter = painterResource(id = R.drawable.ic_nearhouse_logo),
             contentDescription = "Icono de correo",
             modifier = Modifier.size(90.dp)
         )
@@ -460,7 +470,7 @@ private fun OtpVerificationContent(
         Spacer(modifier = Modifier.height(28.dp))
 
         Text(
-            text = "Introduce el codigo:",
+            text = "Introduce el código:",
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
             color = Color.Black,
@@ -543,7 +553,7 @@ private fun OtpVerificationContent(
         if (uiState.isOtpError) {
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = uiState.otpErrorMessage ?: "El codigo es incorrecto",
+                text = uiState.otpErrorMessage ?: "El código es incorrecto",
                 color = ErrorRed,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold
@@ -591,7 +601,7 @@ private fun OtpVerificationContent(
             )
         } else {
             Text(
-                text = "¿No has recibido el codigo?. Espera ${uiState.resendCountdown}s",
+                text = "¿No has recibido el código?. Espera ${uiState.resendCountdown}s",
                 fontSize = 12.sp,
                 color = Color(0xFF888888),
                 textAlign = TextAlign.Center
@@ -706,8 +716,3 @@ private fun CustomOutlinedInput(
         modifier = Modifier.fillMaxWidth()
     )
 }
-
-private val PrimaryNavy = Color(0xFF0B2C4D)
-private val GrayInputBg = Color(0xFFF5F5F5)
-private val GrayInputBorder = Color(0xFFE0E0E0)
-private val ErrorRed = Color(0xFFE53935)
