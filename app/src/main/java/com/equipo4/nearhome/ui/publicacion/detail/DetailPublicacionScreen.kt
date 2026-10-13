@@ -131,7 +131,6 @@ private fun DetailContent(
 ) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
-    val pagerState = rememberPagerState(pageCount = { pub.imagenes.size })
     var isExpandedDescription by remember { mutableStateOf(false) }
     var selectedTab by remember { mutableStateOf(0) }
 
@@ -141,39 +140,13 @@ private fun DetailContent(
             .verticalScroll(scrollState)
             .padding(bottom = 24.dp)
     ) {
-        // --- CARRUSEL DE IMÁGENES ---
-        Box(
+        // --- CARRUSEL DE IMÁGENES (componente compartido) ---
+        PhotoGallery(
+            images = pub.imagenes,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(260.dp)
         ) {
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier.fillMaxSize()
-            ) { page ->
-                Image(
-                    painter = painterResource(id = pub.imagenes[page]),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-
-            // Contador de posición
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(12.dp)
-                    .background(Color.Black.copy(alpha = 0.6f), RoundedCornerShape(12.dp))
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
-            ) {
-                Text(
-                    text = "${pagerState.currentPage + 1}/${pub.imagenes.size}",
-                    color = Color.White,
-                    fontSize = 12.sp
-                )
-            }
-
             // Etiqueta para Vendedor
             if (pub.esPropietario) {
                 Box(
@@ -571,5 +544,31 @@ private fun HerramientasBottomSheet(
                 Text(text = "Reportar")
             }
         }
+    }
+}
+
+@Composable
+private fun PhotoGallery(
+    images: List<Int>,
+    modifier: Modifier = Modifier,
+    content: @Composable BoxScope.() -> Unit = {}
+) {
+    val totalPages = images.ifEmpty { listOf(1) }.size
+    val pagerState = rememberPagerState(pageCount = { totalPages })
+
+    Box(modifier = modifier) {
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxSize()
+        ) { page ->
+            val imageRes = images.getOrNull(page) ?: R.drawable.prop_depto_sala
+            Image(
+                painter = painterResource(id = imageRes),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+        }
+        content()
     }
 }

@@ -37,6 +37,10 @@
         <item quantity="one">1 evidencia</item>
         <item quantity="other">%d evidencias</item>
     </plurals>
+    <plurals name="selected_filters_count">
+        <item quantity="one">1 filtro seleccionado</item>
+        <item quantity="other">%d filtros seleccionados</item>
+    </plurals>
 
     <!-- Comunes -->
     <string name="common_back">Regresar</string>
@@ -75,4 +79,189 @@
 
     <!-- Panel de administración -->
     <string name="admin_panel_title">Panel de administración</string>
+
+    <!-- Anuncios (administración) -->
+    <string name="listings_title">Anuncios</string>
+    <plurals name="listings_pending_count">
+        <item quantity="one">%d pendiente por revisar</item>
+        <item quantity="other">%d pendientes por revisar</item>
+    </plurals>
+    <plurals name="listings_results_count">
+        <item quantity="one">%d resultado</item>
+        <item quantity="other">%d resultados</item>
+    </plurals>
+    <plurals name="listings_filters_selected">
+        <item quantity="one">%d filtro seleccionado</item>
+        <item quantity="other">%d filtros seleccionados</item>
+    </plurals>
+    <string name="listings_search_hint">Buscar por título, ID o anunciante</string>
+    <string name="listings_search_clear">Borrar búsqueda</string>
+    <string name="listings_filters_button">Filtros</string>
+    <string name="listings_showing_queue">Pendientes de revisión</string>
+    <string name="listings_showing_all">Todos los anuncios</string>
+    <string name="listings_showing_format">%1$s · %2$s</string>
+    <string name="listings_review_notice">Revisar antes de publicar</string>
+    <string name="listings_empty_title">No hay anuncios para este filtro</string>
+    <string name="listings_empty_message">No encontramos %1$s</string>
+    <string name="listings_clear_button">Limpiar búsqueda y filtros</string>
+
+    <!-- Palabras sueltas para armar mensajes -->
+    <string name="listing_word_listings">anuncios</string>
+    <string name="listing_word_or">" o "</string>
+    <string name="listing_word_and">" y "</string>
+    <string name="listing_of_type_format">de tipo %1$s</string>
+    <string name="listing_matching_format">que coinciden con “%1$s”</string>
+
+    <!-- Estados -->
+    <string name="listing_status_pending">Pendiente</string>
+    <string name="listing_status_pending_review">Pendiente de revisión</string>
+    <string name="listing_status_active">Activo</string>
+    <string name="listing_status_rejected">Rechazado</string>
+    <string name="listing_status_deactivated">Desactivado</string>
+    <string name="listing_status_closed">Rentado/Vendido</string>
+    <string name="listing_status_deleted">Eliminado</string>
+    <string name="listing_status_adj_pending">pendientes</string>
+    <string name="listing_status_adj_active">activos</string>
+    <string name="listing_status_adj_rejected">rechazados</string>
+    <string name="listing_status_adj_deactivated">desactivados</string>
+    <string name="listing_status_adj_closed">rentados o vendidos</string>
+
+    <!-- Modalidad, tipo y orden -->
+    <string name="listing_mode_rent">Renta</string>
+    <string name="listing_mode_sale">Venta</string>
+    <string name="listing_mode_in_rent">en renta</string>
+    <string name="listing_mode_in_sale">en venta</string>
+    <string name="listing_type_apartment">Departamento</string>
+    <string name="listing_type_house">Casa</string>
+    <string name="listing_type_land">Terreno</string>
+    <string name="listing_type_plural_apartment">departamentos</string>
+    <string name="listing_type_plural_house">casas</string>
+    <string name="listing_type_plural_land">terrenos</string>
+    <string name="listing_order_newest">Más recientes primero</string>
+    <string name="listing_order_oldest">Más antiguos primero</string>
+
+    <!-- Precio -->
+    <string name="listing_price_rent">$%1$s/mes</string>
+    <string name="listing_price_sale">$%1$s</string>
+
+    <!-- Filtrar anuncios -->
+    <string name="filters_title">Filtrar anuncios</string>
+    <string name="filters_status">Estado</string>
+    <string name="filters_mode">Modalidad</string>
+    <string name="filters_type">Tipo de propiedad</string>
+    <string name="filters_order">Orden por fecha</string>
+    <string name="filters_option_with_count">%1$s (%2$d)</string>
+    <string name="filters_clear">Limpiar</string>
+    <string name="filters_apply">Aplicar</string>
+    <string name="filters_note_all">Se mostrarán todos los anuncios</string>
+    <string name="filters_note_format">Se mostrarán %1$s</string>
+    <string name="filters_note_still_pending">que siguen pendientes de revisión</string>
+    <string name="filters_note_with_status">con estado %1$s</string>
+
+    <!-- Detalle del anuncio -->
+    <string name="listing_detail_title">Detalle del anuncio</string>
+    <string name="listing_detail_header_format">%1$s · %2$s</string>
+    <string name="listing_advertiser">Anunciante</string>
+    <string name="listing_default_actor">Administrador</string>
+    <string name="listing_feature_area">%1$d m²</string>
+    <plurals name="listing_feature_bedrooms">
+        <item quantity="one">%d recámara</item>
+        <item quantity="other">%d recámaras</item>
+    </plurals>
+    <plurals name="listing_feature_bathrooms">
+        <item quantity="one">%d baño</item>
+        <item quantity="other">%d baños</item>
+    </plurals>
+    <plurals name="listing_feature_garages">
+        <item quantity="one">%d cochera</item>
+        <item quantity="other">%d cocheras</item>
+    </plurals>
+    <string name="listing_admin_data">Datos administrativos</string>
+    <string name="listing_registered_on">Fecha de registro</string>
+    <string name="listing_verified">Verificado</string>
+    <string name="listing_not_verified">Sin verificar</string>
+    <string name="listing_history_title">Historial de cambios de estado</string>
+    <string name="listing_history_created">Anuncio registrado como</string>
+    <string name="listing_history_by_format">Por %1$s</string>
+    <string name="listing_history_reason_format">Motivo: %1$s</string>
+
+    <!-- Botones de acción -->
+    <string name="listing_action_approve">Aprobar</string>
+    <string name="listing_action_reject">Rechazar</string>
+    <string name="listing_action_deactivate">Desactivar</string>
+    <string name="listing_action_reactivate">Reactivar</string>
+    <string name="listing_action_delete">Eliminar</string>
+    <string name="listing_action_cancel">Cancelar</string>
+
+    <!-- Confirmaciones: parte común -->
+    <string name="listing_change_title">Cambio de estado</string>
+    <string name="listing_change_current">Estado actual</string>
+    <string name="listing_change_new">Estado nuevo</string>
+
+    <!-- Avisos al regresar -->
+    <string name="listing_msg_approved">Anuncio aprobado</string>
+    <string name="listing_msg_rejected">Anuncio rechazado</string>
+    <string name="listing_msg_deactivated">Anuncio desactivado</string>
+    <string name="listing_msg_reactivated">Anuncio reactivado</string>
+    <string name="listing_msg_deleted">Se eliminó el anuncio %1$s</string>
+
+    <!-- Aprobar -->
+    <string name="listing_approve_title">Aprobar anuncio</string>
+    <string name="listing_approve_question">¿Aprobar este anuncio?</string>
+    <string name="listing_approve_body">Al aprobarlo, el anuncio quedará activo y visible para los usuarios.</string>
+    <string name="listing_approve_checklist_title">Antes de aprobar</string>
+    <string name="listing_approve_check_1">Las fotos corresponden a la propiedad</string>
+    <string name="listing_approve_check_2">El título, el precio y la descripción son coherentes</string>
+    <string name="listing_approve_check_3">Los datos del anunciante están completos</string>
+    <string name="listing_approve_confirm">Aprobar y activar</string>
+
+    <!-- Rechazar -->
+    <string name="listing_reject_title">Rechazar anuncio</string>
+    <string name="listing_reject_question">¿Rechazar este anuncio?</string>
+    <string name="listing_reject_body">El anuncio no se publicará. Escribe el motivo para dejar constancia.</string>
+    <string name="listing_reject_label">Motivo del rechazo</string>
+    <string name="listing_reject_hint">Mínimo %1$d caracteres</string>
+    <string name="listing_reject_error_required">Este campo es obligatorio para confirmar el rechazo</string>
+    <string name="listing_reject_error_min">Escribe al menos %1$d caracteres</string>
+    <string name="listing_reject_confirm">Confirmar rechazo</string>
+
+    <!-- Desactivar -->
+    <string name="listing_deactivate_title">Desactivar anuncio</string>
+    <string name="listing_deactivate_question">¿Desactivar este anuncio?</string>
+    <string name="listing_deactivate_body">El anuncio dejará de ser visible para los usuarios.</string>
+    <string name="listing_deactivate_warning">La desactivación es temporal. Podrás reactivar el anuncio cuando lo necesites.</string>
+    <string name="listing_deactivate_label">Causa de desactivación</string>
+    <string name="listing_deactivate_error_required">Este campo es obligatorio para confirmar la desactivación</string>
+    <string name="listing_deactivate_confirm">Desactivar anuncio</string>
+
+    <!-- Reactivar -->
+    <string name="listing_reactivate_title">Reactivar anuncio</string>
+    <string name="listing_reactivate_question">¿Reactivar este anuncio?</string>
+    <string name="listing_reactivate_body">El anuncio volverá a estar activo.</string>
+    <string name="listing_previous_deactivation">Motivo de desactivación previo</string>
+    <string name="listing_previous_date">Fecha</string>
+    <string name="listing_previous_cause">Causa</string>
+    <string name="listing_previous_by">Registrado por</string>
+    <string name="listing_reactivate_notice">La reactivación es inmediata. El anuncio volverá a ser visible para los usuarios.</string>
+    <string name="listing_reactivate_confirm">Reactivar anuncio</string>
+
+    <!-- Eliminar -->
+    <string name="listing_delete_title">Eliminar anuncio</string>
+    <string name="listing_delete_question">¿Eliminar este anuncio?</string>
+    <string name="listing_delete_body">Revisa bien antes de continuar.</string>
+    <plurals name="listing_delete_warning">
+        <item quantity="one">La eliminación es permanente. Se borrará %d foto y no se podrá recuperar.</item>
+        <item quantity="other">La eliminación es permanente. Se borrarán %d fotos y no se podrá recuperar.</item>
+    </plurals>
+    <string name="listing_delete_label">Motivo de la eliminación</string>
+    <string name="listing_delete_error_required">Este campo es obligatorio para confirmar la eliminación</string>
+    <string name="listing_delete_list_title">Se eliminará</string>
+    <string name="listing_delete_item_listing">El anuncio y su descripción</string>
+    <plurals name="listing_delete_item_photos">
+        <item quantity="one">%d foto</item>
+        <item quantity="other">%d fotos</item>
+    </plurals>
+    <string name="listing_delete_item_history">El historial de cambios de estado</string>
+    <string name="listing_delete_acknowledge">Confirmo que revisé el anuncio y entiendo que la eliminación es terminal</string>
+    <string name="listing_delete_confirm">Eliminar definitivamente</string>
 </resources>
