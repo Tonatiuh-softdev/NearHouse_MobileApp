@@ -9,6 +9,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -19,7 +20,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.equipo4.nearhome.ui.admin.AdminPanelScreen
-import com.equipo4.nearhome.ui.admin.anuncios.*
+import com.equipo4.nearhome.ui.admin.listings.AdminListingDetailScreen
+import com.equipo4.nearhome.ui.admin.listings.AdminListingsScreen
+import com.equipo4.nearhome.ui.admin.listings.ListingActionScreen
+import com.equipo4.nearhome.ui.admin.listings.ListingFiltersScreen
+import com.equipo4.nearhome.ui.admin.listings.AdminListingsViewModel
+import com.equipo4.nearhome.domain.model.ListingAction
 import com.equipo4.nearhome.ui.admin.reports.ReportsScreen
 import com.equipo4.nearhome.ui.admin.reports.ReportDetailScreen
 import com.equipo4.nearhome.ui.admin.reports.ReportConfirmationScreen
@@ -57,10 +63,12 @@ object AppRoutes {
     const val ADMIN_REPORTS = "admin_reports"
     const val ADMIN_REPORT_DETAIL = "admin_report_detail"
     const val ADMIN_REPORT_CONFIRMATION = "admin_report_confirmation"
-    const val ADMIN_ADS = "admin_ads"
-    const val ADMIN_AD_FILTERS = "admin_ad_filters"
-    const val ADMIN_AD_DETAIL = "admin_ad_detail"
-    const val ADMIN_AD_CONFIRMATION = "admin_ad_confirmation"
+    const val ADMIN_LISTINGS = "admin_listings"
+    const val ADMIN_LISTING_FILTERS = "admin_listing_filters"
+    const val ADMIN_LISTING_DETAIL = "admin_listing_detail"
+    const val ADMIN_LISTING_ACTION = "admin_listing_action"
+    /** Clave del aviso verde que se pasa entre pantallas de Anuncios. */
+    const val LISTING_MESSAGE = "listing_message"
 }
 
 class MainActivity : ComponentActivity() {
@@ -280,118 +288,10 @@ fun NearHouseApp() {
                 },
                 onNavigateToUsers = {},
                 onNavigateToAds = {
-                    navController.navigate(AppRoutes.ADMIN_ADS)
+                    navController.navigate(AppRoutes.ADMIN_LISTINGS)
                 },
                 onBottomTabSelected = onBottomTab
             )
-        }
-
-        // Módulo de administración de anuncios. Se comparte el ViewModel
-        // usando la entrada del panel para conservar los datos en memoria
-        // durante todo el recorrido lista -> detalle -> confirmación.
-        composable(AppRoutes.ADMIN_ADS) {
-            val adminEntry = remember(navController) { navController.getBackStackEntry(AppRoutes.ADMIN_PANEL) }
-            val anunciosViewModel: AnuncioAdminViewModel = viewModel(adminEntry)
-            AnuncioListaScreen(
-                viewModel = anunciosViewModel,
-                onIrADetalle = { id ->
-                    anunciosViewModel.seleccionarAnuncioPorId(id)
-                    navController.navigate("${AppRoutes.ADMIN_AD_DETAIL}/$id")
-                },
-                onIrAFiltros = { navController.navigate(AppRoutes.ADMIN_AD_FILTERS) }
-            )
-        }
-
-        composable(AppRoutes.ADMIN_AD_FILTERS) {
-            val adminEntry = remember(navController) { navController.getBackStackEntry(AppRoutes.ADMIN_PANEL) }
-            val anunciosViewModel: AnuncioAdminViewModel = viewModel(adminEntry)
-            AnuncioFiltrosScreen(
-                viewModel = anunciosViewModel,
-                onVolver = { navController.popBackStack() }
-            )
-        }
-
-        composable(
-            route = "${AppRoutes.ADMIN_AD_DETAIL}/{anuncioId}",
-            arguments = listOf(navArgument("anuncioId") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val adminEntry = remember(navController) { navController.getBackStackEntry(AppRoutes.ADMIN_PANEL) }
-            val anunciosViewModel: AnuncioAdminViewModel = viewModel(adminEntry)
-            val anuncioId = backStackEntry.arguments?.getString("anuncioId").orEmpty()
-            androidx.compose.runtime.LaunchedEffect(anuncioId) {
-                anunciosViewModel.seleccionarAnuncioPorId(anuncioId)
-            }
-            AnuncioDetalleScreen(
-                viewModel = anunciosViewModel,
-                onAccion = { accion ->
-                    navController.navigate("${AppRoutes.ADMIN_AD_CONFIRMATION}/$accion/$anuncioId")
-                }
-            )
-        }
-
-        composable(
-            route = "${AppRoutes.ADMIN_AD_CONFIRMATION}/{accion}/{anuncioId}",
-            arguments = listOf(
-                navArgument("accion") { type = NavType.StringType },
-                navArgument("anuncioId") { type = NavType.StringType }
-            )
-        ) { backStackEntry ->
-            val adminEntry = remember(navController) { navController.getBackStackEntry(AppRoutes.ADMIN_PANEL) }
-            val anunciosViewModel: AnuncioAdminViewModel = viewModel(adminEntry)
-            val accion = backStackEntry.arguments?.getString("accion").orEmpty()
-            val anuncioId = backStackEntry.arguments?.getString("anuncioId").orEmpty()
-            val anuncio = anunciosViewModel.todosLosAnuncios.collectAsState().value.find { it.id == anuncioId }
-            if (anuncio == null) {
-                androidx.compose.runtime.LaunchedEffect(Unit) { navController.popBackStack(AppRoutes.ADMIN_ADS, false) }
-            } else {
-                val cancelar: () -> Unit = { navController.popBackStack() }
-                when (accion) {
-                    "aprobar" -> ConfirmacionAprobarScreen(
-                        anuncio = anuncio,
-                        onConfirmar = {
-                            anunciosViewModel.aprobarAnuncio(anuncioId)
-                            navController.popBackStack()
-                        },
-                        onCancelar = cancelar
-                    )
-                    "rechazar" -> ConfirmacionRechazarScreen(
-                        anuncio = anuncio,
-                        onConfirmar = { motivo ->
-                            anunciosViewModel.rechazarAnuncio(anuncioId, motivo)
-                            navController.popBackStack()
-                        },
-                        onCancelar = cancelar
-                    )
-                    "desactivar" -> ConfirmacionDesactivarScreen(
-                        anuncio = anuncio,
-                        onConfirmar = { causa ->
-                            anunciosViewModel.desactivarAnuncio(anuncioId, causa)
-                            navController.popBackStack()
-                        },
-                        onCancelar = cancelar
-                    )
-                    "reactivar" -> ConfirmacionReactivarScreen(
-                        anuncio = anuncio,
-                        onConfirmar = {
-                            anunciosViewModel.reactivarAnuncio(anuncioId)
-                            navController.popBackStack()
-                        },
-                        onCancelar = cancelar
-                    )
-                    "eliminar" -> ConfirmacionEliminarScreen(
-                        anuncio = anuncio,
-                        onConfirmar = { _ ->
-                            anunciosViewModel.eliminarAnuncio(anuncioId)
-                            navController.navigate(AppRoutes.ADMIN_ADS) {
-                                popUpTo(AppRoutes.ADMIN_ADS) { inclusive = true }
-                                launchSingleTop = true
-                            }
-                        },
-                        onCancelar = cancelar
-                    )
-                    else -> cancelar()
-                }
-            }
         }
 
         // Pantalla: Reportes
@@ -443,6 +343,79 @@ fun NearHouseApp() {
                     }
                 }
             )
+        }
+
+        // Pantalla: Anuncios (administración)
+        composable(AppRoutes.ADMIN_LISTINGS) { entry ->
+            val message by entry.savedStateHandle
+                .getStateFlow<String?>(AppRoutes.LISTING_MESSAGE, null).collectAsState()
+            AdminListingsScreen(
+                message = message,
+                onMessageShown = { entry.savedStateHandle[AppRoutes.LISTING_MESSAGE] = null },
+                onBackClick = { navController.popBackStack() },
+                onFiltersClick = { navController.navigate(AppRoutes.ADMIN_LISTING_FILTERS) },
+                onListingClick = { id -> navController.navigate("${AppRoutes.ADMIN_LISTING_DETAIL}/$id") },
+                onBottomTabSelected = onBottomTab
+            )
+        }
+
+        // Pantalla: Filtrar anuncios (comparte el ViewModel de la lista)
+        composable(AppRoutes.ADMIN_LISTING_FILTERS) { entry ->
+            val parent = remember(entry) { navController.getBackStackEntry(AppRoutes.ADMIN_LISTINGS) }
+            ListingFiltersScreen(
+                viewModel = viewModel<AdminListingsViewModel>(parent),
+                onBackClick = { navController.popBackStack() },
+                onApplied = { navController.popBackStack() }
+            )
+        }
+
+        // Pantalla: Detalle del anuncio
+        composable(
+            route = "${AppRoutes.ADMIN_LISTING_DETAIL}/{listingId}",
+            arguments = listOf(navArgument("listingId") { type = NavType.StringType })
+        ) { entry ->
+            val id = entry.arguments?.getString("listingId") ?: ""
+            val message by entry.savedStateHandle
+                .getStateFlow<String?>(AppRoutes.LISTING_MESSAGE, null).collectAsState()
+            AdminListingDetailScreen(
+                listingId = id,
+                message = message,
+                onMessageShown = { entry.savedStateHandle[AppRoutes.LISTING_MESSAGE] = null },
+                onBackClick = { navController.popBackStack() },
+                onActionClick = { action ->
+                    navController.navigate("${AppRoutes.ADMIN_LISTING_ACTION}/$id/${action.name}")
+                }
+            )
+        }
+
+        // Pantalla: Confirmación (Aprobar, Rechazar, Desactivar, Reactivar o Eliminar)
+        composable(
+            route = "${AppRoutes.ADMIN_LISTING_ACTION}/{listingId}/{action}",
+            arguments = listOf(
+                navArgument("listingId") { type = NavType.StringType },
+                navArgument("action") { type = NavType.StringType }
+            )
+        ) { entry ->
+            val id = entry.arguments?.getString("listingId") ?: ""
+            val action = runCatching { ListingAction.valueOf(entry.arguments?.getString("action") ?: "") }.getOrNull()
+            if (action != null) {
+                ListingActionScreen(
+                    listingId = id,
+                    action = action,
+                    onBackClick = { navController.popBackStack() },
+                    onConfirmed = { message ->
+                        // Regresa al Detalle con el aviso verde.
+                        navController.previousBackStackEntry?.savedStateHandle?.set(AppRoutes.LISTING_MESSAGE, message)
+                        navController.popBackStack()
+                    },
+                    onDeleted = { message ->
+                        // Borra Detalle y Eliminar del historial y vuelve a la lista.
+                        navController.getBackStackEntry(AppRoutes.ADMIN_LISTINGS)
+                            .savedStateHandle[AppRoutes.LISTING_MESSAGE] = message
+                        navController.popBackStack(AppRoutes.ADMIN_LISTINGS, inclusive = false)
+                    }
+                )
+            }
         }
 
         // Pantalla 6b: Home (Mapa de inmuebles)
