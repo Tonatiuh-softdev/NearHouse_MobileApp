@@ -226,31 +226,35 @@ fun CompleteProfileScreen(
             // Botón Continuar
             Button(
                 onClick = {
-                    val isValid = viewModel.onContinueClicked()
-                    if (isValid && isFormValid) {
-                        val digits = uiState.phoneNumber.filter { it.isDigit() }
-                        val formattedPhone = if (digits.length == 10) {
-                            "${uiState.selectedCountry.code} ${digits.substring(0, 3)}-${digits.substring(3, 6)}-${digits.substring(6)}"
-                        } else {
-                            "${uiState.selectedCountry.code} ${uiState.phoneNumber}"
+                    if (isFormValid) {
+                        viewModel.onContinueClicked { formattedPhone ->
+                            onCompleteProfileSuccess(formattedPhone)
                         }
-                        onCompleteProfileSuccess(formattedPhone)
                     }
                 },
+                enabled = !uiState.isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(46.dp),
                 shape = RoundedCornerShape(10.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isFormValid) PrimaryNavy else DisabledButtonBg,
+                    containerColor = if (isFormValid && !uiState.isLoading) PrimaryNavy else DisabledButtonBg,
                     contentColor = Color.White
                 )
             ) {
-                Text(
-                    text = "Continuar",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                if (uiState.isLoading) {
+                    androidx.compose.material3.CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = Color.White,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(
+                        text = "Continuar",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
 
             if (uiState.showGeneralError && !isFormValid) {
