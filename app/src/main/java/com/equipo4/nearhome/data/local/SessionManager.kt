@@ -38,7 +38,10 @@ class SessionManager(context: Context) {
     fun getToken(): String? = prefs.getString(KEY_TOKEN, null)
 
     // --- Métodos requeridos por ProfileViewModel ---
-    fun getUserName(): String? = prefs.getString(KEY_NOMBRE, null)
+    fun getUserName(): String? {
+        // Reemplaza "USER_NAME" por la clave con la que guardas el nombre en SharedPreferences
+        return prefs.getString("USER_NAME", null)
+    }
 
     fun getUserRole(): String? = prefs.getString(KEY_ROL, null)
 
