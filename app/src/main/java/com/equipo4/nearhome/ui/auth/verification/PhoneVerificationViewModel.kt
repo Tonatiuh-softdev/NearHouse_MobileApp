@@ -42,6 +42,7 @@ class PhoneVerificationViewModel(
     fun onVerifyClicked() {
         val currentCode = _uiState.value.otpCode
 
+        // Validación del código SMS (Mock '123456' o número de prueba Firebase)
         if (currentCode != "123456") {
             _uiState.update {
                 it.copy(
@@ -52,7 +53,6 @@ class PhoneVerificationViewModel(
             return
         }
 
-        // Código mock (123456) válido -> Consumir API de registro final en Ktor
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, isError = false, errorMessage = null) }
 
@@ -71,7 +71,8 @@ class PhoneVerificationViewModel(
                 primerApellido = primerAp,
                 segundoApellido = segAp,
                 telefono = telefono,
-                comprobanteCorreo = comprobante
+                comprobanteCorreo = comprobante,
+                tokenFirebase = "mock_firebase_token_dev" // Reemplazar por token de Firebase Auth si aplica
             )
 
             if (result.isSuccess) {
