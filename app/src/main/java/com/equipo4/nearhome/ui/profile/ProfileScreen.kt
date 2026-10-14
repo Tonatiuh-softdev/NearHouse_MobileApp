@@ -1,5 +1,6 @@
 package com.equipo4.nearhome.ui.profile
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -120,7 +121,12 @@ fun ProfileContent(
             if (uiState.showMyListings) {
                 ProfileRow(
                     Icons.Outlined.Verified, stringResource(R.string.profile_my_listings),
-                    showDivider = uiState.showAccountAdmin || uiState.showAdminPanel, onClick = onMyListingsClick
+                    showDivider = uiState.showAccountAdmin || uiState.showAdminPanel,
+                    onClick = {
+                        if (uiState.role == UserRole.COMPRADOR) {
+                            onMyListingsClick()
+                        }
+                    }
                 )
             }
             if (uiState.showAccountAdmin) {
