@@ -5,7 +5,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.equipo4.nearhome.data.local.SessionManager
 import com.equipo4.nearhome.di.NetworkModule
-import com.equipo4.nearhome.domain.model.RegistroTemporal
 import com.equipo4.nearhome.network.AuthApi
 import com.equipo4.nearhome.network.RequestCodigoCorreo
 import com.equipo4.nearhome.network.VerifyCodigoCorreoRequest
@@ -18,6 +17,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.io.IOException
+import com.equipo4.nearhome.data.model.RegistroTemporal
+
 
 class SignUpViewModel(
     application: Application
@@ -115,7 +116,7 @@ class SignUpViewModel(
             try {
                 val response = authApi.verificarCodigoCorreo(
                     VerifyCodigoCorreoRequest(
-                        correo = RegistroTemporal.correo,
+                        correo = RegistroTemporal.correo.orEmpty(),
                         codigo = fullCode
                     )
                 )
@@ -159,7 +160,7 @@ class SignUpViewModel(
             _uiState.update { it.copy(isLoading = true) }
             try {
                 val response = authApi.solicitarCodigoCorreo(
-                    RequestCodigoCorreo(correo = RegistroTemporal.correo)
+                    RequestCodigoCorreo(correo = RegistroTemporal.correo.orEmpty())
                 )
                 if (response.isSuccessful) {
                     _uiState.update { it.copy(isLoading = false) }

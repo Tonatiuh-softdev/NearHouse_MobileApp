@@ -30,7 +30,8 @@ class AuthRepository(
         correo: String,
         contrasena: String,
         nombre: String,
-        apellidos: String,
+        primerApellido: String,
+        segundoApellido: String?,
         telefono: String,
         comprobanteCorreo: String,
         tokenFirebase: String = "token_fcm_dev_mock"
@@ -40,7 +41,8 @@ class AuthRepository(
                 correo = correo,
                 contrasena = contrasena,
                 nombre = nombre,
-                apellidos = apellidos,
+                primerApellido = primerApellido,
+                segundoApellido = segundoApellido,
                 telefono = telefono,
                 comprobanteCorreo = comprobanteCorreo,
                 tokenFirebase = tokenFirebase
@@ -51,7 +53,8 @@ class AuthRepository(
             if (response.isSuccessful && body != null) {
                 Result.success(body)
             } else {
-                Result.failure(Exception("Error en el servidor al registrar cuenta (${response.code()})"))
+                val errorDetail = response.errorBody()?.string() ?: "Datos de registro inválidos"
+                Result.failure(Exception("Servidor (${response.code()}): $errorDetail"))
             }
         } catch (e: Exception) {
             Result.failure(Exception("Error de comunicación: ${e.message}"))

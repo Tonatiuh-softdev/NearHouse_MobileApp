@@ -44,7 +44,8 @@ data class RegistroFinalRequest(
     val correo: String,
     val contrasena: String,
     val nombre: String,
-    val apellidos: String,
+    val primerApellido: String,
+    val segundoApellido: String? = null,
     val telefono: String,
     val comprobanteCorreo: String,
     val tokenFirebase: String

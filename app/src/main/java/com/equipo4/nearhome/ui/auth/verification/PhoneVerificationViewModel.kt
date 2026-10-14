@@ -60,8 +60,7 @@ class PhoneVerificationViewModel(
             val contrasena = RegistroTemporal.contrasena.orEmpty()
             val nombre = RegistroTemporal.nombre.orEmpty()
             val primerAp = RegistroTemporal.primerApellido.orEmpty()
-            val segAp = RegistroTemporal.segundoApellido.orEmpty()
-            val apellidos = if (segAp.isBlank()) primerAp else "$primerAp $segAp"
+            val segAp = RegistroTemporal.segundoApellido?.takeIf { it.isNotBlank() }
             val telefono = RegistroTemporal.telefono.orEmpty()
             val comprobante = RegistroTemporal.comprobanteCorreo.orEmpty()
 
@@ -69,13 +68,13 @@ class PhoneVerificationViewModel(
                 correo = correo,
                 contrasena = contrasena,
                 nombre = nombre,
-                apellidos = apellidos,
+                primerApellido = primerAp,
+                segundoApellido = segAp,
                 telefono = telefono,
                 comprobanteCorreo = comprobante
             )
 
             if (result.isSuccess) {
-                // Limpiar memoria RAM tras registro exitoso
                 RegistroTemporal.limpiar()
                 _uiState.update { it.copy(isLoading = false, isVerified = true) }
             } else {
