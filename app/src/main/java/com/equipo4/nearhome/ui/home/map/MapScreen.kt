@@ -1,14 +1,14 @@
 package com.equipo4.nearhome.ui.home.map
 
-import androidx.compose.foundation.Canvas
+import android.content.Context
+import android.graphics.Bitmap
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -16,11 +16,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FormatListBulleted
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -28,34 +26,34 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.withTransform
-import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.domain.model.ListingType
 import com.equipo4.nearhome.domain.model.Property
 import com.equipo4.nearhome.domain.model.PropertyType
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
+import com.google.android.gms.maps.model.BitmapDescriptor
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.rememberCameraPositionState
+import com.google.maps.android.compose.rememberUpdatedMarkerState
 import java.text.NumberFormat
 import java.util.Locale
 import kotlin.math.roundToInt
@@ -67,6 +65,10 @@ private val BadgeBlueBg = Color(0xFFEBF5FF)
 private val BadgeBlueText = Color(0xFF1E88E5)
 private val TextDark = Color(0xFF1F2937)
 private val TextGray = Color(0xFF6B7280)
+
+/** Tamaño de los pines en el mapa (dp). Si se ven grandes o chicos, se ajusta aquí. */
+private const val PIN_WIDTH_DP = 36
+private const val PIN_HEIGHT_DP = 50
 
 /**
  * Fuente única de color por tipo de propiedad. Los indicadores del filtro usan estos colores,
@@ -97,19 +99,26 @@ private fun typeLabel(type: PropertyType) = when (type) {
     PropertyType.DEPARTAMENTO -> "Departamentos"
 }
 
-// ---- Mapa ficticio -------------------------------------------------------------------------
-// Mundo de 800x1000 "dp". Las coordenadas lat/lng de las propiedades se proyectan a este plano.
-private const val WORLD_W = 800f
-private const val WORLD_H = 1000f
-private const val LON_MIN = -104.36
-private const val LON_MAX = -104.28
-private const val LAT_MIN = 19.04
-private const val LAT_MAX = 19.13
-
-private fun Property.worldPos(): Offset {
-    val x = ((longitude!! - LON_MIN) / (LON_MAX - LON_MIN) * WORLD_W).toFloat()
-    val y = ((LAT_MAX - latitude!!) / (LAT_MAX - LAT_MIN) * WORLD_H).toFloat()
-    return Offset(x, y)
+/**
+ * Convierte un drawable (PNG o vector) en un ícono de marcador con el tamaño indicado en dp.
+ * Debe llamarse cuando el mapa ya está listo (por ejemplo, dentro del contenido de GoogleMap).
+ */
+private fun scaledPinIcon(
+    context: Context,
+    @DrawableRes resId: Int,
+    widthDp: Int,
+    heightDp: Int
+): BitmapDescriptor {
+    val density = context.resources.displayMetrics.density
+    val widthPx = (widthDp * density).roundToInt()
+    val heightPx = (heightDp * density).roundToInt()
+    val drawable = ContextCompat.getDrawable(context, resId)
+        ?: return BitmapDescriptorFactory.defaultMarker()
+    val bitmap = Bitmap.createBitmap(widthPx, heightPx, Bitmap.Config.ARGB_8888)
+    val canvas = android.graphics.Canvas(bitmap)
+    drawable.setBounds(0, 0, widthPx, heightPx)
+    drawable.draw(canvas)
+    return BitmapDescriptorFactory.fromBitmap(bitmap)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -143,9 +152,9 @@ fun MapScreen(
             Spacer(Modifier.height(6.dp))
 
             Box(modifier = Modifier.fillMaxSize()) {
-                FakeMap(
+                GoogleMapView(
                     properties = visibleProperties,
-                    onPropertyClick = viewModel::onMarkerSelected
+                    onMarkerClick = viewModel::onMarkerSelected
                 )
 
                 if (uiState.isLoading) {
@@ -196,182 +205,53 @@ fun MapScreen(
     }
 }
 
-/** Mapa dibujado con Canvas (sin Google Maps): arrastrar y pellizcar para hacer zoom. Un pin por propiedad. */
+/**
+ * Mapa real de Google Maps, centrado en Manzanillo. Un marcador por propiedad visible,
+ * con el pin de su tipo. El clic se consume (devuelve true) para que Google no muestre
+ * su globo de información por defecto.
+ */
 @Composable
-private fun FakeMap(
+private fun GoogleMapView(
     properties: List<Property>,
-    onPropertyClick: (String) -> Unit
+    onMarkerClick: (String) -> Unit
 ) {
-    val density = LocalDensity.current
-    val textMeasurer = rememberTextMeasurer()
+    val context = LocalContext.current
+    val manzanillo = LatLng(19.08, -104.32)
 
-    BoxWithConstraints(modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(0.dp))) {
-        val viewW = with(density) { maxWidth.toPx() }
-        val viewH = with(density) { maxHeight.toPx() }
-        val d = density.density
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(manzanillo, 13f)
+    }
 
-        // Zoom mínimo = que el mundo llene la pantalla; el inicial es un poco más cercano.
-        val minScale = maxOf(viewW / (WORLD_W * d), viewH / (WORLD_H * d))
-        val maxScale = minScale * 4f
-        var mapScale by remember(viewW, viewH) { mutableFloatStateOf(minScale * 1.3f) }
-        var offset by remember(viewW, viewH) {
-            mutableStateOf(Offset(-(WORLD_W * d * minScale * 1.3f - viewW) * 0.45f, -(WORLD_H * d * minScale * 1.3f - viewH) * 0.55f))
-        }
-
-        fun clampOffset(o: Offset, s: Float): Offset {
-            val minX = viewW - WORLD_W * d * s
-            val minY = viewH - WORLD_H * d * s
-            return Offset(o.x.coerceIn(minX, 0f), o.y.coerceIn(minY, 0f))
-        }
-
-        fun zoomAround(focus: Offset, factor: Float) {
-            val newScale = (mapScale * factor).coerceIn(minScale, maxScale)
-            val ratio = newScale / mapScale
-            offset = clampOffset((offset - focus) * ratio + focus, newScale)
-            mapScale = newScale
-        }
-
-        Canvas(
-            modifier = Modifier
-                .fillMaxSize()
-                .pointerInput(viewW, viewH) {
-                    detectTransformGestures { centroid, pan, zoom, _ ->
-                        val newScale = (mapScale * zoom).coerceIn(minScale, maxScale)
-                        val ratio = newScale / mapScale
-                        offset = clampOffset((offset - centroid) * ratio + centroid + pan, newScale)
-                        mapScale = newScale
-                    }
-                }
-        ) {
-            drawRect(Color(0xFFEDE9E1))
-            withTransform({
-                translate(offset.x, offset.y)
-                scale(mapScale * d, mapScale * d, pivot = Offset.Zero)
-            }) {
-                drawFakeCity(textMeasurer)
+    GoogleMap(
+        modifier = Modifier.fillMaxSize(),
+        cameraPositionState = cameraPositionState
+    ) {
+        // Un ícono por tipo, creado una sola vez (ya con el mapa listo).
+        val pinIcons = remember {
+            PropertyType.entries.associateWith { type ->
+                scaledPinIcon(context, pinRes(type), PIN_WIDTH_DP, PIN_HEIGHT_DP)
             }
         }
 
-        // Cada propiedad es un pin individual (sin agrupar). Se dibujan de arriba hacia abajo
-        // para que los pines más cercanos a la parte baja queden encima si se traslapan.
-        val pinW = with(density) { 36.dp.roundToPx() }
-        val pinH = with(density) { 50.dp.roundToPx() }
+        properties.forEach { property ->
+            val latitude = property.latitude
+            val longitude = property.longitude
 
-        properties.sortedBy { it.worldPos().y }.forEach { p ->
-            val w = p.worldPos()
-            val sx = w.x * d * mapScale + offset.x
-            val sy = w.y * d * mapScale + offset.y
-            Image(
-                painter = painterResource(pinRes(p.type)),
-                contentDescription = p.title,
-                modifier = Modifier
-                    .offset { IntOffset((sx - pinW / 2f).roundToInt(), (sy - pinH).roundToInt()) }
-                    .size(36.dp, 50.dp)
-                    .noRippleClickable { onPropertyClick(p.id) }
-            )
-        }
-
-        // Controles de zoom (útiles en emulador sin multitouch).
-        Column(
-            modifier = Modifier.align(Alignment.BottomEnd).padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            ZoomButton(Icons.Default.Add, "Acercar") { zoomAround(Offset(viewW / 2, viewH / 2), 1.5f) }
-            ZoomButton(Icons.Default.Remove, "Alejar") { zoomAround(Offset(viewW / 2, viewH / 2), 1f / 1.5f) }
+            if (latitude != null && longitude != null) {
+                key(property.id) {
+                    Marker(
+                        state = rememberUpdatedMarkerState(position = LatLng(latitude, longitude)),
+                        title = property.title,
+                        icon = pinIcons[property.type],
+                        onClick = {
+                            onMarkerClick(property.id)
+                            true // consume el evento: sin globo de información por defecto
+                        }
+                    )
+                }
+            }
         }
     }
-}
-
-@Composable
-private fun ZoomButton(icon: androidx.compose.ui.graphics.vector.ImageVector, description: String, onClick: () -> Unit) {
-    Surface(
-        shape = CircleShape,
-        color = Color.White,
-        shadowElevation = 4.dp,
-        modifier = Modifier.size(40.dp).noRippleClickable { onClick() }
-    ) {
-        Box(contentAlignment = Alignment.Center) {
-            Icon(icon, contentDescription = description, tint = TextDark, modifier = Modifier.size(22.dp))
-        }
-    }
-}
-
-/** Dibuja la ciudad ficticia en coordenadas de mundo (800x1000). */
-private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawFakeCity(
-    textMeasurer: androidx.compose.ui.text.TextMeasurer
-) {
-    val water = Color(0xFFA9D3F0)
-    val park = Color(0xFFC8E6B0)
-    val roadCasing = Color(0xFFD5D0C6)
-    val roadFill = Color.White
-    val block = Color(0xFFE4DFD5)
-
-    // Manzanas urbanas (cuadrícula suave)
-    for (gx in 0 until 8) for (gy in 0 until 10) {
-        drawRoundRect(
-            color = block,
-            topLeft = Offset(gx * 100f + 14f, gy * 100f + 14f),
-            size = Size(72f, 72f),
-            cornerRadius = CornerRadius(6f)
-        )
-    }
-
-    // Parques y laguna
-    drawRoundRect(park, Offset(520f, 330f), Size(150f, 110f), CornerRadius(18f))
-    drawRoundRect(park, Offset(180f, 90f), Size(120f, 90f), CornerRadius(18f))
-    drawRoundRect(park, Offset(610f, 760f), Size(130f, 130f), CornerRadius(18f))
-    drawOval(water, Offset(540f, 90f), Size(200f, 90f))
-
-    // Mar (esquina inferior izquierda)
-    val sea = Path().apply {
-        moveTo(0f, 560f)
-        cubicTo(180f, 600f, 300f, 700f, 330f, 820f)
-        cubicTo(350f, 900f, 380f, 960f, 420f, 1000f)
-        lineTo(0f, 1000f)
-        close()
-    }
-    drawPath(sea, water)
-    drawPath(sea, Color(0xFF8FC2E6), style = Stroke(width = 5f))
-
-    // Calles: contorno gris + relleno blanco
-    fun road(width: Float, pts: List<Offset>) {
-        val path = Path().apply {
-            moveTo(pts[0].x, pts[0].y)
-            for (i in 1 until pts.size) lineTo(pts[i].x, pts[i].y)
-        }
-        drawPath(path, roadCasing, style = Stroke(width + 5f, cap = StrokeCap.Round))
-        drawPath(path, roadFill, style = Stroke(width, cap = StrokeCap.Round))
-    }
-    // Avenida principal costera
-    road(20f, listOf(Offset(0f, 500f), Offset(220f, 540f), Offset(430f, 640f), Offset(560f, 800f), Offset(640f, 1000f)))
-    // Avenidas
-    road(14f, listOf(Offset(0f, 300f), Offset(800f, 300f)))
-    road(14f, listOf(Offset(0f, 700f), Offset(300f, 700f), Offset(800f, 700f)))
-    road(14f, listOf(Offset(400f, 0f), Offset(400f, 640f)))
-    road(14f, listOf(Offset(700f, 0f), Offset(700f, 1000f)))
-    road(14f, listOf(Offset(200f, 0f), Offset(200f, 520f)))
-    road(14f, listOf(Offset(0f, 100f), Offset(800f, 100f)))
-    road(14f, listOf(Offset(0f, 900f), Offset(330f, 900f), Offset(800f, 900f)))
-    // Calles secundarias
-    road(9f, listOf(Offset(0f, 200f), Offset(800f, 200f)))
-    road(9f, listOf(Offset(0f, 400f), Offset(800f, 400f)))
-    road(9f, listOf(Offset(0f, 600f), Offset(260f, 600f), Offset(800f, 600f)))
-    road(9f, listOf(Offset(0f, 800f), Offset(800f, 800f)))
-    road(9f, listOf(Offset(100f, 0f), Offset(100f, 520f)))
-    road(9f, listOf(Offset(300f, 0f), Offset(300f, 680f)))
-    road(9f, listOf(Offset(500f, 0f), Offset(500f, 1000f)))
-    road(9f, listOf(Offset(600f, 0f), Offset(600f, 1000f)))
-    road(9f, listOf(Offset(760f, 0f), Offset(760f, 1000f)))
-    // Etiquetas
-    fun label(text: String, at: Offset, color: Color = Color(0xFF6B7280), size: Float = 16f) {
-        val layout = textMeasurer.measure(text, TextStyle(fontSize = size.sp, color = color, fontWeight = FontWeight.Medium))
-        drawText(layout, topLeft = at)
-    }
-    label("Océano Pacífico", Offset(40f, 800f), Color(0xFF4E8FBF), 20f)
-    label("Av. Elías Zamora Verduzco", Offset(60f, 470f), size = 14f)
-    label("MANZANILLO", Offset(420f, 330f), Color(0xFF374151), 22f)
-    label("Laguna", Offset(610f, 115f), Color(0xFF4E8FBF), 14f)
-    label("Parque", Offset(555f, 370f), Color(0xFF5B8C3A), 14f)
 }
 
 @Composable
