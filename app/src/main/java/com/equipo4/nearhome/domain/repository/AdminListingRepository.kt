@@ -3,6 +3,7 @@ package com.equipo4.nearhome.domain.repository
 import com.equipo4.nearhome.domain.model.AdminListing
 import kotlinx.coroutines.flow.StateFlow
 
+//AdminListing
 interface AdminListingRepository {
     val listings: StateFlow<List<AdminListing>>
 
