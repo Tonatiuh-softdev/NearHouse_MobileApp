@@ -1,7 +1,6 @@
 package com.equipo4.nearhome.ui.home.list
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -10,49 +9,36 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PagerState
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.equipo4.nearhome.R
-import com.equipo4.nearhome.domain.model.ListingType
-import com.equipo4.nearhome.domain.model.Property
-import com.equipo4.nearhome.domain.model.PropertyType
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
 import com.equipo4.nearhome.ui.common.PropertyCard
-import kotlinx.coroutines.CoroutineScope
+import com.equipo4.nearhome.ui.home.filter.PropertyFilterManager
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
 
-private val NavyColor = Color(0xFF0B2C4D)
 private val LightGrayBg = Color(0xFFF3F4F6)
 private val SectionGrayBg = Color(0xFFF8F9FA)
 private val BorderColor = Color(0xFFE5E7EB)
-private val BadgeBlueBg = Color(0xFFEBF5FF)
-private val BadgeBlueText = Color(0xFF1E88E5)
-private val TextDark = Color(0xFF1F2937)
 private val TextGray = Color(0xFF6B7280)
 
 @Composable
@@ -60,11 +46,15 @@ fun HomeScreen(
     viewModel: HomeViewModel = viewModel(),
     onPropertyClick: (String) -> Unit = {},
     onToggleToMap: () -> Unit = {},
+    onFilterClick: () -> Unit = {},
     onBottomTabSelected: (Int) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
+    val filterState by PropertyFilterManager.filterState.collectAsState()
+    val activeCount = filterState.getSelectedCount()
+    val hasFilters = activeCount > 0
 
     Scaffold(
         bottomBar = {
@@ -94,7 +84,11 @@ fun HomeScreen(
             )
 
             // Botones de filtro y ordenamiento
-            FilterAndSortRow()
+            FilterAndSortRow(
+                onFilterClick = onFilterClick,
+                hasFilters = hasFilters,
+                activeCount = activeCount
+            )
 
             Spacer(modifier = Modifier.height(4.dp))
 
@@ -216,36 +210,54 @@ private fun HomeHeader(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun FilterAndSortRow() {
+private fun FilterAndSortRow(
+    onFilterClick: () -> Unit,
+    hasFilters: Boolean,
+    activeCount: Int
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 2.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        OutlinedButton(
-            onClick = { },
-            shape = RoundedCornerShape(8.dp),
-            border = BorderStroke(1.dp, BorderColor),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black),
-            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_filtrar),
-                contentDescription = "Filtrar",
-                tint = Color.Black,
-                modifier = Modifier.size(14.dp)
+        FilterChip(
+            selected = hasFilters,
+            onClick = onFilterClick,
+            label = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Icon(Icons.Outlined.FilterList, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Text("Filtrar")
+                    if (hasFilters) {
+                        Box(
+                            modifier = Modifier
+                                .size(18.dp)
+                                .background(Color(0xFF0B2C4D), CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = activeCount.toString(),
+                                color = Color.White,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+            },
+            shape = RoundedCornerShape(10.dp),
+            colors = FilterChipDefaults.filterChipColors(
+                containerColor = Color.White,
+                selectedContainerColor = Color(0xFFE0F2FE),
+                labelColor = Color(0xFF1F2937),
+                selectedLabelColor = Color(0xFF0369A1)
             )
-            Spacer(modifier = Modifier.width(6.dp))
-            Text(text = "Filtrar", fontSize = 13.sp, fontWeight = FontWeight.Medium)
-            Spacer(modifier = Modifier.width(4.dp))
-            Icon(
-                imageVector = Icons.Default.KeyboardArrowDown,
-                contentDescription = null,
-                modifier = Modifier.size(16.dp)
-            )
-        }
+        )
 
         OutlinedButton(
             onClick = { },

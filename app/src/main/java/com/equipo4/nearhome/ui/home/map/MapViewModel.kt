@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.equipo4.nearhome.data.repository.Repositories
 import com.equipo4.nearhome.domain.model.PropertyType
 import com.equipo4.nearhome.domain.repository.PropiedadRepository
+import com.equipo4.nearhome.ui.home.filter.PropertyFilterManager
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -24,6 +25,11 @@ class MapViewModel(
 
     init {
         loadProperties()
+        viewModelScope.launch {
+            PropertyFilterManager.filterState.collect { filter ->
+                _uiState.update { it.copy(filterState = filter) }
+            }
+        }
     }
 
     fun loadProperties() {
@@ -44,7 +50,6 @@ class MapViewModel(
 
     fun onSearchQueryChange(query: String) = _uiState.update { it.copy(searchQuery = query) }
 
-    /** "Todo" limpia la selección; seleccionar los tres tipos equivale a "Todo". */
     fun onTypeToggled(type: PropertyType?) {
         _uiState.update { state ->
             if (type == null) return@update state.copy(selectedTypes = emptySet())
