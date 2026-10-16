@@ -53,8 +53,6 @@ import com.equipo4.nearhome.ui.profile.ProfileScreen
 import com.equipo4.nearhome.ui.saved.SavedScreen
 import com.equipo4.nearhome.ui.publicacion.detail.DetailPublicacionScreen
 import com.equipo4.nearhome.ui.splash.SplashScreen
-import com.equipo4.nearhome.ui.subscription.ChoosePlanScreen
-import com.equipo4.nearhome.ui.subscription.CheckoutScreen
 import com.equipo4.nearhome.util.SessionManager
 
 object AppRoutes {
@@ -85,8 +83,6 @@ object AppRoutes {
     const val ADMIN_LISTING_FILTERS = "admin_listing_filters"
     const val ADMIN_LISTING_DETAIL = "admin_listing_detail"
     const val ADMIN_LISTING_ACTION = "admin_listing_action"
-    const val CHOOSE_PLAN = "choose_plan"
-    const val CHECKOUT = "checkout"
     /** Clave del aviso verde que se pasa entre pantallas de Anuncios. */
     const val LISTING_MESSAGE = "listing_message"
 }
@@ -285,9 +281,7 @@ fun NearHouseApp() {
         // Pantalla: Perfil (Vendedor/Arrendador/Admin)
         composable(AppRoutes.PROFILE) {
             ProfileScreen(
-                onMyListingsClick = {
-                    navController.navigate(AppRoutes.CHOOSE_PLAN)
-                },
+                onMyListingsClick = {},
                 onAccountClick = {},
                 onAdminPanelClick = {
                     navController.navigate(AppRoutes.ADMIN_PANEL)
@@ -301,31 +295,6 @@ fun NearHouseApp() {
                     }
                 },
                 onBottomTabSelected = onBottomTab
-            )
-        }
-
-        // Pantalla: Elige tu plan (Suscripción)
-        composable(AppRoutes.CHOOSE_PLAN) {
-            ChoosePlanScreen(
-                onBackClick = { navController.popBackStack() },
-                onPlanSelected = { planId ->
-                    navController.navigate("${AppRoutes.CHECKOUT}/$planId")
-                }
-            )
-        }
-
-        // Pantalla: Confirmación de pago / Prueba gratuita
-        composable(
-            route = "${AppRoutes.CHECKOUT}/{planId}",
-            arguments = listOf(navArgument("planId") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val planId = backStackEntry.arguments?.getString("planId") ?: "basico"
-            CheckoutScreen(
-                planId = planId,
-                onBackClick = { navController.popBackStack() },
-                onSuccessFinished = {
-                    navController.popBackStack(AppRoutes.PROFILE, inclusive = false)
-                }
             )
         }
 

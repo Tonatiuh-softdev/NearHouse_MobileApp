@@ -2,7 +2,7 @@ package com.equipo4.nearhome.ui.profile
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import com.equipo4.nearhome.util.SessionManager
+import com.equipo4.nearhome.data.local.SessionManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

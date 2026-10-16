@@ -1,25 +1,31 @@
 package com.equipo4.nearhome.ui.auth.completeprofile
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.equipo4.nearhome.data.model.RegistroTemporal
+import com.equipo4.nearhome.data.repository.AuthRepository
 import com.equipo4.nearhome.domain.model.Country
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
 val MOCK_COUNTRIES = listOf(
+    Country("México", "+52", "🇲🇽", "MX"),
     Country("Estados Unidos", "+1", "🇺🇸", "US"),
     Country("Canadá", "+1", "🇨🇦", "CA"),
     Country("Colombia", "+57", "🇨🇴", "CO"),
     Country("Argentina", "+54", "🇦🇷", "AR"),
-    Country("México", "+52", "🇲🇽", "MX"),
     Country("Japón", "+81", "🇯🇵", "JP")
 )
 
-class CompleteProfileViewModel : ViewModel() {
+class CompleteProfileViewModel(
+    private val authRepository: AuthRepository = AuthRepository()
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
         CompleteProfileUiState(filteredCountries = MOCK_COUNTRIES)
@@ -134,32 +140,63 @@ class CompleteProfileViewModel : ViewModel() {
         }
     }
 
-    fun onContinueClicked(): Boolean {
-        _uiState.update { currentState ->
-            validateForm(
-                currentState.copy(
-                    firstNameTouched = true,
-                    firstLastNameTouched = true,
-                    birthDateTouched = true,
-                    phoneTouched = true,
-                    isSubmittedAttempted = true
-                )
+    /**
+     * Valida el formulario localmente, llama a la API `/auth/check-telefono`
+     * y almacena los datos en `RegistroTemporal` en RAM.
+     */
+    fun onContinueClicked(onSuccess: (String) -> Unit) {
+        val updatedState = validateForm(
+            _uiState.value.copy(
+                firstNameTouched = true,
+                firstLastNameTouched = true,
+                birthDateTouched = true,
+                phoneTouched = true,
+                isSubmittedAttempted = true
             )
+        )
+        _uiState.value = updatedState
+
+        if (!updatedState.isFormValid) return
+
+        val digits = updatedState.phoneNumber.filter { it.isDigit() }
+        val fullPhone = "${updatedState.selectedCountry.code}$digits"
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, phoneErrorMessage = null) }
+
+            val result = authRepository.checkTelefono(fullPhone)
+            if (result.isSuccess) {
+                // Guarda en memoria RAM
+                RegistroTemporal.nombre = updatedState.firstName.trim()
+                RegistroTemporal.primerApellido = updatedState.firstLastName.trim()
+                RegistroTemporal.segundoApellido = updatedState.secondLastName.trim().takeIf { it.isNotEmpty() }
+                RegistroTemporal.telefono = fullPhone
+
+                _uiState.update { it.copy(isLoading = false) }
+
+                val formattedDisplayPhone = "${updatedState.selectedCountry.code}${digits.substring(0, 3)}-${digits.substring(3, 6)}-${digits.substring(6)}"
+                onSuccess(formattedDisplayPhone)
+            } else {
+                val errorMsg = result.exceptionOrNull()?.message ?: "El número de teléfono ya está registrado"
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        isPhoneError = true,
+                        phoneErrorMessage = errorMsg
+                    )
+                }
+            }
         }
-        return _uiState.value.isFormValid
     }
 
     private fun validateForm(state: CompleteProfileUiState): CompleteProfileUiState {
         val showFirstNameErr = (state.firstNameTouched || state.isSubmittedAttempted) && state.firstName.isBlank()
         val showFirstLastNameErr = (state.firstLastNameTouched || state.isSubmittedAttempted) && state.firstLastName.isBlank()
 
-        // Validaciones de fecha de nacimiento
         val birthDateErrText = getBirthDateErrorMessage(state.birthDate)
         val isBirthDateValid = birthDateErrText == null
-
         val showBirthDateErr = (state.birthDateTouched || state.isSubmittedAttempted) && !isBirthDateValid
 
-        // Validación de teléfono (10 dígitos)
         val digitsOnly = state.phoneNumber.filter { it.isDigit() }
         val isPhoneEmpty = state.phoneNumber.isBlank()
         val isPhoneInvalidFormat = digitsOnly.length != 10 && !isPhoneEmpty
@@ -192,12 +229,10 @@ class CompleteProfileViewModel : ViewModel() {
         if (birthDate.isBlank()) return "La fecha de nacimiento es obligatoria"
         if (birthDate.length < 10) return "Formato de fecha incompleto (DD/MM/AAAA)"
 
-        // 1. Validar que la fecha exista físicamente en el calendario (rechaza día 32, mes 13, etc.)
         if (!isValidCalendarDate(birthDate)) {
             return "La fecha ingresada no existe (día o mes inválido)"
         }
 
-        // 2. Validar edad exacta contra el día actual (debe tener entre 18 y 80 años)
         val age = calculateExactAge(birthDate)
         if (age < 18 || age > 80) {
             return "Debes tener entre 18 y 80 años"
