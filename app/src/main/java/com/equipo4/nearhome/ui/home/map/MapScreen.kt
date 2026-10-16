@@ -1,14 +1,19 @@
 package com.equipo4.nearhome.ui.home.map
 
-import androidx.compose.foundation.Canvas
+import android.content.Context
+import android.graphics.Bitmap
+import androidx.annotation.DrawableRes
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
+import com.google.maps.android.clustering.view.DefaultClusterRenderer
+import kotlin.math.roundToInt
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -16,11 +21,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FormatListBulleted
 import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -28,26 +31,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.withTransform
-import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -56,9 +49,18 @@ import com.equipo4.nearhome.domain.model.ListingType
 import com.equipo4.nearhome.domain.model.Property
 import com.equipo4.nearhome.domain.model.PropertyType
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.clustering.ClusterItem
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.clustering.Clustering
+import com.google.maps.android.compose.rememberCameraPositionState
 import java.text.NumberFormat
 import java.util.Locale
-import kotlin.math.roundToInt
+import kotlinx.coroutines.launch
+import androidx.compose.ui.graphics.luminance
+import com.google.maps.android.compose.ComposeMapColorScheme
 
 private val NavyColor = Color(0xFF0B2C4D)
 private val LightGrayBg = Color(0xFFF3F4F6)
@@ -67,6 +69,10 @@ private val BadgeBlueBg = Color(0xFFEBF5FF)
 private val BadgeBlueText = Color(0xFF1E88E5)
 private val TextDark = Color(0xFF1F2937)
 private val TextGray = Color(0xFF6B7280)
+
+/** Tamaño de los pines en el mapa (dp). Si se ven grandes o chicos, se ajusta aquí. */
+private const val PIN_WIDTH_DP = 28
+private const val PIN_HEIGHT_DP = 39
 
 /**
  * Fuente única de color por tipo de propiedad. Los indicadores del filtro usan estos colores,
@@ -97,19 +103,33 @@ private fun typeLabel(type: PropertyType) = when (type) {
     PropertyType.DEPARTAMENTO -> "Departamentos"
 }
 
-// ---- Mapa ficticio -------------------------------------------------------------------------
-// Mundo de 800x1000 "dp". Las coordenadas lat/lng de las propiedades se proyectan a este plano.
-private const val WORLD_W = 800f
-private const val WORLD_H = 1000f
-private const val LON_MIN = -104.36
-private const val LON_MAX = -104.28
-private const val LAT_MIN = 19.04
-private const val LAT_MAX = 19.13
+/** Dibuja un drawable (PNG o vector) en un bitmap del tamaño pedido en dp. Se usa una sola vez por tipo. */
+private fun scaledPinBitmap(
+    context: Context,
+    @DrawableRes resId: Int,
+    widthDp: Int,
+    heightDp: Int
+): Bitmap {
+    val density = context.resources.displayMetrics.density
+    val widthPx = (widthDp * density).roundToInt()
+    val heightPx = (heightDp * density).roundToInt()
+    val bitmap = Bitmap.createBitmap(widthPx, heightPx, Bitmap.Config.ARGB_8888)
+    ContextCompat.getDrawable(context, resId)?.let { drawable ->
+        val canvas = android.graphics.Canvas(bitmap)
+        drawable.setBounds(0, 0, widthPx, heightPx)
+        drawable.draw(canvas)
+    }
+    return bitmap
+}
 
-private fun Property.worldPos(): Offset {
-    val x = ((longitude!! - LON_MIN) / (LON_MAX - LON_MIN) * WORLD_W).toFloat()
-    val y = ((LAT_MAX - latitude!!) / (LAT_MAX - LAT_MIN) * WORLD_H).toFloat()
-    return Offset(x, y)
+/** Elemento que el clustering agrupa: una propiedad con coordenadas. */
+private data class PropertyClusterItem(
+    val property: Property,
+    override val position: LatLng
+) : ClusterItem {
+    override val title: String? = property.title
+    override val snippet: String? = null
+    override val zIndex: Float? = 0f
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -136,16 +156,14 @@ fun MapScreen(
             )
             FilterRow(
                 uiState = uiState,
-                onFilterClick = onFilterClick,
-                onTypeToggled = viewModel::onTypeToggled,
-                onSortSelected = viewModel::onSortSelected
+                onTypeToggled = viewModel::onTypeToggled
             )
             Spacer(Modifier.height(6.dp))
 
             Box(modifier = Modifier.fillMaxSize()) {
-                FakeMap(
+                GoogleMapView(
                     properties = visibleProperties,
-                    onPropertyClick = viewModel::onMarkerSelected
+                    onMarkerClick = viewModel::onMarkerSelected
                 )
 
                 if (uiState.isLoading) {
@@ -196,182 +214,96 @@ fun MapScreen(
     }
 }
 
-/** Mapa dibujado con Canvas (sin Google Maps): arrastrar y pellizcar para hacer zoom. Un pin por propiedad. */
+/**
+ * Mapa real de Google Maps, centrado en Manzanillo. Un elemento por propiedad visible, con el
+ * pin de su tipo; los cercanos se agrupan cuando el mapa está alejado (clustering).
+ * El clic en un pin se consume (devuelve true) para que Google no muestre su globo por defecto.
+ */
 @Composable
-private fun FakeMap(
+private fun GoogleMapView(
     properties: List<Property>,
-    onPropertyClick: (String) -> Unit
+    onMarkerClick: (String) -> Unit
 ) {
-    val density = LocalDensity.current
-    val textMeasurer = rememberTextMeasurer()
+    val context = LocalContext.current
+    val manzanillo = LatLng(19.08, -104.32)
+    val scope = rememberCoroutineScope()
 
-    BoxWithConstraints(modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(0.dp))) {
-        val viewW = with(density) { maxWidth.toPx() }
-        val viewH = with(density) { maxHeight.toPx() }
-        val d = density.density
+    // El mapa sigue el tema de la app: fondo oscuro -> mapa oscuro; fondo claro -> mapa claro.
+    val isDarkTheme = MaterialTheme.colorScheme.background.luminance() < 0.5f
 
-        // Zoom mínimo = que el mundo llene la pantalla; el inicial es un poco más cercano.
-        val minScale = maxOf(viewW / (WORLD_W * d), viewH / (WORLD_H * d))
-        val maxScale = minScale * 4f
-        var mapScale by remember(viewW, viewH) { mutableFloatStateOf(minScale * 1.3f) }
-        var offset by remember(viewW, viewH) {
-            mutableStateOf(Offset(-(WORLD_W * d * minScale * 1.3f - viewW) * 0.45f, -(WORLD_H * d * minScale * 1.3f - viewH) * 0.55f))
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(manzanillo, 13f)
+    }
+
+    // Un bitmap por tipo, creado UNA sola vez (antes se decodificaba el PNG en cada pin).
+    val pinBitmaps = remember {
+        PropertyType.entries.associateWith { type ->
+            scaledPinBitmap(context, pinRes(type), PIN_WIDTH_DP, PIN_HEIGHT_DP).asImageBitmap()
         }
+    }
 
-        fun clampOffset(o: Offset, s: Float): Offset {
-            val minX = viewW - WORLD_W * d * s
-            val minY = viewH - WORLD_H * d * s
-            return Offset(o.x.coerceIn(minX, 0f), o.y.coerceIn(minY, 0f))
+    // Solo las propiedades con coordenadas. Se recalcula únicamente si cambia la lista visible.
+    val clusterItems = remember(properties) {
+        properties.mapNotNull { property ->
+            val lat = property.latitude
+            val lng = property.longitude
+            if (lat != null && lng != null) PropertyClusterItem(property, LatLng(lat, lng)) else null
         }
+    }
 
-        fun zoomAround(focus: Offset, factor: Float) {
-            val newScale = (mapScale * factor).coerceIn(minScale, maxScale)
-            val ratio = newScale / mapScale
-            offset = clampOffset((offset - focus) * ratio + focus, newScale)
-            mapScale = newScale
-        }
-
-        Canvas(
-            modifier = Modifier
-                .fillMaxSize()
-                .pointerInput(viewW, viewH) {
-                    detectTransformGestures { centroid, pan, zoom, _ ->
-                        val newScale = (mapScale * zoom).coerceIn(minScale, maxScale)
-                        val ratio = newScale / mapScale
-                        offset = clampOffset((offset - centroid) * ratio + centroid + pan, newScale)
-                        mapScale = newScale
+    GoogleMap(
+        modifier = Modifier.fillMaxSize(),
+        cameraPositionState = cameraPositionState,
+        mapColorScheme = if (isDarkTheme) ComposeMapColorScheme.DARK else ComposeMapColorScheme.LIGHT
+    ) {
+        Clustering(
+            items = clusterItems,
+            onClusterClick = { cluster ->
+                // Tocar un grupo acerca el mapa hacia ese punto.
+                scope.launch {
+                    cameraPositionState.animate(
+                        CameraUpdateFactory.newLatLngZoom(
+                            cluster.position,
+                            cameraPositionState.position.zoom + 2f
+                        )
+                    )
+                }
+                true
+            },
+            onClusterItemClick = { item ->
+                onMarkerClick(item.property.id)
+                true // consume el evento: sin globo de información por defecto
+            },
+            clusterContent = { cluster ->
+                Surface(
+                    shape = CircleShape,
+                    color = NavyColor,
+                    border = BorderStroke(2.dp, Color.White),
+                    shadowElevation = 4.dp
+                ) {
+                    Box(modifier = Modifier.size(42.dp), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = cluster.size.toString(),
+                            color = Color.White,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
-        ) {
-            drawRect(Color(0xFFEDE9E1))
-            withTransform({
-                translate(offset.x, offset.y)
-                scale(mapScale * d, mapScale * d, pivot = Offset.Zero)
-            }) {
-                drawFakeCity(textMeasurer)
+            },
+            clusterItemContent = { item ->
+                Image(
+                    bitmap = pinBitmaps.getValue(item.property.type),
+                    contentDescription = item.property.title,
+                    modifier = Modifier.size(PIN_WIDTH_DP.dp, PIN_HEIGHT_DP.dp)
+                )
+            },
+            // Por defecto la librería solo agrupa cuando hay 4 o más; aquí bajamos el mínimo a 2.
+            onClusterManager = { manager ->
+                (manager.renderer as? DefaultClusterRenderer<*>)?.minClusterSize = 2
             }
-        }
-
-        // Cada propiedad es un pin individual (sin agrupar). Se dibujan de arriba hacia abajo
-        // para que los pines más cercanos a la parte baja queden encima si se traslapan.
-        val pinW = with(density) { 36.dp.roundToPx() }
-        val pinH = with(density) { 50.dp.roundToPx() }
-
-        properties.sortedBy { it.worldPos().y }.forEach { p ->
-            val w = p.worldPos()
-            val sx = w.x * d * mapScale + offset.x
-            val sy = w.y * d * mapScale + offset.y
-            Image(
-                painter = painterResource(pinRes(p.type)),
-                contentDescription = p.title,
-                modifier = Modifier
-                    .offset { IntOffset((sx - pinW / 2f).roundToInt(), (sy - pinH).roundToInt()) }
-                    .size(36.dp, 50.dp)
-                    .noRippleClickable { onPropertyClick(p.id) }
-            )
-        }
-
-        // Controles de zoom (útiles en emulador sin multitouch).
-        Column(
-            modifier = Modifier.align(Alignment.BottomEnd).padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            ZoomButton(Icons.Default.Add, "Acercar") { zoomAround(Offset(viewW / 2, viewH / 2), 1.5f) }
-            ZoomButton(Icons.Default.Remove, "Alejar") { zoomAround(Offset(viewW / 2, viewH / 2), 1f / 1.5f) }
-        }
-    }
-}
-
-@Composable
-private fun ZoomButton(icon: androidx.compose.ui.graphics.vector.ImageVector, description: String, onClick: () -> Unit) {
-    Surface(
-        shape = CircleShape,
-        color = Color.White,
-        shadowElevation = 4.dp,
-        modifier = Modifier.size(40.dp).noRippleClickable { onClick() }
-    ) {
-        Box(contentAlignment = Alignment.Center) {
-            Icon(icon, contentDescription = description, tint = TextDark, modifier = Modifier.size(22.dp))
-        }
-    }
-}
-
-/** Dibuja la ciudad ficticia en coordenadas de mundo (800x1000). */
-private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawFakeCity(
-    textMeasurer: androidx.compose.ui.text.TextMeasurer
-) {
-    val water = Color(0xFFA9D3F0)
-    val park = Color(0xFFC8E6B0)
-    val roadCasing = Color(0xFFD5D0C6)
-    val roadFill = Color.White
-    val block = Color(0xFFE4DFD5)
-
-    // Manzanas urbanas (cuadrícula suave)
-    for (gx in 0 until 8) for (gy in 0 until 10) {
-        drawRoundRect(
-            color = block,
-            topLeft = Offset(gx * 100f + 14f, gy * 100f + 14f),
-            size = Size(72f, 72f),
-            cornerRadius = CornerRadius(6f)
         )
     }
-
-    // Parques y laguna
-    drawRoundRect(park, Offset(520f, 330f), Size(150f, 110f), CornerRadius(18f))
-    drawRoundRect(park, Offset(180f, 90f), Size(120f, 90f), CornerRadius(18f))
-    drawRoundRect(park, Offset(610f, 760f), Size(130f, 130f), CornerRadius(18f))
-    drawOval(water, Offset(540f, 90f), Size(200f, 90f))
-
-    // Mar (esquina inferior izquierda)
-    val sea = Path().apply {
-        moveTo(0f, 560f)
-        cubicTo(180f, 600f, 300f, 700f, 330f, 820f)
-        cubicTo(350f, 900f, 380f, 960f, 420f, 1000f)
-        lineTo(0f, 1000f)
-        close()
-    }
-    drawPath(sea, water)
-    drawPath(sea, Color(0xFF8FC2E6), style = Stroke(width = 5f))
-
-    // Calles: contorno gris + relleno blanco
-    fun road(width: Float, pts: List<Offset>) {
-        val path = Path().apply {
-            moveTo(pts[0].x, pts[0].y)
-            for (i in 1 until pts.size) lineTo(pts[i].x, pts[i].y)
-        }
-        drawPath(path, roadCasing, style = Stroke(width + 5f, cap = StrokeCap.Round))
-        drawPath(path, roadFill, style = Stroke(width, cap = StrokeCap.Round))
-    }
-    // Avenida principal costera
-    road(20f, listOf(Offset(0f, 500f), Offset(220f, 540f), Offset(430f, 640f), Offset(560f, 800f), Offset(640f, 1000f)))
-    // Avenidas
-    road(14f, listOf(Offset(0f, 300f), Offset(800f, 300f)))
-    road(14f, listOf(Offset(0f, 700f), Offset(300f, 700f), Offset(800f, 700f)))
-    road(14f, listOf(Offset(400f, 0f), Offset(400f, 640f)))
-    road(14f, listOf(Offset(700f, 0f), Offset(700f, 1000f)))
-    road(14f, listOf(Offset(200f, 0f), Offset(200f, 520f)))
-    road(14f, listOf(Offset(0f, 100f), Offset(800f, 100f)))
-    road(14f, listOf(Offset(0f, 900f), Offset(330f, 900f), Offset(800f, 900f)))
-    // Calles secundarias
-    road(9f, listOf(Offset(0f, 200f), Offset(800f, 200f)))
-    road(9f, listOf(Offset(0f, 400f), Offset(800f, 400f)))
-    road(9f, listOf(Offset(0f, 600f), Offset(260f, 600f), Offset(800f, 600f)))
-    road(9f, listOf(Offset(0f, 800f), Offset(800f, 800f)))
-    road(9f, listOf(Offset(100f, 0f), Offset(100f, 520f)))
-    road(9f, listOf(Offset(300f, 0f), Offset(300f, 680f)))
-    road(9f, listOf(Offset(500f, 0f), Offset(500f, 1000f)))
-    road(9f, listOf(Offset(600f, 0f), Offset(600f, 1000f)))
-    road(9f, listOf(Offset(760f, 0f), Offset(760f, 1000f)))
-    // Etiquetas
-    fun label(text: String, at: Offset, color: Color = Color(0xFF6B7280), size: Float = 16f) {
-        val layout = textMeasurer.measure(text, TextStyle(fontSize = size.sp, color = color, fontWeight = FontWeight.Medium))
-        drawText(layout, topLeft = at)
-    }
-    label("Océano Pacífico", Offset(40f, 800f), Color(0xFF4E8FBF), 20f)
-    label("Av. Elías Zamora Verduzco", Offset(60f, 470f), size = 14f)
-    label("MANZANILLO", Offset(420f, 330f), Color(0xFF374151), 22f)
-    label("Laguna", Offset(610f, 115f), Color(0xFF4E8FBF), 14f)
-    label("Parque", Offset(555f, 370f), Color(0xFF5B8C3A), 14f)
 }
 
 @Composable
@@ -428,33 +360,12 @@ private fun MapHeader(
 @Composable
 private fun FilterRow(
     uiState: MapUiState,
-    onFilterClick: () -> Unit,
-    onTypeToggled: (PropertyType?) -> Unit,
-    onSortSelected: (SortOption) -> Unit
+    onTypeToggled: (PropertyType?) -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 2.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        // Filtrar: no despliega nada, redirige a su propia pantalla (pendiente de conectar en NearHouseApp)
-        OutlinedButton(
-            onClick = onFilterClick,
-            shape = RoundedCornerShape(8.dp),
-            border = BorderStroke(1.dp, BorderColor),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black),
-            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-        ) {
-            Icon(painterResource(R.drawable.ic_filtrar), contentDescription = null, tint = Color.Black, modifier = Modifier.size(14.dp))
-            Spacer(Modifier.width(6.dp))
-            Text("Filtrar", fontSize = 13.sp, fontWeight = FontWeight.Medium)
-        }
-
-        // Ordenar
-        DropdownChip(label = "Ordenar", iconRes = R.drawable.ic_ordenar) { dismiss ->
-            SortOption.entries.filter { it != SortOption.NONE }.forEach { option ->
-            }
-        }
-
         // Tipo de propiedad: "Todo" por defecto, multi-selección con indicador de color
         val typeLabelText = when (uiState.selectedTypes.size) {
             0 -> "Todo"
@@ -466,37 +377,6 @@ private fun FilterRow(
             selectedTypes = uiState.selectedTypes,
             onTypeToggled = onTypeToggled
         )
-    }
-}
-
-@Composable
-private fun DropdownChip(
-    label: String,
-    iconRes: Int?,
-    menuContent: @Composable ColumnScope.(dismiss: () -> Unit) -> Unit
-) {
-    var expanded by remember { mutableStateOf(false) }
-    Box {
-        OutlinedButton(
-            onClick = { expanded = true },
-            shape = RoundedCornerShape(8.dp),
-            border = BorderStroke(1.dp, BorderColor),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black),
-            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-        ) {
-            if (iconRes != null) {
-                Icon(painterResource(iconRes), contentDescription = null, tint = Color.Black, modifier = Modifier.size(14.dp))
-                Spacer(Modifier.width(6.dp))
-            }
-            Text(label, fontSize = 13.sp, fontWeight = FontWeight.Medium)
-            Spacer(Modifier.width(4.dp))
-            Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, modifier = Modifier.size(16.dp))
-        }
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            containerColor = Color.White
-        ) { menuContent { expanded = false } }
     }
 }
 
