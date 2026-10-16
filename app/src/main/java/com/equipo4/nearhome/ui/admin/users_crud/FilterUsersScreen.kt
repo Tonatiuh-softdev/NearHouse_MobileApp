@@ -2,7 +2,6 @@ package com.equipo4.nearhome.ui.admin.users_crud
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -10,13 +9,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -24,8 +23,17 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.domain.model.UserAccountRole
 import com.equipo4.nearhome.domain.model.UserAccountStatus
+import com.equipo4.nearhome.ui.admin.listings.FixedActionBar
+import com.equipo4.nearhome.ui.admin.listings.NoticeBanner
+import com.equipo4.nearhome.ui.theme.NoticeTone
+import com.equipo4.nearhome.ui.theme.adminAccent
+import com.equipo4.nearhome.ui.theme.onAdminAccent
 
-@OptIn(ExperimentalMaterial3Api::class)
+/**
+ * Filtrar usuarios. Usa el mismo estilo que "Filtrar anuncios" (colores del tema, tamaños de
+ * letra, chips con cantidad, filas con check y barra de botones fija).
+ */
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun FilterUsersScreen(
     viewModel: FilterUsersViewModel = viewModel(),
@@ -51,78 +59,49 @@ fun FilterUsersScreen(
                 title = {
                     Column {
                         Text(
-                            text = "Filtrar usuarios",
+                            "Filtrar usuarios",
                             fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF1F2937)
+                            fontWeight = FontWeight.Bold
                         )
                         Text(
-                            text = subtitleText,
+                            subtitleText,
                             fontSize = 12.sp,
-                            color = Color(0xFF6B7280)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Regresar y descartar",
-                            tint = Color(0xFF1F2937)
-                        )
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
         },
         bottomBar = {
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                color = Color.White,
-                shadowElevation = 8.dp
-            ) {
+            FixedActionBar {
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .navigationBarsPadding()
-                        .padding(16.dp),
+                    modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Button(
                         onClick = { onApplyFilters(selectedRoles, selectedStatuses) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(50.dp),
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0B2C4D))
-                    ) {
-                        Text(
-                            text = "Aplicar filtros · $liveCount resultados",
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                    }
-
+                        colors = ButtonDefaults.buttonColors(containerColor = adminAccent(), contentColor = onAdminAccent()),
+                        modifier = Modifier.fillMaxWidth().height(48.dp)
+                    ) { Text("Aplicar filtros · $liveCount resultados") }
                     OutlinedButton(
                         onClick = viewModel::clearAllFilters,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(50.dp),
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF0B2C4D)),
-                        border = BorderStroke(1.dp, Color(0xFF0B2C4D))
-                    ) {
-                        Text(
-                            text = "Limpiar filtros",
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
+                        border = BorderStroke(1.dp, adminAccent()),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = adminAccent()),
+                        modifier = Modifier.fillMaxWidth().height(48.dp)
+                    ) { Text("Limpiar filtros") }
                 }
             }
         },
-        containerColor = Color(0xFFF9FAFB)
+        modifier = Modifier.imePadding(),
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -132,179 +111,182 @@ fun FilterUsersScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // Sección Rol
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Rol",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1F2937)
-                )
-                Text(
-                    text = "Selección múltiple",
-                    fontSize = 12.sp,
-                    color = Color(0xFF6B7280)
-                )
-            }
-
-            // Tarjetas de rol
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                listOf(UserAccountRole.COMPRADOR, UserAccountRole.VENDEDOR, UserAccountRole.ADMINISTRADOR).forEach { role ->
-                    val isSelected = role in selectedRoles
-                    val count = viewModel.getRoleCount(role, allUsers)
-
-                    Surface(
-                        modifier = Modifier.clickable { viewModel.toggleRole(role) },
-                        shape = RoundedCornerShape(12.dp),
-                        color = if (isSelected) Color(0xFFF0F4F8) else Color.White,
-                        border = BorderStroke(
-                            width = if (isSelected) 1.5.dp else 1.dp,
-                            color = if (isSelected) Color(0xFF0B2C4D) else Color(0xFFD1D5DB)
-                        )
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = role.label,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = if (isSelected) Color(0xFF0B2C4D) else Color(0xFF1F2937)
-                            )
-                            Box(
-                                modifier = Modifier
-                                    .size(22.dp)
-                                    .background(if (isSelected) Color(0xFF0B2C4D) else Color(0xFFE5E7EB), CircleShape),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = count.toString(),
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (isSelected) Color.White else Color(0xFF374151)
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Sección Estatus
-            Text(
-                text = "Estatus",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF1F2937)
-            )
-
-            // Casillas de estatus
-            Column(
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                listOf(
-                    UserAccountStatus.REGISTRADO,
-                    UserAccountStatus.PENDIENTE_VERIFICACION,
-                    UserAccountStatus.VERIFICADO_ACTIVO,
-                    UserAccountStatus.BLOQUEADO
-                ).forEach { status ->
-                    val isSelected = status in selectedStatuses
-                    val count = viewModel.getStatusCount(status, allUsers)
-
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { viewModel.toggleStatus(status) },
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = if (isSelected) Color(0xFFF0F4F8) else Color.White
-                        ),
-                        border = BorderStroke(
-                            width = if (isSelected) 1.5.dp else 1.dp,
-                            color = if (isSelected) Color(0xFF0B2C4D) else Color(0xFFE5E7EB)
-                        )
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 10.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Checkbox(
-                                checked = isSelected,
-                                onCheckedChange = { viewModel.toggleStatus(status) },
-                                colors = CheckboxDefaults.colors(
-                                    checkedColor = Color(0xFF0B2C4D),
-                                    uncheckedColor = Color(0xFF9CA3AF)
-                                )
-                            )
-                            Spacer(Modifier.width(12.dp))
-                            Text(
-                                text = status.label,
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = Color(0xFF1F2937),
-                                modifier = Modifier.weight(1f)
-                            )
-                            Text(
-                                text = count.toString(),
-                                fontSize = 14.sp,
-                                color = Color(0xFF6B7280),
-                                fontWeight = FontWeight.SemiBold
-                            )
-                        }
-                    }
-                }
-            }
-
-            // Nota resumen informativa
-            Surface(
-                color = Color.White,
-                shape = RoundedCornerShape(12.dp),
-                border = BorderStroke(1.dp, Color(0xFFE5E7EB))
-            ) {
+            // Rol: selección múltiple, cada opción con su cantidad.
+            Column {
                 Row(
-                    modifier = Modifier.padding(14.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    SectionTitle("Rol")
+                    Text(
+                        "Selección múltiple",
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Spacer(Modifier.height(8.dp))
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    listOf(
+                        UserAccountRole.COMPRADOR,
+                        UserAccountRole.VENDEDOR,
+                        UserAccountRole.ADMINISTRADOR
+                    ).forEach { role ->
+                        CountChip(
+                            label = role.label,
+                            count = viewModel.getRoleCount(role, allUsers),
+                            selected = role in selectedRoles,
+                            onClick = { viewModel.toggleRole(role) }
+                        )
+                    }
+                }
+            }
+
+            // Estatus: casillas de selección múltiple, cada una con su cantidad.
+            Column {
+                SectionTitle("Estatus")
+                Spacer(Modifier.height(8.dp))
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf(
+                        UserAccountStatus.REGISTRADO,
+                        UserAccountStatus.PENDIENTE_VERIFICACION,
+                        UserAccountStatus.VERIFICADO_ACTIVO,
+                        UserAccountStatus.BLOQUEADO
+                    ).forEach { status ->
+                        CheckCountRow(
+                            text = status.label,
+                            count = viewModel.getStatusCount(status, allUsers),
+                            selected = status in selectedStatuses,
+                            onClick = { viewModel.toggleStatus(status) }
+                        )
+                    }
+                }
+            }
+
+            // Nota resumen de lo elegido.
+            val summaryText = buildString {
+                append("Se mostrarán ")
+                if (selectedRoles.isEmpty()) {
+                    append("usuarios de cualquier rol")
+                } else {
+                    append(selectedRoles.joinToString(" y ") { it.label.lowercase() })
+                }
+                if (selectedStatuses.isNotEmpty()) {
+                    append(" con estatus ")
+                    append(selectedStatuses.joinToString(" o ") { it.label.lowercase() })
+                }
+                append(".")
+            }
+            NoticeBanner(tone = NoticeTone.INFO, text = summaryText)
+        }
+    }
+}
+
+@Composable
+private fun SectionTitle(title: String) {
+    Text(
+        title,
+        fontSize = 14.sp,
+        fontWeight = FontWeight.Bold,
+        color = MaterialTheme.colorScheme.onSurface
+    )
+}
+
+/** Chip con el nombre y la cantidad en un círculo. Seleccionado: azul claro con borde azul. */
+@Composable
+private fun CountChip(label: String, count: Int, selected: Boolean, onClick: () -> Unit) {
+    val accent = adminAccent()
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(10.dp),
+        color = if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, if (selected) accent else MaterialTheme.colorScheme.outlineVariant)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                label,
+                fontSize = 13.sp,
+                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+                color = if (selected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(Modifier.width(6.dp))
+            Box(
+                modifier = Modifier
+                    .defaultMinSize(minWidth = 20.dp, minHeight = 20.dp)
+                    .background(
+                        if (selected) accent else MaterialTheme.colorScheme.surfaceVariant,
+                        CircleShape
+                    )
+                    .padding(horizontal = 5.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    count.toString(),
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = if (selected) onAdminAccent() else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+/** Fila con casilla, nombre y cantidad. Seleccionada: check azul y fondo azul claro. */
+@Composable
+private fun CheckCountRow(text: String, count: Int, selected: Boolean, onClick: () -> Unit) {
+    val accent = adminAccent()
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(12.dp),
+        color = if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, if (selected) accent else MaterialTheme.colorScheme.outlineVariant),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (selected) {
+                Box(
+                    modifier = Modifier.size(22.dp).background(accent, CircleShape),
+                    contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Outlined.Info,
+                        Icons.Filled.Check,
                         contentDescription = null,
-                        tint = Color(0xFF6B7280),
-                        modifier = Modifier.size(20.dp)
-                    )
-                    val summaryText = buildString {
-                        append("Se mostrarán ")
-                        if (selectedRoles.isEmpty()) {
-                            append("usuarios de cualquier rol")
-                        } else {
-                            append(selectedRoles.joinToString(" y ") { it.label.lowercase() })
-                        }
-                        if (selectedStatuses.isNotEmpty()) {
-                            append(" con estatus ")
-                            append(selectedStatuses.joinToString(" o ") { it.label.lowercase() })
-                        }
-                        append(".")
-                    }
-                    Text(
-                        text = summaryText,
-                        fontSize = 13.sp,
-                        color = Color(0xFF4B5563)
+                        tint = onAdminAccent(),
+                        modifier = Modifier.size(14.dp)
                     )
                 }
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(22.dp)
+                        .background(MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(6.dp))
+                        .padding(1.dp)
+                        .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(5.dp))
+                )
             }
-
-            Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.width(12.dp))
+            Text(
+                text,
+                fontSize = 14.sp,
+                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+                color = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f)
+            )
+            Text(
+                count.toString(),
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }

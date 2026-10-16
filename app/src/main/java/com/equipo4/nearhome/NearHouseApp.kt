@@ -46,6 +46,7 @@ import com.equipo4.nearhome.ui.auth.register.SignUpScreen
 import com.equipo4.nearhome.ui.auth.verification.PhoneVerificationScreen
 import com.equipo4.nearhome.ui.home.list.HomeScreen
 import com.equipo4.nearhome.ui.home.map.MapScreen
+import com.equipo4.nearhome.ui.home.filter.SearchFiltersScreen
 import com.equipo4.nearhome.ui.legal.PoliticaPrivacidadScreen
 import com.equipo4.nearhome.ui.legal.TerminosCondicionesScreen
 import com.equipo4.nearhome.ui.profile.ProfileScreen
@@ -63,6 +64,7 @@ object AppRoutes {
     const val PHONE_VERIFICATION = "phone_verification"
     const val HOME = "home"
     const val MAP = "home_map"
+    const val SEARCH_FILTERS = "search_filters"
     const val SAVED = "saved"
     const val PROFILE = "profile"
     const val PUBLICACION_DETAIL = "publicacion_detail"
@@ -258,6 +260,9 @@ fun NearHouseApp() {
                 },
                 onToggleToMap = {
                     navController.navigate(AppRoutes.MAP) { launchSingleTop = true }
+                },
+                onFilterClick = {
+                    navController.navigate(AppRoutes.SEARCH_FILTERS)
                 },
                 onBottomTabSelected = onBottomTab
             )
@@ -530,10 +535,21 @@ fun NearHouseApp() {
                         launchSingleTop = true
                     }
                 },
+                onFilterClick = {
+                    navController.navigate(AppRoutes.SEARCH_FILTERS)
+                },
                 onPropertyClick = { propertyId ->
                     navController.navigate("${AppRoutes.PUBLICACION_DETAIL}/$propertyId")
                 },
                 onBottomTabSelected = onBottomTab
+            )
+        }
+
+        // Pantalla: Filtros de búsqueda
+        composable(AppRoutes.SEARCH_FILTERS) {
+            SearchFiltersScreen(
+                onBackClick = { navController.popBackStack() },
+                onApplySuccess = { navController.popBackStack() }
             )
         }
 

@@ -49,6 +49,9 @@ import com.equipo4.nearhome.domain.model.ListingType
 import com.equipo4.nearhome.domain.model.Property
 import com.equipo4.nearhome.domain.model.PropertyType
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
+import com.equipo4.nearhome.ui.home.filter.PropertyFilterManager
+import com.equipo4.nearhome.ui.theme.adminAccent
+import com.equipo4.nearhome.ui.theme.onAdminAccent
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -156,7 +159,8 @@ fun MapScreen(
             )
             FilterRow(
                 uiState = uiState,
-                onTypeToggled = viewModel::onTypeToggled
+                onTypeToggled = viewModel::onTypeToggled,
+                onFilterClick = onFilterClick
             )
             Spacer(Modifier.height(6.dp))
 
@@ -357,11 +361,17 @@ private fun MapHeader(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun FilterRow(
     uiState: MapUiState,
-    onTypeToggled: (PropertyType?) -> Unit
+    onTypeToggled: (PropertyType?) -> Unit,
+    onFilterClick: () -> Unit
 ) {
+    val filterState by PropertyFilterManager.filterState.collectAsState()
+    val activeCount = filterState.getSelectedCount()
+    val hasFilters = activeCount > 0
+
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 2.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -376,6 +386,60 @@ private fun FilterRow(
             label = typeLabelText,
             selectedTypes = uiState.selectedTypes,
             onTypeToggled = onTypeToggled
+        )
+
+        FilterChip(
+            selected = hasFilters,
+            onClick = onFilterClick,
+            label = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_filtrar),
+                        contentDescription = "Filtrar",
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(text = "Filtrar", fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                    if (hasFilters) {
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Box(
+                            modifier = Modifier
+                                .size(18.dp)
+                                .background(Color(0xFF0B2C4D), CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = activeCount.toString(),
+                                color = Color.White,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(2.dp))
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowDown,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            },
+            shape = RoundedCornerShape(8.dp),
+            colors = FilterChipDefaults.filterChipColors(
+                containerColor = Color.White,
+                selectedContainerColor = Color(0xFFE0F2FE),
+                labelColor = Color.Black,
+                selectedLabelColor = Color(0xFF0369A1)
+            ),
+            border = FilterChipDefaults.filterChipBorder(
+                enabled = true,
+                selected = hasFilters,
+                borderColor = BorderColor,
+                selectedBorderColor = Color(0xFF0369A1)
+            )
         )
     }
 }
