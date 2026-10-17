@@ -9,7 +9,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object NetworkModule {
     // 10.0.2.2 es la IP para conectar desde el emulador a tu Docker local en el puerto 8080 (cambia si cambias de red)
-    // private const val BASE_URL = "http://192.168.0.58:8080/"
+    //private const val BASE_URL = "http://192.168.100.8:8080/"
     private const val BASE_URL = "https://nearhouseapi-production.up.railway.app/"
 
     fun provideOkHttpClient(sessionManager: SessionManager): OkHttpClient {
@@ -25,8 +25,12 @@ object NetworkModule {
             }
             val response = chain.proceed(requestBuilder.build())
 
-            if (response.code == 401 && !chain.request().url.encodedPath.contains("auth/login")) {
-                sessionManager.clearSession()
+            if (response.code == 401) {
+                val path = chain.request().url.encodedPath
+                val isAuthRoute = path.contains("auth/login") || path.contains("auth/registro")
+                if (!isAuthRoute) {
+                    sessionManager.expireSession()
+                }
             }
             response
         }

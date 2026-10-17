@@ -26,7 +26,13 @@ class LoginViewModel(
         NetworkModule.provideOkHttpClient(sessionManager)
     ).create(AuthApi::class.java)
 
-    private val _uiState = MutableStateFlow(LoginUiState())
+    private val _uiState = MutableStateFlow(
+        LoginUiState(
+            errorMessage = if (sessionManager.consumeSessionExpired())
+                "Tu sesión expiró. Vuelve a iniciar sesión"
+            else null
+        )
+    )
     val uiState: StateFlow<LoginUiState> = _uiState.asStateFlow()
 
     fun onEmailChanged(email: String) {
