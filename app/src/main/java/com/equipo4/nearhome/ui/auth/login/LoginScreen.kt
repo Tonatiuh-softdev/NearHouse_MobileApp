@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -79,6 +80,9 @@ private fun LoginContent(
     onForgotPasswordClick: () -> Unit,
     onRegisterClick: () -> Unit
 ) {
+    // El botón solo se activa con formulario válido y sin una petición en curso
+    val canSubmit = uiState.isFormValid && !uiState.isLoading
+
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = Color.White
@@ -137,6 +141,7 @@ private fun LoginContent(
                     onValueChange = onEmailChange,
                     placeholder = { Text("email@domain.com", color = Color.Gray) },
                     singleLine = true,
+                    enabled = !uiState.isLoading,
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Email,
                         imeAction = ImeAction.Next
@@ -169,6 +174,7 @@ private fun LoginContent(
                     onValueChange = onPasswordChange,
                     placeholder = { Text("***************", color = Color.Gray) },
                     singleLine = true,
+                    enabled = !uiState.isLoading,
                     visualTransformation = if (uiState.isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {
                         IconButton(onClick = onTogglePasswordVisibility) {
@@ -182,6 +188,10 @@ private fun LoginContent(
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Password,
                         imeAction = ImeAction.Done
+                    ),
+                    // "Listo" en el teclado envía el formulario, con las mismas reglas del botón
+                    keyboardActions = KeyboardActions(
+                        onDone = { if (canSubmit) onLoginClick() }
                     ),
                     shape = RoundedCornerShape(8.dp),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -229,15 +239,16 @@ private fun LoginContent(
 
             Spacer(modifier = Modifier.height(18.dp))
 
-            // Botón "Continuar"
+            // Botón "Entrar"
             Button(
                 onClick = onLoginClick,
-                enabled = uiState.isFormValid,
+                enabled = canSubmit,
                 shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.Black,
                     disabledContainerColor = Color(0xFF888888),
-                    contentColor = Color.White
+                    contentColor = Color.White,
+                    disabledContentColor = Color.White
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -251,7 +262,7 @@ private fun LoginContent(
                     )
                 } else {
                     Text(
-                        text = "Continuar",
+                        text = "Entrar",
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -277,7 +288,7 @@ private fun LoginContent(
 
             Spacer(modifier = Modifier.height(18.dp))
 
-            // Botón "Continuar con Google"
+            // Botón "Continuar con Google" (fuera del alcance de esta tarea)
             Button(
                 onClick = onGoogleLoginClick,
                 shape = RoundedCornerShape(8.dp),
