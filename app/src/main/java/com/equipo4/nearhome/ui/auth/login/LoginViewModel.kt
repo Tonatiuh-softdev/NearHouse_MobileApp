@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.io.IOException
+import kotlin.coroutines.cancellation.CancellationException
 
 class LoginViewModel(
     application: Application
@@ -58,7 +59,8 @@ class LoginViewModel(
 
     fun onLoginClicked() {
         val currentState = _uiState.value
-        if (!currentState.isFormValid) return
+        // Evita enviar dos veces la misma petición
+        if (!currentState.isFormValid || currentState.isLoading) return
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
@@ -70,9 +72,9 @@ class LoginViewModel(
                     )
                 )
 
-                if (response.isSuccessful && response.body() != null) {
-                    val body = response.body()!!
-                    // Persistencia segura: token y datos del usuario (la contraseña jamás se guarda)
+                val body = response.body()
+                if (response.isSuccessful && body != null) {
+                    // Persistencia: token y datos básicos (la contraseña jamás se guarda)
                     sessionManager.saveSession(
                         token = body.token,
                         userId = body.usuario.id,
@@ -81,12 +83,19 @@ class LoginViewModel(
                     )
                     _uiState.update { it.copy(isLoading = false, isSuccess = true) }
                 } else {
-                    val rawError = response.errorBody()?.string()
-                    val errorMessage = parseErrorMessage(rawError)
+                    val rawError = try {
+                        response.errorBody()?.string()
+                    } catch (e: Exception) {
+                        null
+                    }
+                    val errorMessage = parseErrorMessage(response.code(), rawError)
                     _uiState.update { it.copy(isLoading = false, errorMessage = errorMessage) }
                 }
+            } catch (e: CancellationException) {
+                // No tragarse la cancelación de la corrutina
+                throw e
             } catch (e: IOException) {
-                // Error de red / API apagada en Docker
+                // Sin internet, timeout o API apagada
                 _uiState.update {
                     it.copy(
                         isLoading = false,
@@ -104,16 +113,31 @@ class LoginViewModel(
         }
     }
 
-    private fun parseErrorMessage(jsonError: String?): String {
-        return try {
-            val json = JSONObject(jsonError ?: "")
-            json.optString("error", "Correo o contraseña incorrectos")
+    /**
+     * Prioridad: 1) el mensaje que manda la API; 2) un texto según el código HTTP.
+     * Así "Demasiados intentos" y "Cuenta suspendida" ya no se convierten en
+     * "Correo o contraseña incorrectos".
+     */
+    private fun parseErrorMessage(code: Int, rawError: String?): String {
+        val apiMessage = try {
+            val json = JSONObject(rawError ?: "")
+            listOf("error", "message", "mensaje", "detail").firstNotNullOfOrNull { key ->
+                json.optString(key, "").takeIf { it.isNotBlank() }
+            }
         } catch (e: Exception) {
-            "Correo o contraseña incorrectos"
+            null
+        }
+        if (apiMessage != null) return apiMessage
+
+        return when (code) {
+            401 -> "Correo o contraseña incorrectos"
+            403 -> "Tu cuenta está suspendida. Contacta al administrador"
+            429 -> "Demasiados intentos. Espera unos minutos"
+            else -> "Ocurrió un error inesperado. Inténtalo de nuevo."
         }
     }
 
     fun onGoogleLoginClicked() {
-
+        // Fuera del alcance de esta tarea
     }
 }
