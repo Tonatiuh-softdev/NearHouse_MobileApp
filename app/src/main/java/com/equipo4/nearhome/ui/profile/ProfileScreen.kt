@@ -64,10 +64,17 @@ fun ProfileScreen(
     onTermsClick: () -> Unit = {},
     onPrivacyClick: () -> Unit = {},
     onLogoutClick: () -> Unit = {},
+    onSessionExpired: () -> Unit = {},
     onBottomTabSelected: (Int) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+
+    // Cuando la API responde 401 a la petición con token, volvemos al login.
+    LaunchedEffect(Unit) {
+        viewModel.sessionExpired.collect { onSessionExpired() }
+    }
+
     // El cambio de rol solo existe en builds de prueba (debug); en producción el rol viene de la sesión.
     val isDebuggable = (context.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0
     ProfileContent(

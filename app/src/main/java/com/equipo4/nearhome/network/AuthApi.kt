@@ -1,7 +1,9 @@
 package com.equipo4.nearhome.network
 
+import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.GET
 import retrofit2.http.POST
 
 // --- Modelos para Login ---
@@ -72,4 +74,8 @@ interface AuthApi {
     // 4. Registro final enviando todos los datos
     @POST("api/v1/auth/registro")
     suspend fun registrarUsuario(@Body request: RegistroFinalRequest): Response<LoginResponse>
+
+    // 5. Datos del usuario logueado (requiere token). Sirve para detectar sesión expirada (401)
+    @GET("api/v1/usuarios/me")
+    suspend fun me(): Response<ResponseBody>
 }
