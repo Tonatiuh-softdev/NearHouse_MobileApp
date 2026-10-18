@@ -85,7 +85,8 @@ class LoginViewModel(
                         token = body.token,
                         userId = body.usuario.id,
                         nombre = body.usuario.nombre,
-                        rol = body.usuario.rol
+                        rol = body.usuario.rol,
+                        correo = body.usuario.correo   // contacto del propietario en Crear anuncio
                     )
                     _uiState.update { it.copy(isLoading = false, isSuccess = true) }
                 } else {

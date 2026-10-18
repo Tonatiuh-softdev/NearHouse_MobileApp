@@ -54,6 +54,15 @@ import com.equipo4.nearhome.ui.saved.SavedScreen
 import com.equipo4.nearhome.ui.publicacion.detail.DetailPublicacionScreen
 import com.equipo4.nearhome.ui.splash.SplashScreen
 import com.equipo4.nearhome.data.local.SessionManager
+import androidx.compose.runtime.LaunchedEffect
+import androidx.navigation.compose.navigation
+import com.equipo4.nearhome.ui.createlisting.CreateListingStep1Screen
+import com.equipo4.nearhome.ui.createlisting.CreateListingViewModel
+import com.equipo4.nearhome.ui.createlisting.canCreateListings
+import com.equipo4.nearhome.ui.createlisting.CreateListingStep2Screen
+import com.equipo4.nearhome.ui.createlisting.CreateListingStep3Screen
+import com.equipo4.nearhome.ui.createlisting.CreateListingStep4Screen
+import com.equipo4.nearhome.ui.createlisting.CreateListingPreviewScreen
 
 object AppRoutes {
     const val SPLASH = "splash"
@@ -85,6 +94,12 @@ object AppRoutes {
     const val ADMIN_LISTING_ACTION = "admin_listing_action"
     /** Clave del aviso verde que se pasa entre pantallas de Anuncios. */
     const val LISTING_MESSAGE = "listing_message"
+    const val CREATE_LISTING_GRAPH = "create_listing_graph"
+    const val CREATE_LISTING_STEP1 = "create_listing_step1"
+    const val CREATE_LISTING_STEP2 = "create_listing_step2"
+    const val CREATE_LISTING_STEP3 = "create_listing_step3"
+    const val CREATE_LISTING_STEP4 = "create_listing_step4"
+    const val CREATE_LISTING_PREVIEW = "create_listing_preview"
 }
 
 class MainActivity : ComponentActivity() {
@@ -281,7 +296,7 @@ fun NearHouseApp() {
         // Pantalla: Perfil (Vendedor/Arrendador/Admin)
         composable(AppRoutes.PROFILE) {
             ProfileScreen(
-                onMyListingsClick = {},
+                onMyListingsClick = { navController.navigate(AppRoutes.CREATE_LISTING_GRAPH) },
                 onAccountClick = {},
                 onAdminPanelClick = {
                     navController.navigate(AppRoutes.ADMIN_PANEL)
@@ -301,6 +316,75 @@ fun NearHouseApp() {
                 },
                 onBottomTabSelected = onBottomTab
             )
+        }
+
+        // Flujo: Crear anuncio (sub-gráfico con un solo ViewModel compartido)
+        navigation(
+            route = AppRoutes.CREATE_LISTING_GRAPH,
+            startDestination = AppRoutes.CREATE_LISTING_STEP1
+        ) {
+            composable(AppRoutes.CREATE_LISTING_STEP1) { entry ->
+                val canCreate = remember { canCreateListings(sessionManager.getUserRole()) }
+                // Comprador: se cierra el flujo y regresa a Cuenta
+                LaunchedEffect(canCreate) {
+                    if (!canCreate) navController.popBackStack(AppRoutes.PROFILE, inclusive = false)
+                }
+                if (canCreate) {
+                    val parent = remember(entry) { navController.getBackStackEntry(AppRoutes.CREATE_LISTING_GRAPH) }
+                    val vm: CreateListingViewModel = viewModel(parent)
+                    CreateListingStep1Screen(
+                        viewModel = vm,
+                        onExit = { navController.popBackStack(AppRoutes.CREATE_LISTING_GRAPH, inclusive = true) },
+                        onContinue = { navController.navigate(AppRoutes.CREATE_LISTING_STEP2) },
+                        onBottomTabSelected = onBottomTab
+                    )
+                }
+            }
+            composable(AppRoutes.CREATE_LISTING_STEP2) { entry ->
+                val parent = remember(entry) { navController.getBackStackEntry(AppRoutes.CREATE_LISTING_GRAPH) }
+                val vm: CreateListingViewModel = viewModel(parent)
+                CreateListingStep2Screen(
+                    viewModel = vm,
+                    onBack = { navController.popBackStack() },
+                    onContinue = { navController.navigate(AppRoutes.CREATE_LISTING_STEP3) },
+                    onBottomTabSelected = onBottomTab
+                )
+            }
+            composable(AppRoutes.CREATE_LISTING_STEP3) { entry ->
+                val parent = remember(entry) { navController.getBackStackEntry(AppRoutes.CREATE_LISTING_GRAPH) }
+                val vm: CreateListingViewModel = viewModel(parent)
+                CreateListingStep3Screen(
+                    viewModel = vm,
+                    onBack = { navController.popBackStack() },
+                    onContinue = { navController.navigate(AppRoutes.CREATE_LISTING_STEP4) },
+                    onBottomTabSelected = onBottomTab
+                )
+            }
+            composable(AppRoutes.CREATE_LISTING_STEP4) { entry ->
+                val parent = remember(entry) { navController.getBackStackEntry(AppRoutes.CREATE_LISTING_GRAPH) }
+                val vm: CreateListingViewModel = viewModel(parent)
+                CreateListingStep4Screen(
+                    viewModel = vm,
+                    onBack = { navController.popBackStack() },
+                    onEditData = { navController.popBackStack(AppRoutes.CREATE_LISTING_STEP1, inclusive = false) },
+                    onEditContent = { navController.popBackStack(AppRoutes.CREATE_LISTING_STEP3, inclusive = false) },
+                    onContinue = { navController.navigate(AppRoutes.CREATE_LISTING_PREVIEW) },
+                    onBottomTabSelected = onBottomTab
+                )
+            }
+            composable(AppRoutes.CREATE_LISTING_PREVIEW) { entry ->
+                val parent = remember(entry) { navController.getBackStackEntry(AppRoutes.CREATE_LISTING_GRAPH) }
+                val vm: CreateListingViewModel = viewModel(parent)
+                CreateListingPreviewScreen(
+                    viewModel = vm,
+                    onBack = { navController.popBackStack() },
+                    onEdit = { navController.popBackStack(AppRoutes.CREATE_LISTING_STEP1, inclusive = false) },
+                    onFinished = {
+                        vm.reset()
+                        navController.popBackStack(AppRoutes.CREATE_LISTING_GRAPH, inclusive = true)
+                    }
+                )
+            }
         }
 
         // Pantalla: Panel de administración
