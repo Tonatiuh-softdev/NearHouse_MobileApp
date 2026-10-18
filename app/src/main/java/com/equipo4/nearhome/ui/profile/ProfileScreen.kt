@@ -129,11 +129,7 @@ fun ProfileContent(
                 ProfileRow(
                     Icons.Outlined.Verified, stringResource(R.string.profile_my_listings),
                     showDivider = uiState.showAccountAdmin || uiState.showAdminPanel,
-                    onClick = {
-                        if (uiState.role == UserRole.COMPRADOR) {
-                            onMyListingsClick()
-                        }
-                    }
+                    onClick = onMyListingsClick
                 )
             }
             if (uiState.showAccountAdmin) {

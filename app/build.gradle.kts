@@ -73,6 +73,9 @@ dependencies {
     // OkHttp y Logging Interceptor (Nivel BASIC)
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+
+    implementation(libs.coil.compose)
+    implementation(libs.play.services.location)
 }
 
 secrets {

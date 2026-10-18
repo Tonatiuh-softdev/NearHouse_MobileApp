@@ -13,6 +13,8 @@ class SessionManager(context: Context) {
         private const val KEY_USER_ID = "KEY_USER_ID"
         private const val KEY_NOMBRE = "KEY_NOMBRE"
         private const val KEY_ROL = "KEY_ROL"
+        private const val KEY_CORREO = "KEY_CORREO"
+        private const val KEY_TELEFONO = "KEY_TELEFONO"
         private const val KEY_SESSION_EXPIRED = "KEY_SESSION_EXPIRED"
     }
 
@@ -26,13 +28,23 @@ class SessionManager(context: Context) {
     }
 
     // --- Guardar sesión tras el Login ---
-    fun saveSession(token: String, userId: Int, nombre: String, rol: String) {
+    // correo y telefono son opcionales para no romper a quien ya llama a saveSession
+    fun saveSession(
+        token: String,
+        userId: Int,
+        nombre: String,
+        rol: String,
+        correo: String? = null,
+        telefono: String? = null
+    ) {
         prefs.edit().apply {
             putBoolean(KEY_IS_LOGGED_IN, true)
             putString(KEY_TOKEN, token)
             putInt(KEY_USER_ID, userId)
             putString(KEY_NOMBRE, nombre)
             putString(KEY_ROL, rol)
+            if (correo != null) putString(KEY_CORREO, correo)
+            if (telefono != null) putString(KEY_TELEFONO, telefono)
             apply()
         }
     }
@@ -48,6 +60,19 @@ class SessionManager(context: Context) {
         prefs.edit().apply {
             putString(KEY_NOMBRE, name)
             putString(KEY_ROL, role)
+            apply()
+        }
+    }
+
+    // --- Contacto del usuario (WhatsApp y correo) ---
+    fun getUserEmail(): String? = prefs.getString(KEY_CORREO, null)
+
+    fun getUserPhone(): String? = prefs.getString(KEY_TELEFONO, null)
+
+    fun saveContact(correo: String?, telefono: String?) {
+        prefs.edit().apply {
+            if (!correo.isNullOrBlank()) putString(KEY_CORREO, correo)
+            if (!telefono.isNullOrBlank()) putString(KEY_TELEFONO, telefono)
             apply()
         }
     }

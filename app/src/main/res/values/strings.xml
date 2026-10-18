@@ -308,4 +308,133 @@
     <string name="listing_delete_item_history">El historial de cambios de estado</string>
     <string name="listing_delete_acknowledge">Confirmo que revisé el anuncio y entiendo que la eliminación es terminal</string>
     <string name="listing_delete_confirm">Eliminar definitivamente</string>
+
+    <!-- Crear anuncio: general -->
+    <string name="create_listing_title">Crear anuncio</string>
+    <string name="create_listing_step_format">Paso %1$d de %2$d</string>
+    <string name="create_listing_percent_format">%1$d%%</string>
+    <string name="create_listing_continue">Continuar</string>
+    <string name="create_listing_discard_title">¿Descartar anuncio?</string>
+    <string name="create_listing_discard_body">Si sales ahora, se perderá lo que capturaste.</string>
+    <string name="create_listing_discard_confirm">Descartar</string>
+    <string name="create_listing_discard_keep">Seguir editando</string>
+    <string name="create_listing_error_required">Campo obligatorio</string>
+    <string name="create_listing_error_price">Ingresa un monto mayor a 0</string>
+    <string name="create_listing_error_area">Ingresa una superficie mayor a 0</string>
+
+    <!-- Crear anuncio: Paso 1 -->
+    <string name="create_listing_step1_heading">Define el anuncio</string>
+    <string name="create_listing_operation">Operación</string>
+    <string name="create_listing_property_type">Tipo de inmueble</string>
+    <string name="create_listing_op_buy">Comprar</string>
+    <string name="create_listing_op_buy_sub">Venta directa</string>
+    <string name="create_listing_op_rent">Rentar</string>
+    <string name="create_listing_op_rent_sub">Alquiler mensual</string>
+    <string name="create_listing_sub_default">Selecciona la operación y el tipo de inmueble para continuar con los datos clave.</string>
+    <string name="create_listing_sub_buy_apartment">Configura los datos principales para la venta de tu departamento.</string>
+    <string name="create_listing_sub_buy_house">Configura los datos principales para la venta de tu casa.</string>
+    <string name="create_listing_sub_buy_land">Ingresa las especificaciones del terreno en venta.</string>
+    <string name="create_listing_sub_rent_apartment">Configura los datos principales para la renta de tu departamento.</string>
+    <string name="create_listing_sub_rent_house">Configura los datos principales para la renta de tu casa.</string>
+    <string name="create_listing_sub_rent_land">Ingresa las especificaciones del terreno en renta.</string>
+    <plurals name="create_listing_fields_count">
+        <item quantity="one">%d campo</item>
+        <item quantity="other">%d campos</item>
+    </plurals>
+    <string name="create_listing_price_rent">Renta mensual</string>
+    <string name="create_listing_price_total">Precio total (MXN)</string>
+    <string name="create_listing_area">Superficie en m²</string>
+    <string name="create_listing_location">Ubicación</string>
+    <string name="create_listing_select">Seleccionar</string>
+    <string name="create_listing_bedrooms">Recámaras</string>
+    <string name="create_listing_bathrooms">Baños</string>
+    <string name="create_listing_parking">Estacionamientos</string>
+    <string name="create_listing_floor">Piso</string>
+    <string name="create_listing_levels">Niveles de la casa</string>
+    <string name="create_listing_ground_floor">Planta baja</string>
+    <string name="create_listing_furnished">Amueblado</string>
+    <string name="create_listing_pets">Mascotas permitidas</string>
+    <string name="create_listing_elevator">Elevador</string>
+    <string name="create_listing_garden">Jardín / Patio</string>
+    <string name="create_listing_land_use">Uso del suelo</string>
+    <string name="create_listing_land_residential">Habitacional</string>
+    <string name="create_listing_land_agricultural">Agrícola</string>
+
+    <!-- Crear anuncio: Paso 2 -->
+    <string name="create_listing_step2_title">Fotos y ubicación</string>
+    <string name="create_listing_step2_heading">Multimedia y mapa</string>
+    <string name="create_listing_step2_subtitle">Captura fotos del inmueble en tiempo real y confirma la geolocalización.</string>
+    <string name="create_listing_capture_photos">Capturar fotografías</string>
+    <string name="create_listing_photo_counter">Foto %1$d de %2$d</string>
+    <string name="create_listing_gallery_disabled">Acceso a galería deshabilitado. Captura obligatoria.</string>
+    <string name="create_listing_cover">Portada</string>
+    <string name="create_listing_delete_photo">Borrar foto</string>
+    <string name="create_listing_take_photo">Tomar Foto</string>
+    <string name="create_listing_permissions_explain">Necesitamos la cámara para tomar las fotos del inmueble y la ubicación para detectar dónde se encuentra. Activa los permisos en los ajustes de la app.</string>
+    <string name="create_listing_open_settings">Abrir ajustes</string>
+    <string name="create_listing_auto_location">Ubicación automática</string>
+    <string name="create_listing_location_detected">Ubicación detectada</string>
+    <string name="create_listing_location_note">Ubicación tomada al capturar las fotos.</string>
+    <string name="create_listing_map_placeholder">Toma una foto para detectar la ubicación</string>
+    <string name="create_listing_location_failed">No pudimos obtener tu ubicación. Revisa que el GPS esté activo.</string>
+    <string name="create_listing_retry">Reintentar</string>
+    <string name="create_listing_address">Dirección</string>
+    <string name="create_listing_street">Calle</string>
+    <string name="create_listing_number">Número</string>
+    <string name="create_listing_number_hint">Escribe S/N si no tiene</string>
+    <string name="create_listing_postal_code">C.P.</string>
+    <string name="create_listing_drag_pin">Mueve el mapa para colocar el pin en el punto exacto. Al soltarlo se recalcula la dirección.</string>
+    <string name="create_listing_confirm_location">Confirmar ubicación</string>
+    <string name="create_listing_location_confirmed">Ubicación confirmada</string>
+    <string name="create_listing_correct">Corregir</string>
+    <string name="create_listing_ground_floor_short">PB</string>
+    <string name="create_listing_step2_hint">Toma al menos una foto y confirma la ubicación para continuar.</string>
+    <string name="create_listing_hint_no_location">Esperando la ubicación de la foto…</string>
+    <string name="create_listing_hint_colonia">Elige la colonia de la ubicación</string>
+    <string name="create_listing_hint_confirm">Toca «Confirmar ubicación» para continuar</string>
+    <string name="create_listing_colonia">Colonia</string>
+    <string name="create_listing_colonia_not_found">No pudimos identificar la colonia de este punto. Mueve el pin a una zona dentro de las colonias disponibles.</string>
+    <string name="create_listing_colonia_manual_warning">Elegiste la colonia a mano. Verifica que sea la correcta.</string>
+
+    <!-- Paso 3 -->
+    <string name="create_listing_step3_title">Contenido y condiciones</string>
+    <string name="create_listing_step3_heading">Descripción y reglas</string>
+    <string name="create_listing_step3_subtitle">Define los textos atractivos y condiciones del anuncio.</string>
+    <string name="create_listing_ad_title">Título del anuncio</string>
+    <string name="create_listing_ad_description">Descripción detallada</string>
+    <string name="create_listing_ad_rules">Reglas</string>
+    <string name="create_listing_ad_rules_hint">Ej. No se permiten mascotas</string>
+    <string name="create_listing_rules_pets_yes">Se permiten mascotas</string>
+    <string name="create_listing_rules_pets_no">No se permiten mascotas</string>
+    <string name="create_listing_contact_title">Contacto del propietario</string>
+    <string name="create_listing_contact_readonly">Solo lectura</string>
+    <string name="create_listing_contact_whatsapp">WhatsApp: %1$s</string>
+    <string name="create_listing_contact_email">Correo de contacto</string>
+    <string name="create_listing_contact_missing">Sin registrar</string>
+
+    <!-- Paso 4 -->
+    <string name="create_listing_step4_title">Confirmar anuncio</string>
+    <string name="create_listing_step4_heading">Valida los datos</string>
+    <string name="create_listing_step4_subtitle">Asegúrate de que toda la información es correcta antes de enviar.</string>
+    <string name="create_listing_property_data">Datos del inmueble</string>
+    <string name="create_listing_content_section">Contenido</string>
+    <string name="create_listing_edit">Editar</string>
+    <string name="create_listing_yes">Sí</string>
+    <string name="create_listing_no">No</string>
+    <string name="create_listing_per_month">/ mes</string>
+    <string name="create_listing_review_notice">Tu anuncio pasará por nuestro proceso automático y humano de revisión de calidad antes de publicarse.</string>
+    <string name="create_listing_send_review">Enviar a revisión</string>
+
+    <!-- Vista previa -->
+    <string name="create_listing_preview_banner">Vista previa: así verán los usuarios tu publicación</string>
+    <string name="create_listing_preview_title">Vista previa del anuncio</string>
+    <string name="create_listing_preview_label">Tu publicación en el listado</string>
+    <string name="create_listing_preview_new">Nuevo</string>
+    <string name="create_listing_preview_note">Todo listo. El formato, imágenes y distribución se adaptan automáticamente a todos los dispositivos.</string>
+    <string name="create_listing_confirm_publish">Confirmar y publicar</string>
+    <string name="create_listing_back_to_edit">Volver a editar</string>
+    <string name="create_listing_sending">Enviando…</string>
+    <string name="create_listing_sent_title">Anuncio enviado</string>
+    <string name="create_listing_sent_body">Tu anuncio quedó en revisión antes de publicarse.</string>
+    <string name="create_listing_sent_ok">Aceptar</string>
 </resources>
