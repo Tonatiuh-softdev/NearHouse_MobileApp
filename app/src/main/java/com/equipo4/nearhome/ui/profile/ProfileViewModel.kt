@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.equipo4.nearhome.data.local.SessionManager
+import com.equipo4.nearhome.data.local.SettingsManager
 import com.equipo4.nearhome.di.NetworkModule
 import com.equipo4.nearhome.network.AuthApi
 import kotlinx.coroutines.channels.Channel
@@ -18,6 +19,7 @@ import kotlin.coroutines.cancellation.CancellationException
 class ProfileViewModel(application: Application) : AndroidViewModel(application) {
 
     private val session = SessionManager(application)
+    private val settings = SettingsManager(application)
     private val authApi: AuthApi = NetworkModule.provideRetrofit(
         NetworkModule.provideOkHttpClient(session)
     ).create(AuthApi::class.java)
@@ -25,7 +27,9 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     private val _uiState = MutableStateFlow(
         ProfileUiState(
             userName = session.getUserName().orEmpty(),
-            role = UserRole.fromDb(session.getUserRole())
+            role = UserRole.fromDb(session.getUserRole()),
+            // Idioma elegido antes (se guarda en el dispositivo); si no hay o no es válido, Español.
+            language = settings.getLanguage().takeIf { it in LanguageOptions } ?: SettingsManager.DEFAULT_LANGUAGE
         )
     )
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
@@ -54,7 +58,10 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    fun onLanguageSelected(language: String) = _uiState.update { it.copy(language = language) }
+    fun onLanguageSelected(language: String) {
+        settings.saveLanguage(language)
+        _uiState.update { it.copy(language = language) }
+    }
 
     /** Solo para pruebas: cambia el rol y lo guarda en la sesión para que persista. */
     fun onRoleSelected(role: UserRole) {
