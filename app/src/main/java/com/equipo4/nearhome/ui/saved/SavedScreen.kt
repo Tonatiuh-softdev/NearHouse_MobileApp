@@ -30,6 +30,9 @@ import com.equipo4.nearhome.ui.common.PropertyCard
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+import androidx.compose.ui.res.stringResource
+import com.equipo4.nearhome.R
+
 private val NavyColor = Color(0xFF0B2C4D)
 private val BorderColor = Color(0xFFE5E7EB)
 private val TextDark = Color(0xFF1F2937)
@@ -104,7 +107,7 @@ private fun SavedTopBar() {
             modifier = Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 16.dp),
             contentAlignment = Alignment.CenterStart
         ) {
-            Text("Propiedades guardadas", fontSize = 16.sp, fontWeight = FontWeight.Normal, color = TextDark)
+            Text(stringResource(R.string.saved_properties_title), fontSize = 16.sp, fontWeight = FontWeight.Normal, color = TextDark)
         }
         HorizontalDivider(color = BorderColor)
     }
@@ -141,12 +144,12 @@ private fun EmptySavedState() {
         }
         Spacer(Modifier.height(28.dp))
         Text(
-            "Aún no tienes propiedades guardadas",
+            stringResource(R.string.saved_empty_title),
             fontSize = 18.sp, color = TextDark, textAlign = TextAlign.Center
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            "Guarda las propiedades que te interesen para encontrarlas aquí más fácil",
+            stringResource(R.string.saved_empty_subtitle),
             fontSize = 12.sp, color = TextGray, textAlign = TextAlign.Center
         )
     }

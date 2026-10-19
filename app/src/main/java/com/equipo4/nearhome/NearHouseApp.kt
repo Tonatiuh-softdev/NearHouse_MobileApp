@@ -4,7 +4,7 @@ import android.graphics.Color
 import com.equipo4.nearhome.ui.theme.NearHomeTheme
 import android.net.Uri
 import android.os.Bundle
-import androidx.activity.ComponentActivity
+import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -46,13 +46,23 @@ import com.equipo4.nearhome.ui.auth.register.SignUpScreen
 import com.equipo4.nearhome.ui.auth.verification.PhoneVerificationScreen
 import com.equipo4.nearhome.ui.home.list.HomeScreen
 import com.equipo4.nearhome.ui.home.map.MapScreen
+import com.equipo4.nearhome.ui.home.filter.SearchFiltersScreen
 import com.equipo4.nearhome.ui.legal.PoliticaPrivacidadScreen
 import com.equipo4.nearhome.ui.legal.TerminosCondicionesScreen
 import com.equipo4.nearhome.ui.profile.ProfileScreen
 import com.equipo4.nearhome.ui.saved.SavedScreen
 import com.equipo4.nearhome.ui.publicacion.detail.DetailPublicacionScreen
 import com.equipo4.nearhome.ui.splash.SplashScreen
-import com.equipo4.nearhome.util.SessionManager
+import com.equipo4.nearhome.data.local.SessionManager
+import androidx.compose.runtime.LaunchedEffect
+import androidx.navigation.compose.navigation
+import com.equipo4.nearhome.ui.createlisting.CreateListingStep1Screen
+import com.equipo4.nearhome.ui.createlisting.CreateListingViewModel
+import com.equipo4.nearhome.ui.createlisting.canCreateListings
+import com.equipo4.nearhome.ui.createlisting.CreateListingStep2Screen
+import com.equipo4.nearhome.ui.createlisting.CreateListingStep3Screen
+import com.equipo4.nearhome.ui.createlisting.CreateListingStep4Screen
+import com.equipo4.nearhome.ui.createlisting.CreateListingPreviewScreen
 
 object AppRoutes {
     const val SPLASH = "splash"
@@ -63,6 +73,7 @@ object AppRoutes {
     const val PHONE_VERIFICATION = "phone_verification"
     const val HOME = "home"
     const val MAP = "home_map"
+    const val SEARCH_FILTERS = "search_filters"
     const val SAVED = "saved"
     const val PROFILE = "profile"
     const val PUBLICACION_DETAIL = "publicacion_detail"
@@ -83,9 +94,15 @@ object AppRoutes {
     const val ADMIN_LISTING_ACTION = "admin_listing_action"
     /** Clave del aviso verde que se pasa entre pantallas de Anuncios. */
     const val LISTING_MESSAGE = "listing_message"
+    const val CREATE_LISTING_GRAPH = "create_listing_graph"
+    const val CREATE_LISTING_STEP1 = "create_listing_step1"
+    const val CREATE_LISTING_STEP2 = "create_listing_step2"
+    const val CREATE_LISTING_STEP3 = "create_listing_step3"
+    const val CREATE_LISTING_STEP4 = "create_listing_step4"
+    const val CREATE_LISTING_PREVIEW = "create_listing_preview"
 }
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         enableEdgeToEdge(
@@ -259,6 +276,9 @@ fun NearHouseApp() {
                 onToggleToMap = {
                     navController.navigate(AppRoutes.MAP) { launchSingleTop = true }
                 },
+                onFilterClick = {
+                    navController.navigate(AppRoutes.SEARCH_FILTERS)
+                },
                 onBottomTabSelected = onBottomTab
             )
         }
@@ -276,7 +296,7 @@ fun NearHouseApp() {
         // Pantalla: Perfil (Vendedor/Arrendador/Admin)
         composable(AppRoutes.PROFILE) {
             ProfileScreen(
-                onMyListingsClick = {},
+                onMyListingsClick = { navController.navigate(AppRoutes.CREATE_LISTING_GRAPH) },
                 onAccountClick = {},
                 onAdminPanelClick = {
                     navController.navigate(AppRoutes.ADMIN_PANEL)
@@ -284,13 +304,87 @@ fun NearHouseApp() {
                 onTermsClick = { navController.navigate(AppRoutes.TERMS_AND_CONDITIONS) },
                 onPrivacyClick = { navController.navigate(AppRoutes.PRIVACY_POLICY) },
                 onLogoutClick = {
-                    sessionManager.setLoggedIn(false)
+                    sessionManager.clearSession()
+                    navController.navigate(AppRoutes.LOGIN) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
+                onSessionExpired = {
                     navController.navigate(AppRoutes.LOGIN) {
                         popUpTo(0) { inclusive = true }
                     }
                 },
                 onBottomTabSelected = onBottomTab
             )
+        }
+
+        // Flujo: Crear anuncio (sub-gráfico con un solo ViewModel compartido)
+        navigation(
+            route = AppRoutes.CREATE_LISTING_GRAPH,
+            startDestination = AppRoutes.CREATE_LISTING_STEP1
+        ) {
+            composable(AppRoutes.CREATE_LISTING_STEP1) { entry ->
+                val canCreate = remember { canCreateListings(sessionManager.getUserRole()) }
+                // Comprador: se cierra el flujo y regresa a Cuenta
+                LaunchedEffect(canCreate) {
+                    if (!canCreate) navController.popBackStack(AppRoutes.PROFILE, inclusive = false)
+                }
+                if (canCreate) {
+                    val parent = remember(entry) { navController.getBackStackEntry(AppRoutes.CREATE_LISTING_GRAPH) }
+                    val vm: CreateListingViewModel = viewModel(parent)
+                    CreateListingStep1Screen(
+                        viewModel = vm,
+                        onExit = { navController.popBackStack(AppRoutes.CREATE_LISTING_GRAPH, inclusive = true) },
+                        onContinue = { navController.navigate(AppRoutes.CREATE_LISTING_STEP2) },
+                        onBottomTabSelected = onBottomTab
+                    )
+                }
+            }
+            composable(AppRoutes.CREATE_LISTING_STEP2) { entry ->
+                val parent = remember(entry) { navController.getBackStackEntry(AppRoutes.CREATE_LISTING_GRAPH) }
+                val vm: CreateListingViewModel = viewModel(parent)
+                CreateListingStep2Screen(
+                    viewModel = vm,
+                    onBack = { navController.popBackStack() },
+                    onContinue = { navController.navigate(AppRoutes.CREATE_LISTING_STEP3) },
+                    onBottomTabSelected = onBottomTab
+                )
+            }
+            composable(AppRoutes.CREATE_LISTING_STEP3) { entry ->
+                val parent = remember(entry) { navController.getBackStackEntry(AppRoutes.CREATE_LISTING_GRAPH) }
+                val vm: CreateListingViewModel = viewModel(parent)
+                CreateListingStep3Screen(
+                    viewModel = vm,
+                    onBack = { navController.popBackStack() },
+                    onContinue = { navController.navigate(AppRoutes.CREATE_LISTING_STEP4) },
+                    onBottomTabSelected = onBottomTab
+                )
+            }
+            composable(AppRoutes.CREATE_LISTING_STEP4) { entry ->
+                val parent = remember(entry) { navController.getBackStackEntry(AppRoutes.CREATE_LISTING_GRAPH) }
+                val vm: CreateListingViewModel = viewModel(parent)
+                CreateListingStep4Screen(
+                    viewModel = vm,
+                    onBack = { navController.popBackStack() },
+                    onEditData = { navController.popBackStack(AppRoutes.CREATE_LISTING_STEP1, inclusive = false) },
+                    onEditContent = { navController.popBackStack(AppRoutes.CREATE_LISTING_STEP3, inclusive = false) },
+                    onContinue = { navController.navigate(AppRoutes.CREATE_LISTING_PREVIEW) },
+                    onBottomTabSelected = onBottomTab
+                )
+            }
+            composable(AppRoutes.CREATE_LISTING_PREVIEW) { entry ->
+                val parent = remember(entry) { navController.getBackStackEntry(AppRoutes.CREATE_LISTING_GRAPH) }
+                val vm: CreateListingViewModel = viewModel(parent)
+                CreateListingPreviewScreen(
+                    viewModel = vm,
+                    onBack = { navController.popBackStack() },
+                    onEdit = { navController.popBackStack(AppRoutes.CREATE_LISTING_STEP1, inclusive = false) },
+                    onFinished = {
+                        vm.reset()
+                        navController.popBackStack(AppRoutes.CREATE_LISTING_GRAPH, inclusive = true)
+                    }
+                )
+            }
         }
 
         // Pantalla: Panel de administración
@@ -530,10 +624,21 @@ fun NearHouseApp() {
                         launchSingleTop = true
                     }
                 },
+                onFilterClick = {
+                    navController.navigate(AppRoutes.SEARCH_FILTERS)
+                },
                 onPropertyClick = { propertyId ->
                     navController.navigate("${AppRoutes.PUBLICACION_DETAIL}/$propertyId")
                 },
                 onBottomTabSelected = onBottomTab
+            )
+        }
+
+        // Pantalla: Filtros de búsqueda
+        composable(AppRoutes.SEARCH_FILTERS) {
+            SearchFiltersScreen(
+                onBackClick = { navController.popBackStack() },
+                onApplySuccess = { navController.popBackStack() }
             )
         }
 

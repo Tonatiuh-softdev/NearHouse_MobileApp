@@ -1,5 +1,8 @@
 package com.equipo4.nearhome.ui.subscription
 
+import com.equipo4.nearhome.util.AppStrings
+import com.equipo4.nearhome.R
+
 data class SubscriptionPlan(
     val id: String,
     val name: String,
@@ -10,31 +13,32 @@ data class SubscriptionPlan(
     val isFreeTrial: Boolean = false
 ) {
     companion object {
-        val plans = listOf(
-            SubscriptionPlan(
-                id = "basico",
-                name = "Básico",
-                priceText = "$99/mes",
-                description = "Hasta 1 publicación activa",
-                visibility = "Visibilidad estándar",
-                isFreeTrial = true
-            ),
-            SubscriptionPlan(
-                id = "profesional",
-                name = "Profesional",
-                priceText = "$249/mes",
-                description = "Hasta 3 publicaciones activas",
-                visibility = "Visibilidad aumentada",
-                isPopular = true
-            ),
-            SubscriptionPlan(
-                id = "premium",
-                name = "Premium",
-                priceText = "$449/mes",
-                description = "Publicaciones activas ilimitadas",
-                visibility = "Visibilidad máxima"
+        val plans: List<SubscriptionPlan>
+            get() = listOf(
+                SubscriptionPlan(
+                    id = "basico",
+                    name = AppStrings.get(R.string.plan_basic_name),
+                    priceText = AppStrings.get(R.string.plan_basic_price),
+                    description = AppStrings.get(R.string.plan_basic_desc),
+                    visibility = AppStrings.get(R.string.plan_basic_vis),
+                    isFreeTrial = true
+                ),
+                SubscriptionPlan(
+                    id = "profesional",
+                    name = AppStrings.get(R.string.plan_professional_name),
+                    priceText = AppStrings.get(R.string.plan_professional_price),
+                    description = AppStrings.get(R.string.plan_professional_desc),
+                    visibility = AppStrings.get(R.string.plan_professional_vis),
+                    isPopular = true
+                ),
+                SubscriptionPlan(
+                    id = "premium",
+                    name = AppStrings.get(R.string.plan_premium_name),
+                    priceText = AppStrings.get(R.string.plan_premium_price),
+                    description = AppStrings.get(R.string.plan_premium_desc),
+                    visibility = AppStrings.get(R.string.plan_premium_vis)
+                )
             )
-        )
 
         fun getById(id: String): SubscriptionPlan {
             return plans.firstOrNull { it.id == id } ?: plans.first()

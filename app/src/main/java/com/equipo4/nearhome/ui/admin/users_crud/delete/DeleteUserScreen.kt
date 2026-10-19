@@ -29,6 +29,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.equipo4.nearhome.ui.admin.users_crud.UserStatusBadge
 import kotlinx.coroutines.launch
 
+import androidx.compose.ui.res.stringResource
+import com.equipo4.nearhome.R
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DeleteUserScreen(
@@ -48,13 +51,13 @@ fun DeleteUserScreen(
                 title = {
                     Column {
                         Text(
-                            text = "Eliminar usuario",
+                            text = stringResource(R.string.delete_user_title),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF1F2937)
                         )
                         Text(
-                            text = "Acción irreversible",
+                            text = stringResource(R.string.delete_user_irreversible),
                             fontSize = 12.sp,
                             color = Color(0xFFDC2626)
                         )
@@ -64,7 +67,7 @@ fun DeleteUserScreen(
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Regresar",
+                            contentDescription = stringResource(R.string.common_back),
                             tint = Color(0xFF1F2937)
                         )
                     }
@@ -95,7 +98,7 @@ fun DeleteUserScreen(
                         border = BorderStroke(1.dp, Color(0xFFD1D5DB))
                     ) {
                         Text(
-                            text = "Cancelar",
+                            text = stringResource(R.string.common_cancel),
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Medium
                         )
@@ -116,7 +119,7 @@ fun DeleteUserScreen(
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFDC2626))
                     ) {
                         Text(
-                            text = "Eliminar",
+                            text = stringResource(R.string.delete_user_confirm_short),
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White,
@@ -167,13 +170,13 @@ fun DeleteUserScreen(
                     }
                     Column {
                         Text(
-                            text = "Eliminar definitivamente",
+                            text = stringResource(R.string.delete_user_confirm_final),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF1F2937)
                         )
                         Text(
-                            text = "Esta acción no se puede deshacer.",
+                            text = stringResource(R.string.delete_user_cannot_undo),
                             fontSize = 13.sp,
                             color = Color(0xFF6B7280)
                         )
@@ -259,16 +262,16 @@ fun DeleteUserScreen(
                                 modifier = Modifier.size(20.dp)
                             )
                             Text(
-                                text = "Atención: tiene publicaciones asociadas",
+                                text = stringResource(R.string.delete_user_listings_title),
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFF991B1B)
                             )
                         }
 
-                        val firstName = currentUser.name.split(" ").firstOrNull() ?: "El usuario"
+                        val firstName = currentUser.name.split(" ").firstOrNull() ?: stringResource(R.string.delete_user_default_name)
                         Text(
-                            text = "$firstName tiene ${currentUser.activeListingsCount} publicaciones activas y ${currentUser.draftsCount} borradores vinculados a su cuenta. Eliminarlas, transferirlas a otra cuenta o mantenerlas bloqueadas requiere una política del producto.",
+                            text = stringResource(R.string.delete_user_listings_body, firstName, currentUser.activeListingsCount, currentUser.draftsCount),
                             fontSize = 13.sp,
                             color = Color(0xFF7F1D1D)
                         )
@@ -278,7 +281,7 @@ fun DeleteUserScreen(
                             shape = RoundedCornerShape(10.dp)
                         ) {
                             Text(
-                                text = "PENDIENTE DE DEFINICIÓN",
+                                text = stringResource(R.string.delete_user_pending_definition),
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFFB45309),
@@ -302,16 +305,16 @@ fun DeleteUserScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Text(
-                            text = "Se eliminará la cuenta y sus datos personales",
+                            text = stringResource(R.string.delete_user_will_delete),
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF1F2937)
                         )
 
                         val items = listOf(
-                            "Nombre, correo y teléfono",
-                            "Acceso y credenciales",
-                            "Preferencias y actividad de la cuenta"
+                            stringResource(R.string.delete_user_item_personal),
+                            stringResource(R.string.delete_user_item_access),
+                            stringResource(R.string.delete_user_item_preferences)
                         )
 
                         items.forEach { itemText ->
@@ -336,7 +339,7 @@ fun DeleteUserScreen(
                 }
 
                 Text(
-                    text = "Al continuar, confirmas que revisaste la identidad y el impacto de esta eliminación.",
+                    text = stringResource(R.string.delete_user_confirm_note),
                     fontSize = 12.sp,
                     color = Color(0xFF6B7280),
                     textAlign = TextAlign.Center,

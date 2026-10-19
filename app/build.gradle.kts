@@ -6,12 +6,14 @@ plugins {
 
 android {
     namespace = "com.equipo4.nearhome"
-    compileSdk = 37
+    compileSdk {
+        version = release(37)
+    }
 
     defaultConfig {
         applicationId = "com.equipo4.nearhome"
         minSdk = 24
-        targetSdk = 35
+        targetSdk = 37
         versionCode = 1
         versionName = "1.0"
 
@@ -44,6 +46,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.appcompat)
     implementation(libs.maps.compose)
     implementation(libs.maps.compose.utils)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -75,6 +78,10 @@ dependencies {
     // OkHttp y Logging Interceptor
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+
+    implementation(libs.coil.compose)
+    implementation(libs.play.services.location)
+}
 
     // Credential Manager y Google Identity (Inicio de sesión con Google)
     implementation("androidx.credentials:credentials:1.2.2")

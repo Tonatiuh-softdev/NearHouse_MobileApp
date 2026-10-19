@@ -3,6 +3,8 @@ package com.equipo4.nearhome.ui.profile
 import androidx.annotation.StringRes
 import com.equipo4.nearhome.R
 
+import com.equipo4.nearhome.util.AppStrings
+
 enum class UserRole(val dbValue: String, @StringRes val labelRes: Int) {
     COMPRADOR("Comprador", R.string.role_buyer),
     VENDEDOR("Vendedor", R.string.role_seller),
@@ -19,7 +21,7 @@ enum class UserRole(val dbValue: String, @StringRes val labelRes: Int) {
 }
 
 /** Idiomas disponibles (el valor se guarda tal cual en [ProfileUiState.language]). */
-val LanguageOptions = listOf("Español", "Inglés")
+val LanguageOptions = listOf("Español", "English")
 
 data class ProfileUiState(
     val userName: String = "",
@@ -27,7 +29,7 @@ data class ProfileUiState(
     val language: String = "Español",
     val darkModeEnabled: Boolean = false
 ) {
-    val darkModeLabel: String get() = if (darkModeEnabled) "Activado" else "Desactivado"
+    val darkModeLabel: String get() = AppStrings.get(if (darkModeEnabled) R.string.dark_mode_on else R.string.dark_mode_off)
 
     // Única fuente de verdad de qué opciones ve cada rol.
     val showMyListings: Boolean get() = true

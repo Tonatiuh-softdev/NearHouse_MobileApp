@@ -10,6 +10,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+import com.equipo4.nearhome.util.AppStrings
+import com.equipo4.nearhome.R
+
 class DeleteUserViewModel(val userId: String) : ViewModel() {
     private val userRepository = Repositories.users
 
@@ -29,7 +32,7 @@ class DeleteUserViewModel(val userId: String) : ViewModel() {
     suspend fun deleteUser(onSuccess: (String) -> Unit) {
         val u = _user.value ?: return
         userRepository.deleteUser(userId)
-        onSuccess("Se eliminó la cuenta de ${u.name}")
+        onSuccess(AppStrings.get(R.string.delete_user_success, u.name))
     }
 }
 

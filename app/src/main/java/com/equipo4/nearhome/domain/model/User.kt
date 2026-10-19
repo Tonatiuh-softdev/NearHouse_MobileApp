@@ -1,17 +1,26 @@
 package com.equipo4.nearhome.domain.model
 
-enum class UserAccountRole(val label: String) {
-    COMPRADOR("Comprador"),
-    VENDEDOR("Vendedor"),
-    ADMINISTRADOR("Administrador"),
-    SUPER_ADMIN("Super Administrador")
+import androidx.annotation.StringRes
+
+import com.equipo4.nearhome.util.AppStrings
+import com.equipo4.nearhome.R
+
+enum class UserAccountRole(@StringRes val labelRes: Int) {
+    COMPRADOR(R.string.role_buyer),
+    VENDEDOR(R.string.role_seller),
+    ADMINISTRADOR(R.string.role_admin),
+    SUPER_ADMIN(R.string.role_super_admin);
+
+    val label: String get() = AppStrings.get(labelRes)
 }
 
-enum class UserAccountStatus(val label: String) {
-    VERIFICADO_ACTIVO("Verificado · Activo"),
-    PENDIENTE_VERIFICACION("Pendiente de verificación"),
-    REGISTRADO("Registrado"),
-    BLOQUEADO("Bloqueado / Suspendido")
+enum class UserAccountStatus(@StringRes val labelRes: Int) {
+    VERIFICADO_ACTIVO(R.string.user_status_verified_active),
+    PENDIENTE_VERIFICACION(R.string.user_status_pending_verification),
+    REGISTRADO(R.string.user_status_registered),
+    BLOQUEADO(R.string.user_status_blocked);
+
+    val label: String get() = AppStrings.get(labelRes)
 }
 
 data class User(

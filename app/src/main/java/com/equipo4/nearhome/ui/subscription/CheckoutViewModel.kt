@@ -7,6 +7,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import java.util.Calendar
 
+import com.equipo4.nearhome.util.AppStrings
+import com.equipo4.nearhome.R
+
 class CheckoutViewModel(val plan: SubscriptionPlan) : ViewModel() {
 
     val cardNumber = MutableStateFlow("")
@@ -54,7 +57,7 @@ class CheckoutViewModel(val plan: SubscriptionPlan) : ViewModel() {
     fun validateCardNumber(): Boolean {
         val raw = cardNumber.value.filter { it.isDigit() }
         return if (raw.length != 16 || !isValidLuhn(raw)) {
-            cardNumberError.value = "Formato inválido (16 dígitos)"
+            cardNumberError.value = AppStrings.get(R.string.error_card_number)
             false
         } else {
             cardNumberError.value = null
@@ -65,7 +68,7 @@ class CheckoutViewModel(val plan: SubscriptionPlan) : ViewModel() {
     fun validateCardHolder(): Boolean {
         val text = cardHolder.value.trim()
         return if (text.isBlank() || !text.all { it.isLetter() || it.isWhitespace() }) {
-            cardHolderError.value = "Nombre del titular obligatorio"
+            cardHolderError.value = AppStrings.get(R.string.error_card_holder)
             false
         } else {
             cardHolderError.value = null
@@ -76,14 +79,14 @@ class CheckoutViewModel(val plan: SubscriptionPlan) : ViewModel() {
     fun validateExpiry(): Boolean {
         val parts = expiryDate.value.split("/")
         if (parts.size != 2 || parts[0].length != 2 || parts[1].length != 2) {
-            expiryError.value = "Fecha inválida"
+            expiryError.value = AppStrings.get(R.string.error_expiry_invalid)
             return false
         }
         val month = parts[0].toIntOrNull() ?: 0
         val year = parts[1].toIntOrNull() ?: 0
 
         if (month !in 1..12) {
-            expiryError.value = "Fecha inválida"
+            expiryError.value = AppStrings.get(R.string.error_expiry_invalid)
             return false
         }
 
@@ -92,7 +95,7 @@ class CheckoutViewModel(val plan: SubscriptionPlan) : ViewModel() {
         val currentMonth = cal.get(Calendar.MONTH) + 1
 
         if (year < currentYear || (year == currentYear && month < currentMonth)) {
-            expiryError.value = "La tarjeta está vencida"
+            expiryError.value = AppStrings.get(R.string.error_expiry_expired)
             return false
         }
 
@@ -102,7 +105,7 @@ class CheckoutViewModel(val plan: SubscriptionPlan) : ViewModel() {
 
     fun validateCvv(): Boolean {
         return if (cvv.value.length != 3) {
-            cvvError.value = "CVV inválido (3 dígitos)"
+            cvvError.value = AppStrings.get(R.string.error_cvv)
             false
         } else {
             cvvError.value = null
@@ -143,9 +146,9 @@ class CheckoutViewModel(val plan: SubscriptionPlan) : ViewModel() {
             delay(2000) // Simular cobro 2 segundos
             isLoading.value = false
             successMessage.value = if (plan.isFreeTrial) {
-                "¡Listo! Tu prueba gratuita del Plan Básico está activa"
+                AppStrings.get(R.string.success_trial_msg)
             } else {
-                "¡Listo! Tu Plan ${plan.name} está activo"
+                AppStrings.get(R.string.success_paid_msg, plan.name)
             }
             delay(1500) // Mostrar mensaje de éxito 1.5s
             onSuccessNavigation()

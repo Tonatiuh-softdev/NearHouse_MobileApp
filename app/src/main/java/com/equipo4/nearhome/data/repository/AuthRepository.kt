@@ -6,6 +6,9 @@ import com.equipo4.nearhome.network.LoginResponse
 import com.equipo4.nearhome.network.NetworkClient
 import com.equipo4.nearhome.network.RegistroFinalRequest
 
+import com.equipo4.nearhome.util.AppStrings
+import com.equipo4.nearhome.R
+
 class AuthRepository(
     private val authApi: AuthApi = NetworkClient.authApi
 ) {
@@ -16,10 +19,10 @@ class AuthRepository(
             if (response.isSuccessful) {
                 Result.success(Unit)
             } else {
-                Result.failure(Exception("El número telefónico ya está registrado"))
+                Result.failure(Exception(AppStrings.get(R.string.auth_error_phone_taken)))
             }
         } catch (e: Exception) {
-            Result.failure(Exception("Error de conexión con el servidor: ${e.message}"))
+            Result.failure(Exception(AppStrings.get(R.string.auth_error_connection, e.message.orEmpty())))
         }
     }
 
@@ -53,11 +56,11 @@ class AuthRepository(
             if (response.isSuccessful && body != null) {
                 Result.success(body)
             } else {
-                val errorDetail = response.errorBody()?.string() ?: "Datos de registro inválidos"
-                Result.failure(Exception("Servidor (${response.code()}): $errorDetail"))
+                val errorDetail = response.errorBody()?.string() ?: AppStrings.get(R.string.auth_error_invalid_data)
+                Result.failure(Exception(AppStrings.get(R.string.auth_error_server, response.code(), errorDetail)))
             }
         } catch (e: Exception) {
-            Result.failure(Exception("Error de comunicación: ${e.message}"))
+            Result.failure(Exception(AppStrings.get(R.string.auth_error_comm, e.message.orEmpty())))
         }
     }
 }

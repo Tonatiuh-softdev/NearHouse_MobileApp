@@ -49,6 +49,9 @@ import com.equipo4.nearhome.domain.model.ListingType
 import com.equipo4.nearhome.domain.model.Property
 import com.equipo4.nearhome.domain.model.PropertyType
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
+import com.equipo4.nearhome.ui.home.filter.PropertyFilterManager
+import com.equipo4.nearhome.ui.theme.adminAccent
+import com.equipo4.nearhome.ui.theme.onAdminAccent
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -61,6 +64,8 @@ import java.util.Locale
 import kotlinx.coroutines.launch
 import androidx.compose.ui.graphics.luminance
 import com.google.maps.android.compose.ComposeMapColorScheme
+
+import androidx.compose.ui.res.stringResource
 
 private val NavyColor = Color(0xFF0B2C4D)
 private val LightGrayBg = Color(0xFFF3F4F6)
@@ -97,10 +102,11 @@ private fun pinRes(type: PropertyType) = when (type) {
     PropertyType.DEPARTAMENTO -> R.drawable.ic_pin_departamento
 }
 
+@Composable
 private fun typeLabel(type: PropertyType) = when (type) {
-    PropertyType.CASA -> "Casas"
-    PropertyType.TERRENO -> "Terrenos"
-    PropertyType.DEPARTAMENTO -> "Departamentos"
+    PropertyType.CASA -> stringResource(R.string.map_type_houses)
+    PropertyType.TERRENO -> stringResource(R.string.map_type_lands)
+    PropertyType.DEPARTAMENTO -> stringResource(R.string.map_type_apartments)
 }
 
 /** Dibuja un drawable (PNG o vector) en un bitmap del tamaño pedido en dp. Se usa una sola vez por tipo. */
@@ -156,7 +162,8 @@ fun MapScreen(
             )
             FilterRow(
                 uiState = uiState,
-                onTypeToggled = viewModel::onTypeToggled
+                onTypeToggled = viewModel::onTypeToggled,
+                onFilterClick = onFilterClick
             )
             Spacer(Modifier.height(6.dp))
 
@@ -186,7 +193,7 @@ fun MapScreen(
                             Button(
                                 onClick = viewModel::loadProperties,
                                 colors = ButtonDefaults.buttonColors(containerColor = NavyColor)
-                            ) { Text("Reintentar") }
+                            ) { Text(stringResource(R.string.map_retry)) }
                         }
                     }
                 }
@@ -319,7 +326,7 @@ private fun MapHeader(
     ) {
         Image(
             painter = painterResource(R.drawable.ic_nearhouse_logo),
-            contentDescription = "Logo NearHome",
+            contentDescription = stringResource(R.string.logo_cd),
             modifier = Modifier.size(40.dp).clip(CircleShape)
         )
         Row(
@@ -335,7 +342,7 @@ private fun MapHeader(
             Spacer(Modifier.width(8.dp))
             Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
                 if (searchQuery.isEmpty()) {
-                    Text("Busca por ubicación", fontSize = 13.sp, color = Color.Gray, maxLines = 1)
+                    Text(stringResource(R.string.map_search_location), fontSize = 13.sp, color = Color.Gray, maxLines = 1)
                 }
                 BasicTextField(
                     value = searchQuery,
@@ -349,7 +356,7 @@ private fun MapHeader(
             // En Mapa el ícono muestra "lista" para regresar a la vista de Lista.
             Icon(
                 imageVector = Icons.Default.FormatListBulleted,
-                contentDescription = "Ver lista",
+                contentDescription = stringResource(R.string.map_view_list),
                 tint = Color.Black,
                 modifier = Modifier.size(20.dp).noRippleClickable { onToggleToList() }
             )
@@ -357,25 +364,85 @@ private fun MapHeader(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun FilterRow(
     uiState: MapUiState,
-    onTypeToggled: (PropertyType?) -> Unit
+    onTypeToggled: (PropertyType?) -> Unit,
+    onFilterClick: () -> Unit
 ) {
+    val filterState by PropertyFilterManager.filterState.collectAsState()
+    val activeCount = filterState.getSelectedCount()
+    val hasFilters = activeCount > 0
+
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 2.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         // Tipo de propiedad: "Todo" por defecto, multi-selección con indicador de color
         val typeLabelText = when (uiState.selectedTypes.size) {
-            0 -> "Todo"
+            0 -> stringResource(R.string.map_type_todo)
             1 -> typeLabel(uiState.selectedTypes.first())
-            else -> "${uiState.selectedTypes.size} tipos"
+            else -> stringResource(R.string.map_type_types, uiState.selectedTypes.size)
         }
         TypeFilterChip(
             label = typeLabelText,
             selectedTypes = uiState.selectedTypes,
             onTypeToggled = onTypeToggled
+        )
+
+        FilterChip(
+            selected = hasFilters,
+            onClick = onFilterClick,
+            label = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_filtrar),
+                        contentDescription = stringResource(R.string.home_filter_btn),
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(text = stringResource(R.string.home_filter_btn), fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                    if (hasFilters) {
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Box(
+                            modifier = Modifier
+                                .size(18.dp)
+                                .background(Color(0xFF0B2C4D), CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = activeCount.toString(),
+                                color = Color.White,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(2.dp))
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowDown,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            },
+            shape = RoundedCornerShape(8.dp),
+            colors = FilterChipDefaults.filterChipColors(
+                containerColor = Color.White,
+                selectedContainerColor = Color(0xFFE0F2FE),
+                labelColor = Color.Black,
+                selectedLabelColor = Color(0xFF0369A1)
+            ),
+            border = FilterChipDefaults.filterChipBorder(
+                enabled = true,
+                selected = hasFilters,
+                borderColor = BorderColor,
+                selectedBorderColor = Color(0xFF0369A1)
+            )
         )
     }
 }
@@ -429,13 +496,13 @@ private fun TypeFilterChip(
         ) {
             // Fila "Todo" (con chevron, como el chip abierto del mockup)
             TypeCheckRow(
-                label = "Todo",
+                label = stringResource(R.string.map_type_todo),
                 color = PinColors.Todo,
                 checked = selectedTypes.isEmpty(),
                 trailing = {
                     Icon(
                         Icons.Default.KeyboardArrowDown,
-                        contentDescription = "Cerrar",
+                        contentDescription = stringResource(R.string.common_close),
                         tint = Color(0xFF9CA3AF),
                         modifier = Modifier.size(22.dp).noRippleClickable { expanded = false }
                     )
@@ -497,7 +564,7 @@ private fun PropertyPreviewSheet(
     ) {
         Box(modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
             Text(
-                "Detalle de la propiedad",
+                stringResource(R.string.map_preview_title),
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = TextDark,
@@ -505,7 +572,7 @@ private fun PropertyPreviewSheet(
             )
             Icon(
                 Icons.Default.Close,
-                contentDescription = "Cerrar",
+                contentDescription = stringResource(R.string.common_close),
                 tint = TextDark,
                 modifier = Modifier.align(Alignment.CenterEnd).size(24.dp).noRippleClickable { onClose() }
             )
@@ -543,7 +610,7 @@ private fun PropertyPreviewSheet(
                             modifier = Modifier.size(64.dp)
                         )
                         Spacer(Modifier.height(6.dp))
-                        Text("Imagen ${page + 1}", color = Color.White.copy(alpha = 0.8f), fontSize = 14.sp)
+                        Text(stringResource(R.string.property_image_format, page + 1), color = Color.White.copy(alpha = 0.8f), fontSize = 14.sp)
                     }
                 }
             }
@@ -564,7 +631,7 @@ private fun PropertyPreviewSheet(
             ) {
                 Icon(
                     painter = painterResource(if (property.isSaved) R.drawable.ic_guardar_relleno_abajo else R.drawable.ic_guardar_abajo),
-                    contentDescription = "Guardar propiedad",
+                    contentDescription = stringResource(R.string.property_save_cd),
                     tint = Color.White,
                     modifier = Modifier.size(18.dp).scale(if (property.isSaved) 1.45f else 1.0f)
                 )
@@ -579,9 +646,9 @@ private fun PropertyPreviewSheet(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(verticalAlignment = Alignment.Bottom) {
-                Text("MX \$${formatCurrency(property.price)}", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextDark)
+                Text(stringResource(R.string.property_price_format, formatCurrency(property.price)), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextDark)
                 if (property.listingType == ListingType.RENTA) {
-                    Text(" / mes", fontSize = 14.sp, color = TextGray, modifier = Modifier.padding(bottom = 2.dp))
+                    Text(stringResource(R.string.property_per_month), fontSize = 14.sp, color = TextGray, modifier = Modifier.padding(bottom = 2.dp))
                 }
             }
             Surface(color = BadgeBlueBg, shape = RoundedCornerShape(6.dp)) {
@@ -605,9 +672,9 @@ private fun PropertyPreviewSheet(
 
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
             val (typeText, typeIcon) = when (property.type) {
-                PropertyType.DEPARTAMENTO -> "Dept." to R.drawable.ic_departamento
-                PropertyType.CASA -> "Casa" to R.drawable.ic_casa_relleno_abajo
-                PropertyType.TERRENO -> "Terreno" to R.drawable.ic_terreno
+                PropertyType.DEPARTAMENTO -> stringResource(R.string.property_short_apartment) to R.drawable.ic_departamento
+                PropertyType.CASA -> stringResource(R.string.property_short_house) to R.drawable.ic_casa_relleno_abajo
+                PropertyType.TERRENO -> stringResource(R.string.property_short_land) to R.drawable.ic_terreno
             }
             FeatureItem(typeIcon, typeText)
             if (property.type == PropertyType.TERRENO) {
@@ -615,9 +682,9 @@ private fun PropertyPreviewSheet(
                     FeatureItem(R.drawable.ic_regla_medicion, "${property.frontMeters.toInt()}x${property.depthMeters.toInt()} m")
                 }
             } else {
-                property.bedrooms?.let { FeatureItem(R.drawable.ic_habitaciones, "$it recámaras") }
-                property.bathrooms?.let { FeatureItem(R.drawable.ic_bathrooms, "$it baños") }
-                property.garages?.let { FeatureItem(R.drawable.ic_cocheras, "$it cocheras") }
+                property.bedrooms?.let { FeatureItem(R.drawable.ic_habitaciones, stringResource(R.string.property_bedrooms_format, it)) }
+                property.bathrooms?.let { FeatureItem(R.drawable.ic_bathrooms, stringResource(R.string.property_bathrooms_format, it)) }
+                property.garages?.let { FeatureItem(R.drawable.ic_cocheras, stringResource(R.string.property_garages_format, it)) }
             }
         }
     }
