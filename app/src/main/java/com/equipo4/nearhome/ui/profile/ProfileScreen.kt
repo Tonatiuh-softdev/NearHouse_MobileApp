@@ -172,6 +172,8 @@ fun ProfileContent(
         }
     }
 
+    val darkOnLabel = stringResource(R.string.dark_mode_on)
+    val darkOffLabel = stringResource(R.string.dark_mode_off)
     when (openSheet) {
         SettingSheetType.LANGUAGE -> SettingSheet(
             title = stringResource(R.string.profile_language),
@@ -184,9 +186,9 @@ fun ProfileContent(
         SettingSheetType.DARK_MODE -> SettingSheet(
             title = stringResource(R.string.profile_dark_mode),
             subtitle = stringResource(R.string.profile_dark_mode_subtitle),
-            options = listOf("Activado", "Desactivado"),
-            selected = uiState.darkModeLabel,
-            onSelect = { onDarkModeSelected(it == "Activado") },
+            options = listOf(darkOnLabel, darkOffLabel),
+            selected = if (uiState.darkModeEnabled) darkOnLabel else darkOffLabel,
+            onSelect = { onDarkModeSelected(it == darkOnLabel) },
             onDismiss = { openSheet = null }
         )
         SettingSheetType.ROLE -> {

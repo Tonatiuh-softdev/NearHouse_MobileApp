@@ -23,6 +23,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
 
+import androidx.compose.ui.res.stringResource
+import com.equipo4.nearhome.R
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminPanelScreen(
@@ -40,7 +43,7 @@ fun AdminPanelScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "Panel de administración",
+                        text = stringResource(R.string.admin_panel_title),
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF1F2937)
@@ -50,7 +53,7 @@ fun AdminPanelScreen(
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Regresar",
+                            contentDescription = stringResource(R.string.common_back),
                             tint = Color(0xFF1F2937)
                         )
                     }
@@ -68,14 +71,14 @@ fun AdminPanelScreen(
                 .padding(horizontal = 20.dp, vertical = 20.dp)
         ) {
             Text(
-                text = "Gestión de NearHouse",
+                text = stringResource(R.string.admin_management_title),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF1F2937)
             )
             Spacer(Modifier.height(4.dp))
             Text(
-                text = "Revisa la actividad de la comunidad y gestiona el contenido de la plataforma.",
+                text = stringResource(R.string.admin_management_subtitle),
                 fontSize = 13.sp,
                 color = Color(0xFF6B7280)
             )
@@ -95,24 +98,24 @@ fun AdminPanelScreen(
                 ) {
                     AdminOptionRow(
                         icon = Icons.Outlined.Assignment,
-                        title = "Reportes",
-                        subtitle = "Pendientes de revisión",
+                        title = stringResource(R.string.admin_reports),
+                        subtitle = stringResource(R.string.listings_showing_queue),
                         badgeCount = pendingCount,
                         showDivider = true,
                         onClick = onNavigateToReports
                     )
                     AdminOptionRow(
                         icon = Icons.Outlined.People,
-                        title = "Usuarios",
-                        subtitle = "Consulta y gestiona perfiles",
+                        title = stringResource(R.string.admin_users),
+                        subtitle = stringResource(R.string.admin_users_subtitle),
                         badgeCount = 0,
                         showDivider = true,
                         onClick = onNavigateToUsers
                     )
                     AdminOptionRow(
                         icon = Icons.Outlined.Home,
-                        title = "Anuncios",
-                        subtitle = "Administra todos los anuncios publicados",
+                        title = stringResource(R.string.admin_ads),
+                        subtitle = stringResource(R.string.admin_ads_subtitle),
                         badgeCount = 0,
                         showDivider = false,
                         onClick = onNavigateToAds

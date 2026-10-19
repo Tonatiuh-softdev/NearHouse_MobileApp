@@ -36,6 +36,8 @@ import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
 
+import androidx.compose.ui.res.stringResource
+
 private val LightGrayBg = Color(0xFFF3F4F6)
 private val SectionGrayBg = Color(0xFFF8F9FA)
 private val BorderColor = Color(0xFFE5E7EB)
@@ -99,7 +101,7 @@ fun HomeScreen(
                     .background(SectionGrayBg)
             ) {
                 Text(
-                    text = "${formatNumber(uiState.properties.size)} inmuebles",
+                    text = stringResource(R.string.home_properties_count, formatNumber(uiState.properties.size)),
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     color = TextGray,
@@ -144,7 +146,7 @@ private fun HomeHeader(
     ) {
         Image(
             painter = painterResource(id = R.drawable.ic_nearhouse_logo),
-            contentDescription = "Logo NearHome",
+            contentDescription = stringResource(R.string.logo_cd),
             modifier = Modifier
                 .size(40.dp)
                 .clip(CircleShape)
@@ -178,7 +180,7 @@ private fun HomeHeader(
             ) {
                 if (searchQuery.isEmpty()) {
                     Text(
-                        text = "Busca por ubicación",
+                        text = stringResource(R.string.home_search_location),
                         fontSize = 13.sp,
                         color = Color.Gray,
                         maxLines = 1
@@ -200,7 +202,7 @@ private fun HomeHeader(
 
             Icon(
                 painter = painterResource(id = R.drawable.ic_localizacion),
-                contentDescription = "Ver mapa",
+                contentDescription = stringResource(R.string.home_view_map),
                 tint = Color.Black,
                 modifier = Modifier
                     .size(18.dp)
@@ -232,7 +234,7 @@ private fun FilterAndSortRow(
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Icon(Icons.Outlined.FilterList, contentDescription = null, modifier = Modifier.size(16.dp))
-                    Text("Filtrar")
+                    Text(stringResource(R.string.home_filter_btn))
                     if (hasFilters) {
                         Box(
                             modifier = Modifier
@@ -268,12 +270,12 @@ private fun FilterAndSortRow(
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_ordenar),
-                contentDescription = "Ordenar",
+                contentDescription = stringResource(R.string.home_sort),
                 tint = Color.Black,
                 modifier = Modifier.size(14.dp)
             )
             Spacer(modifier = Modifier.width(6.dp))
-            Text(text = "Ordenar", fontSize = 13.sp, fontWeight = FontWeight.Medium)
+            Text(text = stringResource(R.string.home_sort), fontSize = 13.sp, fontWeight = FontWeight.Medium)
         }
     }
 }

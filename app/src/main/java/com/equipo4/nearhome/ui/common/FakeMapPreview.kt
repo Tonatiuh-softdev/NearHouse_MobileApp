@@ -29,6 +29,8 @@ import androidx.compose.ui.unit.sp
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.domain.model.PropertyType
 
+import androidx.compose.ui.res.stringResource
+
 private const val PW = 400f
 private const val PH = 200f
 
@@ -61,7 +63,7 @@ fun FakeMapPreview(propertyType: PropertyType, modifier: Modifier = Modifier) {
         // La punta del pin queda justo en el centro del mapa.
         Image(
             painter = painterResource(pin),
-            contentDescription = "Ubicación de la propiedad",
+            contentDescription = stringResource(R.string.property_location_cd),
             modifier = Modifier
                 .align(Alignment.Center)
                 .offset(y = (-25).dp)

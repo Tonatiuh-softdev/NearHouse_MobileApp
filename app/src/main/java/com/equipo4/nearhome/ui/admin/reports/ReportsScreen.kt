@@ -25,6 +25,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
 
+import androidx.compose.ui.res.pluralStringResource
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReportsScreen(
@@ -43,10 +45,8 @@ fun ReportsScreen(
         0 -> {
             if (pendingCount == 0) {
                 stringResource(R.string.reports_subtitle_day_to_day)
-            } else if (pendingCount == 1) {
-                "1 pendiente por revisar"
             } else {
-                "$pendingCount pendientes por revisar"
+                pluralStringResource(R.plurals.pending_reports_subtitle, pendingCount, pendingCount)
             }
         }
         else -> stringResource(R.string.reports_subtitle_history)
@@ -75,7 +75,7 @@ fun ReportsScreen(
                         IconButton(onClick = onBackClick) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Regresar",
+                                contentDescription = stringResource(R.string.common_back),
                                 tint = Color(0xFF1F2937)
                             )
                         }
@@ -151,7 +151,7 @@ fun ReportsScreen(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("No hay reportes atendidos", color = Color(0xFF6B7280))
+                            Text(stringResource(R.string.reports_empty_attended), color = Color(0xFF6B7280))
                         }
                     } else {
                         LazyColumn(

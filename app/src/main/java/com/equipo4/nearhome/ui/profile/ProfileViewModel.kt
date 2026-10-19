@@ -1,6 +1,8 @@
 package com.equipo4.nearhome.ui.profile
 
 import android.app.Application
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.equipo4.nearhome.data.local.SessionManager
@@ -28,8 +30,15 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         ProfileUiState(
             userName = session.getUserName().orEmpty(),
             role = UserRole.fromDb(session.getUserRole()),
-            // Idioma elegido antes (se guarda en el dispositivo); si no hay o no es válido, Español.
-            language = settings.getLanguage().takeIf { it in LanguageOptions } ?: SettingsManager.DEFAULT_LANGUAGE
+            // Idioma activo (soporta cambios desde settings del sistema o perfil)
+            language = run {
+                val tag = AppCompatDelegate.getApplicationLocales().get(0)?.language
+                when (tag) {
+                    "en" -> "English"
+                    "es" -> "Español"
+                    else -> settings.getLanguage().takeIf { it in LanguageOptions } ?: "Español"
+                }
+            }
         )
     )
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
@@ -60,6 +69,8 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
 
     fun onLanguageSelected(language: String) {
         settings.saveLanguage(language)
+        val tag = if (language == "English") "en" else "es"
+        AppCompatDelegate.setApplicationLocales(LocaleListCompat.forLanguageTags(tag))
         _uiState.update { it.copy(language = language) }
     }
 

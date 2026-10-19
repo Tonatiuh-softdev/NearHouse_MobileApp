@@ -49,10 +49,10 @@ fun ReportDetailScreen(
 
     val subtitleStatus = if (report != null) {
         val typeLabel = report!!.type.label
-        val statusLabel = if (report!!.status == ReportStatus.PENDIENTE) "Pendiente" else "Atendido"
+        val statusLabel = if (report!!.status == ReportStatus.PENDIENTE) stringResource(R.string.status_pending) else stringResource(R.string.status_attended)
         "$typeLabel · $statusLabel"
     } else {
-        "Detalle"
+        stringResource(R.string.report_detail_fallback)
     }
 
     Scaffold(
@@ -61,7 +61,7 @@ fun ReportDetailScreen(
                 title = {
                     Column {
                         Text(
-                            text = "Detalle del reporte",
+                            text = stringResource(R.string.report_detail_title),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF1F2937)
@@ -77,7 +77,7 @@ fun ReportDetailScreen(
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Regresar",
+                            contentDescription = stringResource(R.string.common_back),
                             tint = Color(0xFF1F2937)
                         )
                     }
@@ -114,7 +114,7 @@ fun ReportDetailScreen(
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0B2C4D))
                         ) {
                             Text(
-                                text = "Aplicar medida y atender",
+                                text = stringResource(R.string.apply_measure_and_attend),
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White
@@ -136,7 +136,7 @@ fun ReportDetailScreen(
                             colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF4B5563))
                         ) {
                             Text(
-                                text = "Cerrar sin aplicar medida",
+                                text = stringResource(R.string.close_without_measure),
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Medium
                             )
@@ -226,7 +226,7 @@ fun ReportDetailScreen(
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text(
-                                text = "Resultado de resolución",
+                                text = stringResource(R.string.report_detail_result_title),
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFF15803D)
@@ -262,7 +262,7 @@ fun ReportDetailScreen(
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFF1F2937)
                             )
-                            val filesCountText = if (currentReport.evidences.size == 1) "1 archivo" else "${currentReport.evidences.size} archivos"
+                            val filesCountText = if (currentReport.evidences.size == 1) stringResource(R.string.report_detail_files_count_one) else stringResource(R.string.report_detail_files_count_other, currentReport.evidences.size)
                             Text(
                                 text = filesCountText,
                                 fontSize = 13.sp,
@@ -282,7 +282,7 @@ fun ReportDetailScreen(
                                 ) {
                                     Image(
                                         painter = painterResource(id = imageRes),
-                                        contentDescription = "Evidencia",
+                                        contentDescription = stringResource(R.string.report_evidence_cd),
                                         modifier = Modifier.fillMaxSize(),
                                         contentScale = ContentScale.Crop
                                     )
@@ -334,7 +334,7 @@ fun ReportDetailScreen(
                                     }
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(
-                                            text = "Renta MX $${targetProperty!!.price.toInt()} / mes",
+                                            text = stringResource(R.string.report_rent_price_format, targetProperty!!.price.toInt()),
                                             fontSize = 15.sp,
                                             fontWeight = FontWeight.Bold,
                                             color = Color(0xFF1F2937)
@@ -362,7 +362,7 @@ fun ReportDetailScreen(
                                 }
                             }
                         } else {
-                            Text("Publicación no disponible", fontSize = 13.sp, color = Color(0xFF6B7280))
+                            Text(stringResource(R.string.report_publication_unavailable), fontSize = 13.sp, color = Color(0xFF6B7280))
                         }
                     } else {
                         // Usuario reportado (Logan Howlett u otro)
@@ -401,7 +401,7 @@ fun ReportDetailScreen(
                                     )
                                     Spacer(Modifier.height(2.dp))
                                     Text(
-                                        text = "Arrendador · Miembro desde 2024",
+                                        text = stringResource(R.string.report_landlord_since),
                                         fontSize = 12.sp,
                                         color = Color(0xFF6B7280)
                                     )

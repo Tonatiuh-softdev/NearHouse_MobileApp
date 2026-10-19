@@ -23,6 +23,9 @@ import com.equipo4.nearhome.domain.model.User
 import com.equipo4.nearhome.domain.model.UserAccountRole
 import com.equipo4.nearhome.domain.model.UserAccountStatus
 
+import androidx.compose.ui.res.stringResource
+import com.equipo4.nearhome.R
+
 @Composable
 fun UserRoleTag(role: UserAccountRole) {
     val bg = Color(0xFFE0F2FE)
@@ -149,7 +152,7 @@ fun UserCardItem(
 
             Icon(
                 imageVector = Icons.Default.ChevronRight,
-                contentDescription = "Ver detalle",
+                contentDescription = stringResource(R.string.common_view_detail),
                 tint = Color(0xFF9CA3AF),
                 modifier = Modifier.size(20.dp)
             )

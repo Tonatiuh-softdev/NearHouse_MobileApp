@@ -50,7 +50,7 @@ fun ReportConfirmationScreen(
             ) {
                 Icon(
                     imageVector = Icons.Default.Check,
-                    contentDescription = "Atendido",
+                    contentDescription = stringResource(R.string.status_attended),
                     tint = Color.White,
                     modifier = Modifier.size(44.dp)
                 )
@@ -74,7 +74,7 @@ fun ReportConfirmationScreen(
             Spacer(Modifier.height(16.dp))
 
             Text(
-                text = "Reporte marcado como atendido",
+                text = stringResource(R.string.report_confirmation_title),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF1F2937),
@@ -84,7 +84,7 @@ fun ReportConfirmationScreen(
             Spacer(Modifier.height(8.dp))
 
             Text(
-                text = "La resolución se guardó correctamente y el reporte ya forma parte del historial de Atendidos.",
+                text = stringResource(R.string.report_confirmation_desc),
                 fontSize = 14.sp,
                 color = Color(0xFF6B7280),
                 textAlign = TextAlign.Center,
@@ -108,16 +108,16 @@ fun ReportConfirmationScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text("Tipo", color = Color(0xFF6B7280), fontSize = 14.sp)
+                            Text(stringResource(R.string.report_type), color = Color(0xFF6B7280), fontSize = 14.sp)
                             Text(report!!.type.label, fontWeight = FontWeight.SemiBold, color = Color(0xFF1F2937), fontSize = 14.sp)
                         }
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text("Resultado", color = Color(0xFF6B7280), fontSize = 14.sp)
+                            Text(stringResource(R.string.report_result), color = Color(0xFF6B7280), fontSize = 14.sp)
                             Text(
-                                text = if (report!!.result?.contains("Medida aplicada") == true) "Medida aplicada" else (report!!.result ?: "Atendido"),
+                                text = if (report!!.result?.contains("Medida aplicada") == true) stringResource(R.string.report_measure_applied) else (report!!.result ?: stringResource(R.string.status_attended)),
                                 fontWeight = FontWeight.SemiBold,
                                 color = Color(0xFF1F2937),
                                 fontSize = 14.sp,
@@ -129,7 +129,7 @@ fun ReportConfirmationScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text("Fecha", color = Color(0xFF6B7280), fontSize = 14.sp)
+                            Text(stringResource(R.string.report_date), color = Color(0xFF6B7280), fontSize = 14.sp)
                             Text(
                                 text = report!!.attendedDate ?: "26 sep - 10:48",
                                 fontWeight = FontWeight.SemiBold,

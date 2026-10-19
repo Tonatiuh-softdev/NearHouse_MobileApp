@@ -30,6 +30,9 @@ import com.equipo4.nearhome.domain.model.PropertyType
 import com.equipo4.nearhome.ui.theme.adminAccent
 import com.equipo4.nearhome.ui.theme.onAdminAccent
 
+import androidx.compose.ui.res.stringResource
+import com.equipo4.nearhome.R
+
 private val LightGray = Color(0xFFF3F4F6)
 private val BorderColor = Color(0xFFE5E7EB)
 private val SelectedBg = Color(0xFFF0F4F8)
@@ -57,7 +60,7 @@ fun SearchFiltersScreen(
             TopAppBar(
                 title = {
                     Column {
-                        Text("Filtros", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1F2937))
+                        Text(stringResource(R.string.search_filters_title), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1F2937))
                         Text(
                             text = state.buildSummaryText(),
                             fontSize = 12.sp,
@@ -68,7 +71,7 @@ fun SearchFiltersScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
@@ -100,7 +103,7 @@ fun SearchFiltersScreen(
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = primaryColor),
                         modifier = Modifier.weight(1f).height(48.dp)
                     ) {
-                        Text("Limpiar", fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.search_filters_clear), fontWeight = FontWeight.SemiBold)
                     }
                     Button(
                         onClick = {
@@ -119,7 +122,7 @@ fun SearchFiltersScreen(
                         colors = ButtonDefaults.buttonColors(containerColor = primaryColor, contentColor = onAdminAccent()),
                         modifier = Modifier.weight(1f).height(48.dp)
                     ) {
-                        Text("Aplicar", fontWeight = FontWeight.SemiBold)
+                        Text(stringResource(R.string.search_filters_apply), fontWeight = FontWeight.SemiBold)
                     }
                 }
             }
@@ -136,7 +139,7 @@ fun SearchFiltersScreen(
         ) {
             // 1. Segmented Buttons: Comprar / Rentar
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Operación", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1F2937))
+                Text(stringResource(R.string.search_filters_operation), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1F2937))
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -157,7 +160,7 @@ fun SearchFiltersScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            "Comprar",
+                            stringResource(R.string.search_filters_buy),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = if (isComprar) Color.White else Color(0xFF4B5563)
@@ -173,7 +176,7 @@ fun SearchFiltersScreen(
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            "Rentar",
+                            stringResource(R.string.search_filters_rent),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = if (!isComprar) Color.White else Color(0xFF4B5563)
@@ -184,15 +187,15 @@ fun SearchFiltersScreen(
 
             // 2. Property Type Buttons
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Tipo de Inmueble", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1F2937))
+                Text(stringResource(R.string.search_filters_property_type), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1F2937))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     val types = listOf(
-                        PropertyType.DEPARTAMENTO to "Departamento",
-                        PropertyType.CASA to "Casa",
-                        PropertyType.TERRENO to "Terreno"
+                        PropertyType.DEPARTAMENTO to stringResource(R.string.search_filters_type_apartment),
+                        PropertyType.CASA to stringResource(R.string.search_filters_type_house),
+                        PropertyType.TERRENO to stringResource(R.string.search_filters_type_land)
                     )
                     types.forEach { (type, label) ->
                         val selected = state.propertyType == type
@@ -220,7 +223,7 @@ fun SearchFiltersScreen(
 
             // 3. Price Inputs
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                val priceTitle = if (state.listingType == ListingType.RENTA) "Renta mensual (MXN)" else "Precio de venta (MXN)"
+                val priceTitle = if (state.listingType == ListingType.RENTA) stringResource(R.string.search_filters_monthly_rent) else stringResource(R.string.search_filters_sale_price)
                 Text(priceTitle, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1F2937))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -230,7 +233,7 @@ fun SearchFiltersScreen(
                     OutlinedTextField(
                         value = minPriceStr,
                         onValueChange = { minPriceStr = it },
-                        label = { Text("Mínimo") },
+                        label = { Text(stringResource(R.string.search_filters_min)) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier.weight(1f),
                         singleLine = true,
@@ -240,7 +243,7 @@ fun SearchFiltersScreen(
                     OutlinedTextField(
                         value = maxPriceStr,
                         onValueChange = { maxPriceStr = it },
-                        label = { Text("Máximo") },
+                        label = { Text(stringResource(R.string.search_filters_max)) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier.weight(1f),
                         singleLine = true,
@@ -256,8 +259,8 @@ fun SearchFiltersScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Ubicación", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1F2937))
-                    Text("Selección múltiple", fontSize = 12.sp, color = Color(0xFF6B7280))
+                    Text(stringResource(R.string.search_filters_location), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1F2937))
+                    Text(stringResource(R.string.search_filters_multi_select), fontSize = 12.sp, color = Color(0xFF6B7280))
                 }
 
                 Spacer(Modifier.height(4.dp))
@@ -283,9 +286,9 @@ fun SearchFiltersScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         val colText = if (!isColoniaSelected) {
-                            "Seleccionar ubicación"
+                            stringResource(R.string.search_filters_select_location)
                         } else {
-                            "${state.selectedColonias.size} seleccionadas: ${state.selectedColonias.joinToString(", ")}"
+                            stringResource(R.string.search_filters_selected_colonias, state.selectedColonias.size, state.selectedColonias.joinToString(", "))
                         }
                         Text(
                             colText,
@@ -318,7 +321,7 @@ fun SearchFiltersScreen(
                             // "Todas"
                             val isAllSelected = state.selectedColonias.isEmpty()
                             FlatCheckItem(
-                                text = "Todas las ubicaciones",
+                                text = stringResource(R.string.search_filters_all_locations),
                                 checked = isAllSelected,
                                 onCheckedChange = { viewModel.updateFilter { it.copy(selectedColonias = emptySet()) } },
                                 primaryColor = primaryColor,
@@ -386,7 +389,7 @@ private fun NumericDropdownSelector(
     val singleSelected = selectedValues.firstOrNull()
     val hasSelection = singleSelected != null
     val summary = when {
-        singleSelected == null -> "Todos"
+        singleSelected == null -> stringResource(R.string.search_filters_all)
         singleSelected == 5 -> "5+"
         else -> singleSelected.toString()
     }
@@ -542,7 +545,7 @@ private fun CheckIndicator(checked: Boolean, primaryColor: Color) {
 private fun CasaCharacteristicsSection(state: PropertyFilterState, viewModel: SearchFiltersViewModel, primaryColor: Color) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         HorizontalDivider(color = BorderColor)
-        Text("Características de la Casa", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1F2937))
+        Text(stringResource(R.string.search_filters_house_features), fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1F2937))
 
         // Fila 1: Dormitorios | Baños
         Row(
@@ -550,7 +553,7 @@ private fun CasaCharacteristicsSection(state: PropertyFilterState, viewModel: Se
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             NumericDropdownSelector(
-                title = "Dormitorios",
+                title = stringResource(R.string.search_filters_bedrooms),
                 selectedValues = state.bedrooms,
                 onSelectValue = { num ->
                     viewModel.updateFilter { it.copy(bedrooms = if (num == null) emptySet() else setOf(num)) }
@@ -559,7 +562,7 @@ private fun CasaCharacteristicsSection(state: PropertyFilterState, viewModel: Se
                 modifier = Modifier.weight(1f)
             )
             NumericDropdownSelector(
-                title = "Baños",
+                title = stringResource(R.string.search_filters_bathrooms),
                 selectedValues = state.bathrooms,
                 onSelectValue = { num ->
                     viewModel.updateFilter { it.copy(bathrooms = if (num == null) emptySet() else setOf(num)) }
@@ -575,7 +578,7 @@ private fun CasaCharacteristicsSection(state: PropertyFilterState, viewModel: Se
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             NumericDropdownSelector(
-                title = "Estacionamiento",
+                title = stringResource(R.string.search_filters_parking),
                 selectedValues = state.garages,
                 onSelectValue = { num ->
                     viewModel.updateFilter { it.copy(garages = if (num == null) emptySet() else setOf(num)) }
@@ -584,7 +587,7 @@ private fun CasaCharacteristicsSection(state: PropertyFilterState, viewModel: Se
                 modifier = Modifier.weight(1f)
             )
             NumericDropdownSelector(
-                title = "Niveles de la casa",
+                title = stringResource(R.string.search_filters_levels),
                 selectedValues = state.niveles,
                 onSelectValue = { num ->
                     viewModel.updateFilter { it.copy(niveles = if (num == null) emptySet() else setOf(num)) }
@@ -595,7 +598,7 @@ private fun CasaCharacteristicsSection(state: PropertyFilterState, viewModel: Se
         }
 
         FlatCheckItem(
-            text = "Jardín / Patio",
+            text = stringResource(R.string.search_filters_garden),
             checked = state.jardinPatio,
             onCheckedChange = { checked -> viewModel.updateFilter { it.copy(jardinPatio = checked) } },
             primaryColor = primaryColor,
@@ -604,7 +607,7 @@ private fun CasaCharacteristicsSection(state: PropertyFilterState, viewModel: Se
 
         if (state.listingType == ListingType.RENTA) {
             FlatCheckItem(
-                text = "Mascotas permitidas",
+                text = stringResource(R.string.search_filters_pets),
                 checked = state.mascotasPermitidas,
                 onCheckedChange = { checked -> viewModel.updateFilter { it.copy(mascotasPermitidas = checked) } },
                 primaryColor = primaryColor,
@@ -618,7 +621,7 @@ private fun CasaCharacteristicsSection(state: PropertyFilterState, viewModel: Se
 private fun DeptoCharacteristicsSection(state: PropertyFilterState, viewModel: SearchFiltersViewModel, primaryColor: Color) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         HorizontalDivider(color = BorderColor)
-        Text("Características del Departamento", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1F2937))
+        Text(stringResource(R.string.search_filters_apartment_features), fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1F2937))
 
         // Fila 1: Dormitorios | Baños
         Row(
@@ -626,7 +629,7 @@ private fun DeptoCharacteristicsSection(state: PropertyFilterState, viewModel: S
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             NumericDropdownSelector(
-                title = "Dormitorios",
+                title = stringResource(R.string.search_filters_bedrooms),
                 selectedValues = state.bedrooms,
                 onSelectValue = { num ->
                     viewModel.updateFilter { it.copy(bedrooms = if (num == null) emptySet() else setOf(num)) }
@@ -635,7 +638,7 @@ private fun DeptoCharacteristicsSection(state: PropertyFilterState, viewModel: S
                 modifier = Modifier.weight(1f)
             )
             NumericDropdownSelector(
-                title = "Baños",
+                title = stringResource(R.string.search_filters_bathrooms),
                 selectedValues = state.bathrooms,
                 onSelectValue = { num ->
                     viewModel.updateFilter { it.copy(bathrooms = if (num == null) emptySet() else setOf(num)) }
@@ -651,7 +654,7 @@ private fun DeptoCharacteristicsSection(state: PropertyFilterState, viewModel: S
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             NumericDropdownSelector(
-                title = "Estacionamiento",
+                title = stringResource(R.string.search_filters_parking),
                 selectedValues = state.garages,
                 onSelectValue = { num ->
                     viewModel.updateFilter { it.copy(garages = if (num == null) emptySet() else setOf(num)) }
@@ -660,7 +663,7 @@ private fun DeptoCharacteristicsSection(state: PropertyFilterState, viewModel: S
                 modifier = Modifier.weight(1f)
             )
             NumericDropdownSelector(
-                title = "Piso",
+                title = stringResource(R.string.search_filters_floor),
                 selectedValues = state.piso,
                 onSelectValue = { num ->
                     viewModel.updateFilter { it.copy(piso = if (num == null) emptySet() else setOf(num)) }
@@ -671,7 +674,7 @@ private fun DeptoCharacteristicsSection(state: PropertyFilterState, viewModel: S
         }
 
         FlatCheckItem(
-            text = "Amueblado",
+            text = stringResource(R.string.search_filters_furnished),
             checked = state.amueblado,
             onCheckedChange = { checked -> viewModel.updateFilter { it.copy(amueblado = checked) } },
             primaryColor = primaryColor,
@@ -680,7 +683,7 @@ private fun DeptoCharacteristicsSection(state: PropertyFilterState, viewModel: S
 
         if (state.listingType == ListingType.RENTA) {
             FlatCheckItem(
-                text = "Mascotas permitidas",
+                text = stringResource(R.string.search_filters_pets),
                 checked = state.mascotasPermitidas,
                 onCheckedChange = { checked -> viewModel.updateFilter { it.copy(mascotasPermitidas = checked) } },
                 primaryColor = primaryColor,
@@ -688,7 +691,7 @@ private fun DeptoCharacteristicsSection(state: PropertyFilterState, viewModel: S
             )
 
             FlatCheckItem(
-                text = "Elevador",
+                text = stringResource(R.string.search_filters_elevator),
                 checked = state.elevador,
                 onCheckedChange = { checked -> viewModel.updateFilter { it.copy(elevador = checked) } },
                 primaryColor = primaryColor,
@@ -710,10 +713,10 @@ private fun TerrenoCharacteristicsSection(
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         HorizontalDivider(color = BorderColor)
-        Text("Características del terreno", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1F2937))
+        Text(stringResource(R.string.search_filters_land_features), fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1F2937))
 
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Superficie (m²)", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = Color(0xFF6B7280))
+            Text(stringResource(R.string.search_filters_area), fontSize = 13.sp, fontWeight = FontWeight.Medium, color = Color(0xFF6B7280))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -722,7 +725,7 @@ private fun TerrenoCharacteristicsSection(
                 OutlinedTextField(
                     value = minSup,
                     onValueChange = minSupChange@{ onMinSupChange(it) },
-                    label = { Text("Mínimo") },
+                    label = { Text(stringResource(R.string.search_filters_min)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.weight(1f),
                     singleLine = true,
@@ -732,7 +735,7 @@ private fun TerrenoCharacteristicsSection(
                 OutlinedTextField(
                     value = maxSup,
                     onValueChange = maxSupChange@{ onMaxSupChange(it) },
-                    label = { Text("Máximo") },
+                    label = { Text(stringResource(R.string.search_filters_max)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier.weight(1f),
                     singleLine = true,
@@ -743,7 +746,7 @@ private fun TerrenoCharacteristicsSection(
 
         // Uso del suelo dropdown unificado
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text("Uso del suelo", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1F2937))
+            Text(stringResource(R.string.search_filters_land_use), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1F2937))
             Spacer(Modifier.height(4.dp))
 
             var usoExpanded by remember { mutableStateOf(false) }
@@ -768,7 +771,7 @@ private fun TerrenoCharacteristicsSection(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        state.usoSuelo ?: "Seleccionar",
+                        when (state.usoSuelo) { null -> stringResource(R.string.search_filters_select); "Habitacional" -> stringResource(R.string.create_listing_land_residential); "Agrícola" -> stringResource(R.string.create_listing_land_agricultural); else -> state.usoSuelo }.toString(),
                         fontSize = 14.sp,
                         fontWeight = if (isUsoSelected) FontWeight.Bold else FontWeight.Normal,
                         color = if (isUsoSelected) primaryColor else Color(0xFF1F2937)
@@ -797,7 +800,7 @@ private fun TerrenoCharacteristicsSection(
                         listOf(null, "Habitacional", "Agrícola").forEach { uso ->
                             val isSelected = state.usoSuelo == uso
                             FlatCheckItem(
-                                text = uso ?: "Todos",
+                                text = when (uso) { null -> stringResource(R.string.search_filters_all); "Habitacional" -> stringResource(R.string.create_listing_land_residential); "Agrícola" -> stringResource(R.string.create_listing_land_agricultural); else -> uso },
                                 checked = isSelected,
                                 onCheckedChange = { _ ->
                                     viewModel.updateFilter { it.copy(usoSuelo = uso) }

@@ -19,7 +19,7 @@ enum class UserRole(val dbValue: String, @StringRes val labelRes: Int) {
 }
 
 /** Idiomas disponibles (el valor se guarda tal cual en [ProfileUiState.language]). */
-val LanguageOptions = listOf("Español", "Inglés")
+val LanguageOptions = listOf("Español", "English")
 
 data class ProfileUiState(
     val userName: String = "",

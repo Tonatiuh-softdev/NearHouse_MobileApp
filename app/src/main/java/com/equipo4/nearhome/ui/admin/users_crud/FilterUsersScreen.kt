@@ -29,10 +29,6 @@ import com.equipo4.nearhome.ui.theme.NoticeTone
 import com.equipo4.nearhome.ui.theme.adminAccent
 import com.equipo4.nearhome.ui.theme.onAdminAccent
 
-/**
- * Filtrar usuarios. Usa el mismo estilo que "Filtrar anuncios" (colores del tema, tamaños de
- * letra, chips con cantidad, filas con check y barra de botones fija).
- */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun FilterUsersScreen(
@@ -48,7 +44,7 @@ fun FilterUsersScreen(
 
     val context = LocalContext.current
     val subtitleText = if (filtersCount == 0) {
-        "Sin filtros seleccionados"
+        stringResource(R.string.filter_users_subtitle_none)
     } else {
         context.resources.getQuantityString(R.plurals.selected_filters_count, filtersCount, filtersCount)
     }
@@ -59,7 +55,7 @@ fun FilterUsersScreen(
                 title = {
                     Column {
                         Text(
-                            "Filtrar usuarios",
+                            stringResource(R.string.filter_users_title),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -89,14 +85,14 @@ fun FilterUsersScreen(
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = adminAccent(), contentColor = onAdminAccent()),
                         modifier = Modifier.fillMaxWidth().height(48.dp)
-                    ) { Text("Aplicar filtros · $liveCount resultados") }
+                    ) { Text(stringResource(R.string.filter_users_apply_format, liveCount)) }
                     OutlinedButton(
                         onClick = viewModel::clearAllFilters,
                         shape = RoundedCornerShape(12.dp),
                         border = BorderStroke(1.dp, adminAccent()),
                         colors = ButtonDefaults.outlinedButtonColors(contentColor = adminAccent()),
                         modifier = Modifier.fillMaxWidth().height(48.dp)
-                    ) { Text("Limpiar filtros") }
+                    ) { Text(stringResource(R.string.filter_users_clear)) }
                 }
             }
         },
@@ -111,16 +107,15 @@ fun FilterUsersScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // Rol: selección múltiple, cada opción con su cantidad.
             Column {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    SectionTitle("Rol")
+                    SectionTitle(stringResource(R.string.filter_users_role_title))
                     Text(
-                        "Selección múltiple",
+                        stringResource(R.string.filter_users_multiple_selection),
                         fontSize = 12.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -145,9 +140,8 @@ fun FilterUsersScreen(
                 }
             }
 
-            // Estatus: casillas de selección múltiple, cada una con su cantidad.
             Column {
-                SectionTitle("Estatus")
+                SectionTitle(stringResource(R.string.filter_users_status_title))
                 Spacer(Modifier.height(8.dp))
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     listOf(
@@ -166,17 +160,21 @@ fun FilterUsersScreen(
                 }
             }
 
-            // Nota resumen de lo elegido.
+            val wordAnd = stringResource(R.string.listing_word_and)
+            val wordOr = stringResource(R.string.listing_word_or)
+            val summaryPrefix = stringResource(R.string.filter_users_summary_prefix)
+            val summaryAnyRole = stringResource(R.string.filter_users_summary_any_role)
+            val summaryWithStatus = stringResource(R.string.filter_users_summary_with_status)
             val summaryText = buildString {
-                append("Se mostrarán ")
+                append(summaryPrefix)
                 if (selectedRoles.isEmpty()) {
-                    append("usuarios de cualquier rol")
+                    append(summaryAnyRole)
                 } else {
-                    append(selectedRoles.joinToString(" y ") { it.label.lowercase() })
+                    append(selectedRoles.joinToString(wordAnd) { it.label.lowercase() })
                 }
                 if (selectedStatuses.isNotEmpty()) {
-                    append(" con estatus ")
-                    append(selectedStatuses.joinToString(" o ") { it.label.lowercase() })
+                    append(summaryWithStatus)
+                    append(selectedStatuses.joinToString(wordOr) { it.label.lowercase() })
                 }
                 append(".")
             }
@@ -195,7 +193,6 @@ private fun SectionTitle(title: String) {
     )
 }
 
-/** Chip con el nombre y la cantidad en un círculo. Seleccionado: azul claro con borde azul. */
 @Composable
 private fun CountChip(label: String, count: Int, selected: Boolean, onClick: () -> Unit) {
     val accent = adminAccent()
@@ -237,7 +234,6 @@ private fun CountChip(label: String, count: Int, selected: Boolean, onClick: () 
     }
 }
 
-/** Fila con casilla, nombre y cantidad. Seleccionada: check azul y fondo azul claro. */
 @Composable
 private fun CheckCountRow(text: String, count: Int, selected: Boolean, onClick: () -> Unit) {
     val accent = adminAccent()

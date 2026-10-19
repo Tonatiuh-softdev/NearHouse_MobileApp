@@ -44,6 +44,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.appcompat)
     implementation(libs.maps.compose)
     implementation(libs.maps.compose.utils)
     implementation(libs.androidx.lifecycle.runtime.ktx)
