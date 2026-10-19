@@ -22,9 +22,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.NearHome"
-        android:usesCleartextTraffic="true"
-        tools:targetApi="31"
-        tools:replace="android:allowBackup,android:dataExtractionRules,android:fullBackupContent">
+        android:usesCleartextTraffic="true">
 
         <service
             android:name="androidx.appcompat.app.AppLocalesMetadataHolderService"
