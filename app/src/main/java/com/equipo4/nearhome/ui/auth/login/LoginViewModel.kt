@@ -17,6 +17,9 @@ import org.json.JSONObject
 import java.io.IOException
 import kotlin.coroutines.cancellation.CancellationException
 
+import com.equipo4.nearhome.util.AppStrings
+import com.equipo4.nearhome.R
+
 class LoginViewModel(
     application: Application
 ) : AndroidViewModel(application) {
@@ -29,7 +32,7 @@ class LoginViewModel(
     private val _uiState = MutableStateFlow(
         LoginUiState(
             errorMessage = if (sessionManager.consumeSessionExpired())
-                "Tu sesión expiró. Vuelve a iniciar sesión"
+                AppStrings.get(R.string.login_session_expired)
             else null
         )
     )
@@ -106,14 +109,14 @@ class LoginViewModel(
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = "No se pudo conectar con el servidor. Revisa tu conexión a internet e inténtalo de nuevo."
+                        errorMessage = AppStrings.get(R.string.login_error_network)
                     )
                 }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = "Ocurrió un error inesperado."
+                        errorMessage = AppStrings.get(R.string.error_unexpected)
                     )
                 }
             }
@@ -123,7 +126,7 @@ class LoginViewModel(
     /**
      * Prioridad: 1) el mensaje que manda la API; 2) un texto según el código HTTP.
      * Así "Demasiados intentos" y "Cuenta suspendida" ya no se convierten en
-     * "Correo o contraseña incorrectos".
+     * AppStrings.get(R.string.login_error_401).
      */
     private fun parseErrorMessage(code: Int, rawError: String?): String {
         val apiMessage = try {
@@ -137,10 +140,10 @@ class LoginViewModel(
         if (apiMessage != null) return apiMessage
 
         return when (code) {
-            401 -> "Correo o contraseña incorrectos"
-            403 -> "Tu cuenta está suspendida. Contacta al administrador"
-            429 -> "Demasiados intentos. Espera unos minutos"
-            else -> "Ocurrió un error inesperado. Inténtalo de nuevo."
+            401 -> AppStrings.get(R.string.login_error_401)
+            403 -> AppStrings.get(R.string.login_error_403)
+            429 -> AppStrings.get(R.string.login_error_429)
+            else -> AppStrings.get(R.string.error_unexpected_retry)
         }
     }
 

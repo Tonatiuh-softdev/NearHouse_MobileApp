@@ -14,6 +14,9 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+import com.equipo4.nearhome.util.AppStrings
+import com.equipo4.nearhome.R
+
 class MapViewModel(
     private val repository: PropiedadRepository = Repositories.propiedades
 ) : ViewModel() {
@@ -39,7 +42,7 @@ class MapViewModel(
             repository.observeAll()
                 .catch {
                     _uiState.update { s ->
-                        s.copy(isLoading = false, errorMessage = "No se pudieron cargar las propiedades")
+                        s.copy(isLoading = false, errorMessage = AppStrings.get(R.string.map_error_load))
                     }
                 }
                 .collect { list ->

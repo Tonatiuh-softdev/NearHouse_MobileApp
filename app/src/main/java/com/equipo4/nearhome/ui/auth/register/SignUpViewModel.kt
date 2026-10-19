@@ -19,6 +19,9 @@ import org.json.JSONObject
 import java.io.IOException
 import com.equipo4.nearhome.data.model.RegistroTemporal
 
+import com.equipo4.nearhome.util.AppStrings
+import com.equipo4.nearhome.R
+
 
 class SignUpViewModel(
     application: Application
@@ -81,7 +84,7 @@ class SignUpViewModel(
                     _uiState.update {
                         it.copy(
                             isLoading = false,
-                            emailErrorMessage = parseError(rawError, "El correo ya está registrado o no es válido.")
+                            emailErrorMessage = parseError(rawError, AppStrings.get(R.string.signup_error_email_taken))
                         )
                     }
                 }
@@ -89,12 +92,12 @@ class SignUpViewModel(
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        emailErrorMessage = "No se pudo conectar con el servidor. Revisa tu conexión a internet."
+                        emailErrorMessage = AppStrings.get(R.string.signup_error_network)
                     )
                 }
             } catch (e: Exception) {
                 _uiState.update {
-                    it.copy(isLoading = false, emailErrorMessage = "Ocurrió un error inesperado.")
+                    it.copy(isLoading = false, emailErrorMessage = AppStrings.get(R.string.error_unexpected))
                 }
             }
         }
@@ -137,7 +140,7 @@ class SignUpViewModel(
                         it.copy(
                             isLoading = false,
                             isOtpError = true,
-                            otpErrorMessage = parseError(rawError, "El código es incorrecto o ha expirado.")
+                            otpErrorMessage = parseError(rawError, AppStrings.get(R.string.signup_error_otp_expired))
                         )
                     }
                 }
@@ -146,7 +149,7 @@ class SignUpViewModel(
                     it.copy(
                         isLoading = false,
                         isOtpError = true,
-                        otpErrorMessage = "Error al conectar con el servidor."
+                        otpErrorMessage = AppStrings.get(R.string.error_server_connection)
                     )
                 }
             }

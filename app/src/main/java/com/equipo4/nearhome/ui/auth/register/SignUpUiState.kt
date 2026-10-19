@@ -1,5 +1,9 @@
 package com.equipo4.nearhome.ui.auth.register
 
+
+
+import com.equipo4.nearhome.util.AppStrings
+import com.equipo4.nearhome.R
 enum class SignUpStep {
     FORM,
     OTP_VERIFICATION,
@@ -64,17 +68,17 @@ data class SignUpUiState(
         get() {
             if (emailErrorMessage != null) return emailErrorMessage
             if (cleanEmail.isEmpty()) return null
-            if (!cleanEmail.contains("@")) return "El correo debe incluir '@'"
+            if (!cleanEmail.contains("@")) return AppStrings.get(R.string.signup_email_err_at)
 
             val parts = cleanEmail.split("@", limit = 2)
             val localPart = parts[0]
             val domainPart = parts.getOrNull(1)?.lowercase().orEmpty()
 
-            if (localPart.isEmpty()) return "Debe ingresar el correo antes del '@'"
-            if (domainPart.isEmpty()) return "Debe ingresar el dominio después del '@'"
-            if (!isDomainBaseAllowed(domainPart)) return "Solo se permiten dominios gmail, hotmail, outlook o ucol"
-            if (!hasValidDomainExtension(domainPart)) return "Debe incluir una extensión válida (ej: .com, .mx, .edu.mx)"
-            if (!android.util.Patterns.EMAIL_ADDRESS.matcher(cleanEmail).matches()) return "Formato de correo electrónico inválido"
+            if (localPart.isEmpty()) return AppStrings.get(R.string.signup_email_err_local)
+            if (domainPart.isEmpty()) return AppStrings.get(R.string.signup_email_err_domain)
+            if (!isDomainBaseAllowed(domainPart)) return AppStrings.get(R.string.signup_email_err_allowed)
+            if (!hasValidDomainExtension(domainPart)) return AppStrings.get(R.string.signup_email_err_ext)
+            if (!android.util.Patterns.EMAIL_ADDRESS.matcher(cleanEmail).matches()) return AppStrings.get(R.string.signup_email_err_format)
 
             return null
         }
@@ -95,11 +99,11 @@ data class SignUpUiState(
     val passwordErrorMessage: String?
         get() {
             if (password.isEmpty()) return null
-            if (!hasMinLength) return "La contraseña debe tener al menos 8 caracteres"
-            if (!hasLowercase) return "Debe incluir al menos una letra minúscula"
-            if (!hasUppercase) return "Debe incluir al menos una letra mayúscula"
-            if (!hasDigit) return "Debe incluir al menos un número"
-            if (!hasNoRepeatedDigits) return "No puede tener números repetidos seguidos (ej: 11, 22)"
+            if (!hasMinLength) return AppStrings.get(R.string.signup_pw_err_length)
+            if (!hasLowercase) return AppStrings.get(R.string.signup_pw_err_lower)
+            if (!hasUppercase) return AppStrings.get(R.string.signup_pw_err_upper)
+            if (!hasDigit) return AppStrings.get(R.string.signup_pw_err_digit)
+            if (!hasNoRepeatedDigits) return AppStrings.get(R.string.signup_pw_err_repeated)
             return null
         }
 

@@ -33,6 +33,7 @@ import com.equipo4.nearhome.domain.model.PropertyType
 import com.equipo4.nearhome.ui.common.FakeMapPreview
 
 import androidx.compose.ui.res.stringResource
+import com.equipo4.nearhome.util.AppStrings
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -368,7 +369,7 @@ private fun DetailContent(
                 Button(
                     onClick = {
                         val intent = Intent(Intent.ACTION_VIEW).apply {
-                            data = Uri.parse("https://api.whatsapp.com/send?phone=${pub.telefonoVendedor}&text=Hola,%20estoy%20interesado%20en%20tu%20publicaci%C3%B3n")
+                            data = Uri.parse("https://api.whatsapp.com/send?phone=${pub.telefonoVendedor}&text=${Uri.encode(AppStrings.get(R.string.detail_whatsapp_message))}")
                         }
                         context.startActivity(intent)
                     },
@@ -385,7 +386,7 @@ private fun DetailContent(
                     onClick = {
                         val intent = Intent(Intent.ACTION_SENDTO).apply {
                             data = Uri.parse("mailto:${pub.emailVendedor}")
-                            putExtra(Intent.EXTRA_SUBJECT, "Consulta sobre publicación: ${pub.titulo}")
+                            putExtra(Intent.EXTRA_SUBJECT, AppStrings.get(R.string.detail_email_subject, pub.titulo))
                         }
                         context.startActivity(intent)
                     },

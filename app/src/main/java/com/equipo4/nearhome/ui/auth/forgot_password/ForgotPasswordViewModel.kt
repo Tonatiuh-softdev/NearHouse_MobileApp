@@ -9,6 +9,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+import com.equipo4.nearhome.util.AppStrings
+import com.equipo4.nearhome.R
+
 class ForgotPasswordViewModel : ViewModel() {
 
     private val _uiState = MutableStateFlow(ForgotPasswordUiState())
@@ -83,14 +86,14 @@ class ForgotPasswordViewModel : ViewModel() {
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        successMessage = "Si el correo existe, se envió un enlace para restablecer tu contraseña"
+                        successMessage = AppStrings.get(R.string.forgot_success)
                     )
                 }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = "Error de conexión. Revisa tu internet e inténtalo de nuevo."
+                        errorMessage = AppStrings.get(R.string.forgot_error_connection)
                     )
                 }
             }

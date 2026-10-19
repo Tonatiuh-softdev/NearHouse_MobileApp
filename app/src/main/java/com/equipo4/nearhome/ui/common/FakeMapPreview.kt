@@ -30,6 +30,7 @@ import com.equipo4.nearhome.R
 import com.equipo4.nearhome.domain.model.PropertyType
 
 import androidx.compose.ui.res.stringResource
+import com.equipo4.nearhome.util.AppStrings
 
 private const val PW = 400f
 private const val PH = 200f
@@ -110,10 +111,10 @@ private fun DrawScope.drawPreviewCity(tm: TextMeasurer) {
         val t = tm.measure(label, TextStyle(fontSize = 4.5.sp, color = Color(0xFF4B5563), fontWeight = FontWeight.Medium))
         drawText(t, topLeft = Offset(x - t.size.width / 2f, y + 13f))
     }
-    poi(75f, 28f, Color(0xFFD93025), "H", "Hospital")
-    poi(335f, 78f, Color(0xFF1E88E5), "E", "Escuela")
-    poi(285f, 168f, Color(0xFFF57C00), "R", "Restaurante")
-    poi(115f, 168f, Color(0xFF7B1FA2), "T", "Tienda")
-    val pk = tm.measure("Parque", TextStyle(fontSize = 4.5.sp, color = Color(0xFF5B8C3A), fontWeight = FontWeight.Medium))
+    poi(75f, 28f, Color(0xFFD93025), "H", AppStrings.get(R.string.poi_hospital))
+    poi(335f, 78f, Color(0xFF1E88E5), "E", AppStrings.get(R.string.poi_school))
+    poi(285f, 168f, Color(0xFFF57C00), "R", AppStrings.get(R.string.poi_restaurant))
+    poi(115f, 168f, Color(0xFF7B1FA2), "T", AppStrings.get(R.string.poi_store))
+    val pk = tm.measure(AppStrings.get(R.string.poi_park), TextStyle(fontSize = 4.5.sp, color = Color(0xFF5B8C3A), fontWeight = FontWeight.Medium))
     drawText(pk, topLeft = Offset(190f - pk.size.width / 2f, 160f))
 }

@@ -11,6 +11,9 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+import com.equipo4.nearhome.util.AppStrings
+import com.equipo4.nearhome.R
+
 class SavedViewModel(
     private val repository: PropiedadRepository = Repositories.propiedades
 ) : ViewModel() {
@@ -21,7 +24,7 @@ class SavedViewModel(
     init {
         viewModelScope.launch {
             repository.observeSaved()
-                .catch { _uiState.update { s -> s.copy(isLoading = false, errorMessage = "No se pudieron cargar tus guardados") } }
+                .catch { _uiState.update { s -> s.copy(isLoading = false, errorMessage = AppStrings.get(R.string.saved_error_load)) } }
                 .collect { list ->
                     _uiState.update { it.copy(isLoading = false, errorMessage = null, properties = list) }
                 }

@@ -3,6 +3,9 @@ package com.equipo4.nearhome.ui.createlisting
 import com.equipo4.nearhome.domain.model.ListingType
 import com.equipo4.nearhome.domain.model.PropertyType
 
+import com.equipo4.nearhome.util.AppStrings
+import com.equipo4.nearhome.R
+
 enum class LandUse { HABITACIONAL, AGRICOLA }
 
 const val MAX_TITLE = 80
@@ -97,8 +100,8 @@ data class CreateListingState(
             if (street.isNotBlank()) {
                 add(if (streetNumber.equals("S/N", ignoreCase = true)) "$street S/N" else "$street #$streetNumber")
             }
-            locationColonia?.let { add("Col. $it") }
-            if (postalCode.isNotBlank()) add("C.P. $postalCode")
+            locationColonia?.let { add(AppStrings.get(R.string.address_colonia_format, it)) }
+            if (postalCode.isNotBlank()) add(AppStrings.get(R.string.address_postal_format, postalCode))
             add("Manzanillo, Colima")
         }.joinToString(", ")
 

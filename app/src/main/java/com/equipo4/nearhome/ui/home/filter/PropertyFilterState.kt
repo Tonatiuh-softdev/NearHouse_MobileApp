@@ -7,6 +7,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
+import com.equipo4.nearhome.util.AppStrings
+import com.equipo4.nearhome.R
+
 data class PropertyFilterState(
     val listingType: ListingType = ListingType.VENTA,
     val propertyType: PropertyType? = null,
@@ -132,28 +135,28 @@ fun Property.matchesFilter(filter: PropertyFilterState): Boolean {
 }
 
 fun PropertyFilterState.buildSummaryText(): String {
-    val modeStr = if (listingType == ListingType.VENTA) "en venta" else "en renta"
+    val modeStr = AppStrings.get(if (listingType == ListingType.VENTA) R.string.filter_summary_for_sale else R.string.filter_summary_for_rent)
     val typeStr = when (propertyType) {
-        PropertyType.CASA -> "Casa"
-        PropertyType.DEPARTAMENTO -> "Departamento"
-        PropertyType.TERRENO -> "Terreno"
-        null -> "Inmuebles"
+        PropertyType.CASA -> AppStrings.get(R.string.search_filters_type_house)
+        PropertyType.DEPARTAMENTO -> AppStrings.get(R.string.search_filters_type_apartment)
+        PropertyType.TERRENO -> AppStrings.get(R.string.search_filters_type_land)
+        null -> AppStrings.get(R.string.filter_summary_properties)
     }
-    val typeForm = if (propertyType == null) "Inmuebles $modeStr" else "$typeStr $modeStr"
+    val typeForm = "$typeStr $modeStr"
 
     val details = mutableListOf<String>()
     if (selectedColonias.isNotEmpty()) {
         if (selectedColonias.size == 1) {
-            details.add("en ${selectedColonias.first()}")
+            details.add(AppStrings.get(R.string.filter_summary_in_place, selectedColonias.first()))
         } else {
-            details.add("en ${selectedColonias.size} colonias")
+            details.add(AppStrings.get(R.string.filter_summary_in_n_places, selectedColonias.size))
         }
     }
-    if (amueblado) details.add("amueblado")
-    if (jardinPatio) details.add("con jardín/patio")
-    if (elevador) details.add("con elevador")
-    if (mascotasPermitidas) details.add("pet-friendly")
-    if (usoSuelo != null) details.add("uso $usoSuelo")
+    if (amueblado) details.add(AppStrings.get(R.string.filter_summary_furnished))
+    if (jardinPatio) details.add(AppStrings.get(R.string.filter_summary_garden))
+    if (elevador) details.add(AppStrings.get(R.string.filter_summary_elevator))
+    if (mascotasPermitidas) details.add(AppStrings.get(R.string.filter_summary_pet_friendly))
+    if (usoSuelo != null) details.add(AppStrings.get(R.string.filter_summary_land_use, usoSuelo))
 
     return if (details.isEmpty()) typeForm else "$typeForm ${details.joinToString(", ")}"
 }

@@ -12,6 +12,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+import com.equipo4.nearhome.util.AppStrings
+import com.equipo4.nearhome.R
+
 class PhoneVerificationViewModel(
     private val authRepository: AuthRepository = AuthRepository()
 ) : ViewModel() {
@@ -47,7 +50,7 @@ class PhoneVerificationViewModel(
             _uiState.update {
                 it.copy(
                     isError = true,
-                    errorMessage = "El código es incorrecto"
+                    errorMessage = AppStrings.get(R.string.signup_otp_error)
                 )
             }
             return
@@ -83,7 +86,7 @@ class PhoneVerificationViewModel(
                     it.copy(
                         isLoading = false,
                         isError = true,
-                        errorMessage = result.exceptionOrNull()?.message ?: "Error al registrar usuario"
+                        errorMessage = result.exceptionOrNull()?.message ?: AppStrings.get(R.string.phone_verify_register_error)
                     )
                 }
             }

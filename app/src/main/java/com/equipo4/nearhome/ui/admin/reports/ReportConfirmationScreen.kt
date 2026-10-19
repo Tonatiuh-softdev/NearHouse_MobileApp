@@ -117,7 +117,7 @@ fun ReportConfirmationScreen(
                         ) {
                             Text(stringResource(R.string.report_result), color = Color(0xFF6B7280), fontSize = 14.sp)
                             Text(
-                                text = if (report!!.result?.contains("Medida aplicada") == true) stringResource(R.string.report_measure_applied) else (report!!.result ?: stringResource(R.string.status_attended)),
+                                text = if ((report!!.result?.contains("Medida aplicada") == true || report!!.result?.contains("Measure applied") == true)) stringResource(R.string.report_measure_applied) else (report!!.result ?: stringResource(R.string.status_attended)),
                                 fontWeight = FontWeight.SemiBold,
                                 color = Color(0xFF1F2937),
                                 fontSize = 14.sp,

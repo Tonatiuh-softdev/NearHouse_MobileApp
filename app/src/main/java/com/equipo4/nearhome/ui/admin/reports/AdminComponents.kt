@@ -137,7 +137,7 @@ fun ReportCardItem(
                     text = report.result,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Medium,
-                    color = if (report.result.contains("Cerrado")) Color(0xFF6B7280) else Color(0xFF15803D)
+                    color = if ((report.result.contains("Cerrado") || report.result.contains("Closed"))) Color(0xFF6B7280) else Color(0xFF15803D)
                 )
             }
 

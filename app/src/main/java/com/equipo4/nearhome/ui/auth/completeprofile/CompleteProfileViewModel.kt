@@ -14,6 +14,9 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
+import com.equipo4.nearhome.util.AppStrings
+import com.equipo4.nearhome.R
+
 val MOCK_COUNTRIES = listOf(
     Country("México", "+52", "🇲🇽", "MX"),
     Country("Estados Unidos", "+1", "🇺🇸", "US"),
@@ -177,7 +180,7 @@ class CompleteProfileViewModel(
                 val formattedDisplayPhone = "${updatedState.selectedCountry.code}${digits.substring(0, 3)}-${digits.substring(3, 6)}-${digits.substring(6)}"
                 onSuccess(formattedDisplayPhone)
             } else {
-                val errorMsg = result.exceptionOrNull()?.message ?: "El número de teléfono ya está registrado"
+                val errorMsg = result.exceptionOrNull()?.message ?: AppStrings.get(R.string.cp_error_phone_taken)
                 _uiState.update {
                     it.copy(
                         isLoading = false,
@@ -203,7 +206,7 @@ class CompleteProfileViewModel(
 
         val showPhoneErr = (state.phoneTouched || state.isSubmittedAttempted) && (isPhoneEmpty || isPhoneInvalidFormat)
         val phoneErrText = if (showPhoneErr) {
-            if (isPhoneInvalidFormat) "Formato inválido (10 dígitos)" else "El teléfono es obligatorio"
+            if (isPhoneInvalidFormat) AppStrings.get(R.string.cp_error_phone_format) else AppStrings.get(R.string.cp_error_phone_required)
         } else null
 
         val isOverallValid = state.firstName.isNotBlank() &&
@@ -226,16 +229,16 @@ class CompleteProfileViewModel(
     }
 
     private fun getBirthDateErrorMessage(birthDate: String): String? {
-        if (birthDate.isBlank()) return "La fecha de nacimiento es obligatoria"
-        if (birthDate.length < 10) return "Formato de fecha incompleto (DD/MM/AAAA)"
+        if (birthDate.isBlank()) return AppStrings.get(R.string.cp_error_birth_required)
+        if (birthDate.length < 10) return AppStrings.get(R.string.cp_error_birth_incomplete)
 
         if (!isValidCalendarDate(birthDate)) {
-            return "La fecha ingresada no existe (día o mes inválido)"
+            return AppStrings.get(R.string.cp_error_birth_invalid)
         }
 
         val age = calculateExactAge(birthDate)
         if (age < 18 || age > 80) {
-            return "Debes tener entre 18 y 80 años"
+            return AppStrings.get(R.string.cp_error_birth_age)
         }
 
         return null
