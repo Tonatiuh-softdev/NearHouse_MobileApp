@@ -2,6 +2,8 @@ package com.equipo4.nearhome.ui.auth.verification
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.equipo4.nearhome.data.model.RegistroTemporal
+import com.equipo4.nearhome.data.repository.AuthRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -10,24 +12,18 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-data class PhoneVerificationUiState(
-    val phoneNumber: String = "+52 123-456-7890",
-    val otpCode: String = "",
-    val isError: Boolean = false,
-    val errorMessage: String? = null,
-    val timerSeconds: Int = 0,
-    val canResend: Boolean = true, // Inicia habilitado para que solo arranque al pulsarlo
-    val isVerified: Boolean = false
-)
+import com.equipo4.nearhome.util.AppStrings
+import com.equipo4.nearhome.R
 
-class PhoneVerificationViewModel : ViewModel() {
+class PhoneVerificationViewModel(
+    private val authRepository: AuthRepository = AuthRepository()
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PhoneVerificationUiState())
     val uiState: StateFlow<PhoneVerificationUiState> = _uiState.asStateFlow()
 
     private var timerJob: Job? = null
 
-    // Asignar el número de teléfono recibido de la pantalla anterior
     fun setPhoneNumber(number: String) {
         if (number.isNotEmpty()) {
             _uiState.update { it.copy(phoneNumber = number) }
@@ -49,20 +45,54 @@ class PhoneVerificationViewModel : ViewModel() {
     fun onVerifyClicked() {
         val currentCode = _uiState.value.otpCode
 
-        // CÓDIGO SIMBÓLICO PARA PRUEBAS: "123456"
-        if (currentCode == "123456") {
-            _uiState.update { it.copy(isVerified = true, isError = false) }
-        } else {
+        // Validación del código SMS (Mock '123456' o número de prueba Firebase)
+        if (currentCode != "123456") {
             _uiState.update {
                 it.copy(
                     isError = true,
-                    errorMessage = "El código es incorrecto"
+                    errorMessage = AppStrings.get(R.string.signup_otp_error)
                 )
+            }
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, isError = false, errorMessage = null) }
+
+            val correo = RegistroTemporal.correo.orEmpty()
+            val contrasena = RegistroTemporal.contrasena.orEmpty()
+            val nombre = RegistroTemporal.nombre.orEmpty()
+            val primerAp = RegistroTemporal.primerApellido.orEmpty()
+            val segAp = RegistroTemporal.segundoApellido?.takeIf { it.isNotBlank() }
+            val telefono = RegistroTemporal.telefono.orEmpty()
+            val comprobante = RegistroTemporal.comprobanteCorreo.orEmpty()
+
+            val result = authRepository.registrarUsuario(
+                correo = correo,
+                contrasena = contrasena,
+                nombre = nombre,
+                primerApellido = primerAp,
+                segundoApellido = segAp,
+                telefono = telefono,
+                comprobanteCorreo = comprobante,
+                tokenFirebase = "mock_firebase_token_dev" // Reemplazar por token de Firebase Auth si aplica
+            )
+
+            if (result.isSuccess) {
+                RegistroTemporal.limpiar()
+                _uiState.update { it.copy(isLoading = false, isVerified = true) }
+            } else {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        isError = true,
+                        errorMessage = result.exceptionOrNull()?.message ?: AppStrings.get(R.string.phone_verify_register_error)
+                    )
+                }
             }
         }
     }
 
-    // Se activa ÚNICAMENTE cuando el usuario presiona "Reenviar SMS"
     fun onResendSmsClicked() {
         if (_uiState.value.canResend) {
             _uiState.update {

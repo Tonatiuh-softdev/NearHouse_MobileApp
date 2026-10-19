@@ -32,6 +32,9 @@ import com.equipo4.nearhome.R
 import com.equipo4.nearhome.domain.model.PropertyType
 import com.equipo4.nearhome.ui.common.FakeMapPreview
 
+import androidx.compose.ui.res.stringResource
+import com.equipo4.nearhome.util.AppStrings
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailPublicacionScreen(
@@ -54,12 +57,12 @@ fun DetailPublicacionScreen(
                 title = { },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Regresar")
+                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.common_back))
                     }
                 },
                 actions = {
                     IconButton(onClick = { showBottomSheet = true }) {
-                        Icon(Icons.Default.MoreVert, contentDescription = "Menú de opciones")
+                        Icon(Icons.Default.MoreVert, contentDescription = stringResource(R.string.detail_options_menu_cd))
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
@@ -131,7 +134,6 @@ private fun DetailContent(
 ) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
-    val pagerState = rememberPagerState(pageCount = { pub.imagenes.size })
     var isExpandedDescription by remember { mutableStateOf(false) }
     var selectedTab by remember { mutableStateOf(0) }
 
@@ -141,39 +143,13 @@ private fun DetailContent(
             .verticalScroll(scrollState)
             .padding(bottom = 24.dp)
     ) {
-        // --- CARRUSEL DE IMÁGENES ---
-        Box(
+        // --- CARRUSEL DE IMÁGENES (componente compartido) ---
+        PhotoGallery(
+            images = pub.imagenes,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(260.dp)
         ) {
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier.fillMaxSize()
-            ) { page ->
-                Image(
-                    painter = painterResource(id = pub.imagenes[page]),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
-                )
-            }
-
-            // Contador de posición
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(12.dp)
-                    .background(Color.Black.copy(alpha = 0.6f), RoundedCornerShape(12.dp))
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
-            ) {
-                Text(
-                    text = "${pagerState.currentPage + 1}/${pub.imagenes.size}",
-                    color = Color.White,
-                    fontSize = 12.sp
-                )
-            }
-
             // Etiqueta para Vendedor
             if (pub.esPropietario) {
                 Box(
@@ -184,7 +160,7 @@ private fun DetailContent(
                         .padding(horizontal = 10.dp, vertical = 4.dp)
                 ) {
                     Text(
-                        text = "Tu Publicación",
+                        text = stringResource(R.string.detail_your_listing),
                         color = Color.White,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium
@@ -209,7 +185,7 @@ private fun DetailContent(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(
                         imageVector = Icons.Outlined.PhotoCamera,
-                        contentDescription = "Fotos",
+                        contentDescription = stringResource(R.string.detail_photos_cd),
                         tint = if (selectedTab == 0) Color(0xFF007AFF) else Color.Gray
                     )
                     Spacer(modifier = Modifier.height(4.dp))
@@ -233,7 +209,7 @@ private fun DetailContent(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Icon(
                         imageVector = Icons.Outlined.LocationOn,
-                        contentDescription = "Ubicación",
+                        contentDescription = stringResource(R.string.search_filters_location),
                         tint = if (selectedTab == 1) Color(0xFF007AFF) else Color.Gray
                     )
                     Spacer(modifier = Modifier.height(4.dp))
@@ -304,9 +280,9 @@ private fun DetailContent(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 FeatureItem(iconRes = R.drawable.ic_regla_medicion, label = "${pub.metrosCuadrados} m²")
-                FeatureItem(iconRes = R.drawable.ic_habitaciones, label = "${pub.recamaras} recamaras")
-                FeatureItem(iconRes = R.drawable.ic_bathrooms, label = "${pub.banos} baños")
-                FeatureItem(iconRes = R.drawable.ic_cocheras, label = "${pub.cocheras} cocheras")
+                FeatureItem(iconRes = R.drawable.ic_habitaciones, label = stringResource(R.string.property_bedrooms_format, pub.recamaras))
+                FeatureItem(iconRes = R.drawable.ic_bathrooms, label = stringResource(R.string.property_bathrooms_format, pub.banos))
+                FeatureItem(iconRes = R.drawable.ic_cocheras, label = stringResource(R.string.property_garages_format, pub.cocheras))
             }
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -330,7 +306,7 @@ private fun DetailContent(
 
             if (!pub.esPropietario && !isExpandedDescription) {
                 Text(
-                    text = "Leer más",
+                    text = stringResource(R.string.detail_read_more),
                     color = Color(0xFF007AFF),
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Medium,
@@ -344,7 +320,7 @@ private fun DetailContent(
 
             // Lista dinámica de características
             Text(
-                text = "Más detalles",
+                text = stringResource(R.string.detail_more_details),
                 fontWeight = FontWeight.Bold,
                 fontSize = 15.sp,
                 color = Color.Black
@@ -373,9 +349,9 @@ private fun DetailContent(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    Text(text = "¿Tienes algún problema con este anuncio? ", fontSize = 12.sp, color = Color.Gray)
+                    Text(text = stringResource(R.string.detail_report_question), fontSize = 12.sp, color = Color.Gray)
                     Text(
-                        text = "Repórtalo aquí",
+                        text = stringResource(R.string.detail_report_here),
                         fontSize = 12.sp,
                         color = Color(0xFF007AFF),
                         fontWeight = FontWeight.Bold,
@@ -393,7 +369,7 @@ private fun DetailContent(
                 Button(
                     onClick = {
                         val intent = Intent(Intent.ACTION_VIEW).apply {
-                            data = Uri.parse("https://api.whatsapp.com/send?phone=${pub.telefonoVendedor}&text=Hola,%20estoy%20interesado%20en%20tu%20publicaci%C3%B3n")
+                            data = Uri.parse("https://api.whatsapp.com/send?phone=${pub.telefonoVendedor}&text=${Uri.encode(AppStrings.get(R.string.detail_whatsapp_message))}")
                         }
                         context.startActivity(intent)
                     },
@@ -410,7 +386,7 @@ private fun DetailContent(
                     onClick = {
                         val intent = Intent(Intent.ACTION_SENDTO).apply {
                             data = Uri.parse("mailto:${pub.emailVendedor}")
-                            putExtra(Intent.EXTRA_SUBJECT, "Consulta sobre publicación: ${pub.titulo}")
+                            putExtra(Intent.EXTRA_SUBJECT, AppStrings.get(R.string.detail_email_subject, pub.titulo))
                         }
                         context.startActivity(intent)
                     },
@@ -420,7 +396,7 @@ private fun DetailContent(
                 ) {
                     Icon(imageVector = Icons.Default.Email, contentDescription = null, tint = Color.White)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = "Correo", color = Color.White, fontWeight = FontWeight.Bold)
+                    Text(text = stringResource(R.string.detail_email), color = Color.White, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -431,14 +407,14 @@ private fun DetailContent(
 private fun PrecioSection(precio: Double, esRenta: Boolean) {
     Row(verticalAlignment = Alignment.Bottom) {
         Text(
-            text = if (esRenta) "Renta MX \$${String.format("%,.0f", precio)}" else "MX \$${String.format("%,.0f", precio)}",
+            text = if (esRenta) stringResource(R.string.detail_rent_price_format, String.format("%,.0f", precio)) else stringResource(R.string.property_price_format, String.format("%,.0f", precio)),
             fontWeight = FontWeight.Bold,
             fontSize = 18.sp,
             color = Color.Black
         )
         if (esRenta) {
             Text(
-                text = " /mes",
+                text = stringResource(R.string.detail_per_month),
                 fontSize = 13.sp,
                 color = Color.Gray,
                 modifier = Modifier.padding(bottom = 2.dp)
@@ -503,7 +479,7 @@ private fun HerramientasBottomSheet(
             .padding(16.dp)
     ) {
         Text(
-            text = "Herramientas",
+            text = stringResource(R.string.detail_tools),
             fontWeight = FontWeight.Bold,
             fontSize = 16.sp,
             modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -520,7 +496,7 @@ private fun HerramientasBottomSheet(
             ) {
                 Icon(Icons.Outlined.Edit, contentDescription = null)
                 Spacer(modifier = Modifier.width(12.dp))
-                Text(text = "Editar")
+                Text(text = stringResource(R.string.create_listing_edit))
             }
             Row(
                 modifier = Modifier
@@ -531,7 +507,7 @@ private fun HerramientasBottomSheet(
             ) {
                 Icon(Icons.Outlined.Share, contentDescription = null)
                 Spacer(modifier = Modifier.width(12.dp))
-                Text(text = "Compartir")
+                Text(text = stringResource(R.string.detail_share))
             }
         } else {
             Row(
@@ -546,7 +522,7 @@ private fun HerramientasBottomSheet(
                     contentDescription = null
                 )
                 Spacer(modifier = Modifier.width(12.dp))
-                Text(text = if (estaGuardado) "Guardado" else "Guardar")
+                Text(text = if (estaGuardado) stringResource(R.string.detail_saved) else stringResource(R.string.detail_save))
             }
             Row(
                 modifier = Modifier
@@ -557,7 +533,7 @@ private fun HerramientasBottomSheet(
             ) {
                 Icon(Icons.Outlined.Share, contentDescription = null)
                 Spacer(modifier = Modifier.width(12.dp))
-                Text(text = "Compartir")
+                Text(text = stringResource(R.string.detail_share))
             }
             Row(
                 modifier = Modifier
@@ -568,8 +544,34 @@ private fun HerramientasBottomSheet(
             ) {
                 Icon(Icons.Outlined.Flag, contentDescription = null)
                 Spacer(modifier = Modifier.width(12.dp))
-                Text(text = "Reportar")
+                Text(text = stringResource(R.string.detail_report))
             }
         }
+    }
+}
+
+@Composable
+private fun PhotoGallery(
+    images: List<Int>,
+    modifier: Modifier = Modifier,
+    content: @Composable BoxScope.() -> Unit = {}
+) {
+    val totalPages = images.ifEmpty { listOf(1) }.size
+    val pagerState = rememberPagerState(pageCount = { totalPages })
+
+    Box(modifier = modifier) {
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxSize()
+        ) { page ->
+            val imageRes = images.getOrNull(page) ?: R.drawable.prop_depto_sala
+            Image(
+                painter = painterResource(id = imageRes),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+        }
+        content()
     }
 }

@@ -58,6 +58,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
@@ -80,6 +81,10 @@ private val NavyButtonColor = Color(0xFF0B2C4D)
 private val BlueLinkColor = Color(0xFF3897F0)
 private val TextGrayDisclaimer = Color(0xFF8E8E93)
 private val GoogleButtonBg = Color(0xFFEEEEEE)
+private val PrimaryNavy = Color(0xFF0B2C4D)
+private val GrayInputBg = Color(0xFFF5F5F5)
+private val GrayInputBorder = Color(0xFFE0E0E0)
+private val ErrorRed = Color(0xFFE53935)
 
 @Composable
 fun SignUpScreen(
@@ -158,7 +163,7 @@ private fun SignUpFormContent(
             Spacer(modifier = Modifier.height(50.dp))
 
             Text(
-                text = "Crear una cuenta",
+                text = stringResource(R.string.signup_title),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
@@ -170,19 +175,19 @@ private fun SignUpFormContent(
 
             // Campo Correo
             Column(modifier = Modifier.fillMaxWidth()) {
-                Text("Correo:", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color.Black)
+                Text(stringResource(R.string.signup_email_label) + ":", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color.Black)
                 Spacer(modifier = Modifier.height(6.dp))
                 CustomOutlinedInput(
                     value = uiState.email,
                     onValueChange = onEmailChange,
-                    placeholder = "email@domain.com",
+                    placeholder = stringResource(R.string.login_email_hint),
                     keyboardType = KeyboardType.Email
                 )
 
-                if (uiState.showEmailError && uiState.emailErrorMessage != null) {
+                if (uiState.showEmailError && uiState.displayEmailError != null) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = uiState.emailErrorMessage!!,
+                        text = uiState.displayEmailError!!,
                         color = ErrorRed,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold
@@ -194,7 +199,7 @@ private fun SignUpFormContent(
 
             // Campo Contraseña
             Column(modifier = Modifier.fillMaxWidth()) {
-                Text("Contraseña:", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color.Black)
+                Text(stringResource(R.string.signup_password_label) + ":", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color.Black)
                 Spacer(modifier = Modifier.height(6.dp))
                 CustomOutlinedInput(
                     value = uiState.password,
@@ -218,7 +223,7 @@ private fun SignUpFormContent(
 
             // Campo Confirmar contraseña
             Column(modifier = Modifier.fillMaxWidth()) {
-                Text("Confirmar contraseña:", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color.Black)
+                Text(stringResource(R.string.signup_confirm_password_label) + ":", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color.Black)
                 Spacer(modifier = Modifier.height(6.dp))
                 CustomOutlinedInput(
                     value = uiState.confirmPassword,
@@ -230,7 +235,7 @@ private fun SignUpFormContent(
                 if (uiState.showPasswordMismatchError) {
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Las contraseñas no coinciden",
+                        text = stringResource(R.string.signup_password_mismatch),
                         color = ErrorRed,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold
@@ -240,7 +245,7 @@ private fun SignUpFormContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Checkbox y Texto interactivo de Términos y condiciones y Política de Privacidad
+            // Checkbox y Términos y condiciones
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -253,33 +258,36 @@ private fun SignUpFormContent(
                     )
                 )
 
+                val termsPrefix = stringResource(R.string.signup_terms_prefix)
+                val termsLink = stringResource(R.string.signup_terms_link)
+                val termsMiddle = stringResource(R.string.signup_terms_middle)
+                val termsPrivacy = stringResource(R.string.signup_terms_privacy)
+
                 val termsAnnotatedString = buildAnnotatedString {
                     withStyle(style = SpanStyle(color = TextGrayDisclaimer, fontSize = 12.sp)) {
-                        append("Acepto los ")
+                        append(termsPrefix)
                     }
 
                     pushStringAnnotation(tag = "TERMS", annotation = "terms")
                     withStyle(style = SpanStyle(color = BlueLinkColor, fontSize = 12.sp, fontWeight = FontWeight.Normal)) {
-                        append("Términos y condiciones")
+                        append(termsLink)
                     }
                     pop()
 
                     withStyle(style = SpanStyle(color = TextGrayDisclaimer, fontSize = 12.sp)) {
-                        append(" y la ")
+                        append(termsMiddle)
                     }
 
                     pushStringAnnotation(tag = "PRIVACY", annotation = "privacy")
                     withStyle(style = SpanStyle(color = BlueLinkColor, fontSize = 12.sp, fontWeight = FontWeight.Normal)) {
-                        append("Política de Privacidad")
+                        append(termsPrivacy)
                     }
                     pop()
                 }
 
                 ClickableText(
                     text = termsAnnotatedString,
-                    style = TextStyle(
-                        lineHeight = 16.sp
-                    ),
+                    style = TextStyle(lineHeight = 16.sp),
                     modifier = Modifier.weight(1f),
                     onClick = { offset ->
                         termsAnnotatedString.getStringAnnotations(tag = "TERMS", start = offset, end = offset)
@@ -294,7 +302,7 @@ private fun SignUpFormContent(
             if (uiState.showTermsError) {
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "Debes aceptar los términos y condiciones para continuar",
+                    text = stringResource(R.string.signup_terms_error),
                     color = ErrorRed,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
@@ -317,7 +325,15 @@ private fun SignUpFormContent(
                     .fillMaxWidth()
                     .height(40.dp)
             ) {
-                Text("Enviar código de verificación", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                if (uiState.isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = Color.White,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(stringResource(R.string.signup_send_code), fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                }
             }
 
             Spacer(modifier = Modifier.height(18.dp))
@@ -327,7 +343,7 @@ private fun SignUpFormContent(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 HorizontalDivider(modifier = Modifier.weight(1f), color = GrayInputBorder)
-                Text("o", fontSize = 14.sp, color = Color.Gray, modifier = Modifier.padding(horizontal = 12.dp))
+                Text(stringResource(R.string.common_or), fontSize = 14.sp, color = Color.Gray, modifier = Modifier.padding(horizontal = 12.dp))
                 HorizontalDivider(modifier = Modifier.weight(1f), color = GrayInputBorder)
             }
 
@@ -351,7 +367,7 @@ private fun SignUpFormContent(
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Continuar con Google", fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                    Text(stringResource(R.string.signup_continue_google), fontSize = 14.sp, fontWeight = FontWeight.Medium)
                 }
             }
 
@@ -361,11 +377,14 @@ private fun SignUpFormContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            val haveAccountText = stringResource(R.string.login_have_account)
+            val signinActionText = stringResource(R.string.login_signin_action)
+
             Text(
                 text = buildAnnotatedString {
-                    append("Ya tengo cuenta. ")
+                    append(haveAccountText)
                     withStyle(style = SpanStyle(color = BlueLinkColor, fontWeight = FontWeight.Bold)) {
-                        append("Iniciar Sesion")
+                        append(signinActionText)
                     }
                 },
                 fontSize = 12.sp,
@@ -427,7 +446,7 @@ private fun OtpVerificationContent(
         Spacer(modifier = Modifier.height(40.dp))
 
         Text(
-            text = "Verificación de Correo",
+            text = stringResource(R.string.signup_otp_title),
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             color = Color.Black,
@@ -437,18 +456,21 @@ private fun OtpVerificationContent(
         Spacer(modifier = Modifier.height(28.dp))
 
         Image(
-            painter = painterResource(id = R.drawable.ic_correo),
-            contentDescription = "Icono de correo",
+            painter = painterResource(id = R.drawable.ic_nearhouse_logo),
+            contentDescription = stringResource(R.string.signup_email_icon_cd),
             modifier = Modifier.size(90.dp)
         )
 
         Spacer(modifier = Modifier.height(28.dp))
 
+        val otpSubtitlePrefix = stringResource(R.string.signup_otp_subtitle)
+        val emailValue = uiState.email.ifEmpty { stringResource(R.string.login_email_hint) }
+
         Text(
             text = buildAnnotatedString {
-                append("Hemos enviado un número de verificación a\ntu correo: ")
+                append(otpSubtitlePrefix)
                 withStyle(style = SpanStyle(color = Color(0xFF888888))) {
-                    append(uiState.email.ifEmpty { "email@domain.com" })
+                    append(emailValue)
                 }
             },
             fontSize = 14.sp,
@@ -460,7 +482,7 @@ private fun OtpVerificationContent(
         Spacer(modifier = Modifier.height(28.dp))
 
         Text(
-            text = "Introduce el codigo:",
+            text = stringResource(R.string.signup_otp_enter_code),
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
             color = Color.Black,
@@ -543,7 +565,7 @@ private fun OtpVerificationContent(
         if (uiState.isOtpError) {
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = uiState.otpErrorMessage ?: "El codigo es incorrecto",
+                text = uiState.otpErrorMessage ?: stringResource(R.string.signup_otp_error),
                 color = ErrorRed,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold
@@ -571,7 +593,7 @@ private fun OtpVerificationContent(
                     strokeWidth = 2.dp
                 )
             } else {
-                Text("Verificar Correo", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.signup_verify_email), fontSize = 14.sp, fontWeight = FontWeight.Bold)
             }
         }
 
@@ -583,7 +605,7 @@ private fun OtpVerificationContent(
 
         if (uiState.canResendCode) {
             Text(
-                text = "Reenviar código",
+                text = stringResource(R.string.signup_resend_code),
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 color = PrimaryNavy,
@@ -591,7 +613,7 @@ private fun OtpVerificationContent(
             )
         } else {
             Text(
-                text = "¿No has recibido el codigo?. Espera ${uiState.resendCountdown}s",
+                text = stringResource(R.string.signup_resend_waiting, uiState.resendCountdown),
                 fontSize = 12.sp,
                 color = Color(0xFF888888),
                 textAlign = TextAlign.Center
@@ -614,7 +636,7 @@ private fun VerifiedSuccessContent() {
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "Correo Verificado",
+                text = stringResource(R.string.signup_verified_success),
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
@@ -630,7 +652,7 @@ private fun VerifiedSuccessContent() {
             ) {
                 Icon(
                     imageVector = Icons.Default.Check,
-                    contentDescription = "Verificado",
+                    contentDescription = stringResource(R.string.listing_verified),
                     tint = Color.White,
                     modifier = Modifier.size(100.dp)
                 )
@@ -695,7 +717,7 @@ private fun CustomOutlinedInput(
                         ) {
                             Icon(
                                 imageVector = if (isPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                                contentDescription = if (isPasswordVisible) "Ocultar contraseña" else "Mostrar contraseña",
+                                contentDescription = null,
                                 tint = Color.Gray
                             )
                         }
@@ -706,8 +728,3 @@ private fun CustomOutlinedInput(
         modifier = Modifier.fillMaxWidth()
     )
 }
-
-private val PrimaryNavy = Color(0xFF0B2C4D)
-private val GrayInputBg = Color(0xFFF5F5F5)
-private val GrayInputBorder = Color(0xFFE0E0E0)
-private val ErrorRed = Color(0xFFE53935)

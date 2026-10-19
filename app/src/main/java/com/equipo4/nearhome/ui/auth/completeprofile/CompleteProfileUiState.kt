@@ -28,6 +28,7 @@ data class CompleteProfileUiState(
     val showGeneralError: Boolean = false,
     val isFormValid: Boolean = false,
     val isSubmittedAttempted: Boolean = false,
+    val isLoading: Boolean = false, // <--- Banderita agregada
 
     // Estado del BottomSheet de Selección de País
     val isBottomSheetOpen: Boolean = false,
