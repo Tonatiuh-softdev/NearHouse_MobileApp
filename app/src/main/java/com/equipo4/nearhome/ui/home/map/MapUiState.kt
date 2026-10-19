@@ -2,8 +2,9 @@ package com.equipo4.nearhome.ui.home.map
 
 import com.equipo4.nearhome.domain.model.Property
 import com.equipo4.nearhome.domain.model.PropertyType
+import com.equipo4.nearhome.ui.home.filter.PropertyFilterState
+import com.equipo4.nearhome.ui.home.filter.matchesFilter
 
-// TODO(confirmar con el equipo): opciones de "Ordenar". Supuesto razonable, aislado aquí.
 enum class SortOption(val label: String) {
     NONE("Ordenar"),
     PRICE_ASC("Precio: menor a mayor"),
@@ -15,12 +16,11 @@ data class MapUiState(
     val errorMessage: String? = null,
     val allProperties: List<Property> = emptyList(),
     val searchQuery: String = "",
-    /** Vacío = "Todo". */
     val selectedTypes: Set<PropertyType> = emptySet(),
+    val filterState: PropertyFilterState = PropertyFilterState(),
     val sort: SortOption = SortOption.NONE,
     val selectedPropertyId: String? = null
 ) {
-    /** Propiedades que se muestran como marcadores según búsqueda + filtros + orden. */
     val visibleProperties: List<Property>
         get() {
             val query = searchQuery.trim()
@@ -28,7 +28,8 @@ data class MapUiState(
                 .asSequence()
                 .filter { it.latitude != null && it.longitude != null }
                 .filter { selectedTypes.isEmpty() || it.type in selectedTypes }
-                .filter { query.isEmpty() || it.location.contains(query, ignoreCase = true) }
+                .filter { query.isEmpty() || it.location.contains(query, ignoreCase = true) || it.colonia.contains(query, ignoreCase = true) }
+                .filter { it.matchesFilter(filterState) }
                 .toList()
                 .let {
                     when (sort) {

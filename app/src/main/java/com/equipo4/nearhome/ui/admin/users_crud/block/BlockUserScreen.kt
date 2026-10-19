@@ -19,11 +19,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.equipo4.nearhome.R
 import com.equipo4.nearhome.domain.model.UserAccountStatus
 import com.equipo4.nearhome.ui.admin.users_crud.UserStatusBadge
 import kotlinx.coroutines.launch
@@ -50,13 +52,13 @@ fun BlockUserScreen(
                 title = {
                     Column {
                         Text(
-                            text = if (isBlocked) "Reactivar cuenta" else "Bloquear cuenta",
+                            text = if (isBlocked) stringResource(R.string.unblock_user_title) else stringResource(R.string.block_user_title),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF1F2937)
                         )
                         Text(
-                            text = "Acción sensible",
+                            text = stringResource(R.string.block_user_subtitle),
                             fontSize = 12.sp,
                             color = Color(0xFF6B7280)
                         )
@@ -66,7 +68,7 @@ fun BlockUserScreen(
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Regresar",
+                            contentDescription = stringResource(R.string.common_back),
                             tint = Color(0xFF1F2937)
                         )
                     }
@@ -97,7 +99,7 @@ fun BlockUserScreen(
                         border = BorderStroke(1.dp, Color(0xFFD1D5DB))
                     ) {
                         Text(
-                            text = "Cancelar",
+                            text = stringResource(R.string.listing_action_cancel),
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Medium
                         )
@@ -120,7 +122,7 @@ fun BlockUserScreen(
                         )
                     ) {
                         Text(
-                            text = if (isBlocked) "Reactivar cuenta" else "Bloquear cuenta",
+                            text = if (isBlocked) stringResource(R.string.unblock_user_title) else stringResource(R.string.block_user_title),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color.White,
@@ -151,7 +153,6 @@ fun BlockUserScreen(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Título principal de pregunta
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -171,21 +172,20 @@ fun BlockUserScreen(
                     }
                     Column {
                         Text(
-                            text = if (isBlocked) "¿Reactivar esta cuenta?" else "¿Bloquear esta cuenta?",
+                            text = if (isBlocked) stringResource(R.string.unblock_user_question) else stringResource(R.string.block_user_question),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF1F2937)
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(
-                            text = if (isBlocked) "Permite restaurar el acceso completo a la plataforma." else "Confirma que deseas restringir el acceso de esta persona.",
+                            text = if (isBlocked) stringResource(R.string.unblock_user_desc) else stringResource(R.string.block_user_desc),
                             fontSize = 13.sp,
                             color = Color(0xFF6B7280)
                         )
                     }
                 }
 
-                // Tarjeta del usuario
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
@@ -241,7 +241,6 @@ fun BlockUserScreen(
                     }
                 }
 
-                // Aviso naranja
                 Surface(
                     color = Color(0xFFFEF3C7).copy(alpha = 0.5f),
                     shape = RoundedCornerShape(12.dp),
@@ -249,20 +248,19 @@ fun BlockUserScreen(
                 ) {
                     Text(
                         text = if (isBlocked)
-                            "Al reactivar, el usuario recuperará el acceso a NearHouse y podrá volver a interactuar con la comunidad."
+                            stringResource(R.string.unblock_user_warning)
                         else
-                            "La cuenta perderá acceso a NearHouse y no podrá contactar personas ni crear o editar publicaciones hasta que un administrador la reactive.",
+                            stringResource(R.string.block_user_warning),
                         fontSize = 13.sp,
                         color = Color(0xFF92400E),
                         modifier = Modifier.padding(14.dp)
                     )
                 }
 
-                // Motivo (opcional)
                 if (!isBlocked) {
                     Column(modifier = Modifier.fillMaxWidth()) {
                         Text(
-                            text = "Motivo (opcional)",
+                            text = stringResource(R.string.block_user_reason_label),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF1F2937)
@@ -271,7 +269,7 @@ fun BlockUserScreen(
                         OutlinedTextField(
                             value = reason,
                             onValueChange = { if (it.length <= 250) viewModel.reason.value = it },
-                            placeholder = { Text("Describe brevemente la razón administrativa...") },
+                            placeholder = { Text(stringResource(R.string.block_user_reason_hint)) },
                             shape = RoundedCornerShape(12.dp),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = Color(0xFF0B2C4D),
@@ -286,7 +284,7 @@ fun BlockUserScreen(
                         )
                         Spacer(Modifier.height(2.dp))
                         Text(
-                            text = "${reason.length}/250 caracteres",
+                            text = stringResource(R.string.block_user_char_count, reason.length),
                             fontSize = 11.sp,
                             color = Color(0xFF6B7280),
                             modifier = Modifier.align(Alignment.End)
@@ -294,7 +292,6 @@ fun BlockUserScreen(
                     }
                 }
 
-                // Recuadro "Resultado de la acción" (dentro de la tarjeta tal como el mockup)
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
@@ -314,7 +311,7 @@ fun BlockUserScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "Resultado de la acción",
+                                text = stringResource(R.string.block_user_action_result),
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFF1F2937)
@@ -351,7 +348,7 @@ fun BlockUserScreen(
                                 )
                                 Spacer(Modifier.height(2.dp))
                                 Text(
-                                    text = if (isBlocked) "Cuenta reactivada correctamente" else "Acceso suspendido · Reactivación manual",
+                                    text = if (isBlocked) stringResource(R.string.block_user_reactivated_success) else stringResource(R.string.block_user_suspended_desc),
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Medium,
                                     color = Color(0xFFDC2626)
@@ -362,7 +359,7 @@ fun BlockUserScreen(
                 }
 
                 Text(
-                    text = "La fecha, el administrador responsable y el motivo quedarán registrados en el historial de la cuenta.",
+                    text = stringResource(R.string.block_user_history_notice),
                     fontSize = 11.sp,
                     color = Color(0xFF9CA3AF),
                     textAlign = TextAlign.Center,

@@ -3,6 +3,11 @@ package com.equipo4.nearhome.ui.home.map
 import android.content.Context
 import android.graphics.Bitmap
 import androidx.annotation.DrawableRes
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
+import com.google.maps.android.clustering.view.DefaultClusterRenderer
+import kotlin.math.roundToInt
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -29,7 +34,6 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
@@ -39,24 +43,29 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.domain.model.ListingType
 import com.equipo4.nearhome.domain.model.Property
 import com.equipo4.nearhome.domain.model.PropertyType
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
-import com.google.android.gms.maps.model.BitmapDescriptor
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import com.equipo4.nearhome.ui.home.filter.PropertyFilterManager
+import com.equipo4.nearhome.ui.theme.adminAccent
+import com.equipo4.nearhome.ui.theme.onAdminAccent
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.clustering.ClusterItem
 import com.google.maps.android.compose.GoogleMap
-import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.clustering.Clustering
 import com.google.maps.android.compose.rememberCameraPositionState
-import com.google.maps.android.compose.rememberUpdatedMarkerState
 import java.text.NumberFormat
 import java.util.Locale
-import kotlin.math.roundToInt
+import kotlinx.coroutines.launch
+import androidx.compose.ui.graphics.luminance
+import com.google.maps.android.compose.ComposeMapColorScheme
+
+import androidx.compose.ui.res.stringResource
 
 private val NavyColor = Color(0xFF0B2C4D)
 private val LightGrayBg = Color(0xFFF3F4F6)
@@ -67,8 +76,8 @@ private val TextDark = Color(0xFF1F2937)
 private val TextGray = Color(0xFF6B7280)
 
 /** Tamaño de los pines en el mapa (dp). Si se ven grandes o chicos, se ajusta aquí. */
-private const val PIN_WIDTH_DP = 36
-private const val PIN_HEIGHT_DP = 50
+private const val PIN_WIDTH_DP = 28
+private const val PIN_HEIGHT_DP = 39
 
 /**
  * Fuente única de color por tipo de propiedad. Los indicadores del filtro usan estos colores,
@@ -93,32 +102,40 @@ private fun pinRes(type: PropertyType) = when (type) {
     PropertyType.DEPARTAMENTO -> R.drawable.ic_pin_departamento
 }
 
+@Composable
 private fun typeLabel(type: PropertyType) = when (type) {
-    PropertyType.CASA -> "Casas"
-    PropertyType.TERRENO -> "Terrenos"
-    PropertyType.DEPARTAMENTO -> "Departamentos"
+    PropertyType.CASA -> stringResource(R.string.map_type_houses)
+    PropertyType.TERRENO -> stringResource(R.string.map_type_lands)
+    PropertyType.DEPARTAMENTO -> stringResource(R.string.map_type_apartments)
 }
 
-/**
- * Convierte un drawable (PNG o vector) en un ícono de marcador con el tamaño indicado en dp.
- * Debe llamarse cuando el mapa ya está listo (por ejemplo, dentro del contenido de GoogleMap).
- */
-private fun scaledPinIcon(
+/** Dibuja un drawable (PNG o vector) en un bitmap del tamaño pedido en dp. Se usa una sola vez por tipo. */
+private fun scaledPinBitmap(
     context: Context,
     @DrawableRes resId: Int,
     widthDp: Int,
     heightDp: Int
-): BitmapDescriptor {
+): Bitmap {
     val density = context.resources.displayMetrics.density
     val widthPx = (widthDp * density).roundToInt()
     val heightPx = (heightDp * density).roundToInt()
-    val drawable = ContextCompat.getDrawable(context, resId)
-        ?: return BitmapDescriptorFactory.defaultMarker()
     val bitmap = Bitmap.createBitmap(widthPx, heightPx, Bitmap.Config.ARGB_8888)
-    val canvas = android.graphics.Canvas(bitmap)
-    drawable.setBounds(0, 0, widthPx, heightPx)
-    drawable.draw(canvas)
-    return BitmapDescriptorFactory.fromBitmap(bitmap)
+    ContextCompat.getDrawable(context, resId)?.let { drawable ->
+        val canvas = android.graphics.Canvas(bitmap)
+        drawable.setBounds(0, 0, widthPx, heightPx)
+        drawable.draw(canvas)
+    }
+    return bitmap
+}
+
+/** Elemento que el clustering agrupa: una propiedad con coordenadas. */
+private data class PropertyClusterItem(
+    val property: Property,
+    override val position: LatLng
+) : ClusterItem {
+    override val title: String? = property.title
+    override val snippet: String? = null
+    override val zIndex: Float? = 0f
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -145,9 +162,8 @@ fun MapScreen(
             )
             FilterRow(
                 uiState = uiState,
-                onFilterClick = onFilterClick,
                 onTypeToggled = viewModel::onTypeToggled,
-                onSortSelected = viewModel::onSortSelected
+                onFilterClick = onFilterClick
             )
             Spacer(Modifier.height(6.dp))
 
@@ -177,7 +193,7 @@ fun MapScreen(
                             Button(
                                 onClick = viewModel::loadProperties,
                                 colors = ButtonDefaults.buttonColors(containerColor = NavyColor)
-                            ) { Text("Reintentar") }
+                            ) { Text(stringResource(R.string.map_retry)) }
                         }
                     }
                 }
@@ -206,9 +222,9 @@ fun MapScreen(
 }
 
 /**
- * Mapa real de Google Maps, centrado en Manzanillo. Un marcador por propiedad visible,
- * con el pin de su tipo. El clic se consume (devuelve true) para que Google no muestre
- * su globo de información por defecto.
+ * Mapa real de Google Maps, centrado en Manzanillo. Un elemento por propiedad visible, con el
+ * pin de su tipo; los cercanos se agrupan cuando el mapa está alejado (clustering).
+ * El clic en un pin se consume (devuelve true) para que Google no muestre su globo por defecto.
  */
 @Composable
 private fun GoogleMapView(
@@ -217,40 +233,83 @@ private fun GoogleMapView(
 ) {
     val context = LocalContext.current
     val manzanillo = LatLng(19.08, -104.32)
+    val scope = rememberCoroutineScope()
+
+    // El mapa sigue el tema de la app: fondo oscuro -> mapa oscuro; fondo claro -> mapa claro.
+    val isDarkTheme = MaterialTheme.colorScheme.background.luminance() < 0.5f
 
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(manzanillo, 13f)
     }
 
+    // Un bitmap por tipo, creado UNA sola vez (antes se decodificaba el PNG en cada pin).
+    val pinBitmaps = remember {
+        PropertyType.entries.associateWith { type ->
+            scaledPinBitmap(context, pinRes(type), PIN_WIDTH_DP, PIN_HEIGHT_DP).asImageBitmap()
+        }
+    }
+
+    // Solo las propiedades con coordenadas. Se recalcula únicamente si cambia la lista visible.
+    val clusterItems = remember(properties) {
+        properties.mapNotNull { property ->
+            val lat = property.latitude
+            val lng = property.longitude
+            if (lat != null && lng != null) PropertyClusterItem(property, LatLng(lat, lng)) else null
+        }
+    }
+
     GoogleMap(
         modifier = Modifier.fillMaxSize(),
-        cameraPositionState = cameraPositionState
+        cameraPositionState = cameraPositionState,
+        mapColorScheme = if (isDarkTheme) ComposeMapColorScheme.DARK else ComposeMapColorScheme.LIGHT
     ) {
-        // Un ícono por tipo, creado una sola vez (ya con el mapa listo).
-        val pinIcons = remember {
-            PropertyType.entries.associateWith { type ->
-                scaledPinIcon(context, pinRes(type), PIN_WIDTH_DP, PIN_HEIGHT_DP)
-            }
-        }
-
-        properties.forEach { property ->
-            val latitude = property.latitude
-            val longitude = property.longitude
-
-            if (latitude != null && longitude != null) {
-                key(property.id) {
-                    Marker(
-                        state = rememberUpdatedMarkerState(position = LatLng(latitude, longitude)),
-                        title = property.title,
-                        icon = pinIcons[property.type],
-                        onClick = {
-                            onMarkerClick(property.id)
-                            true // consume el evento: sin globo de información por defecto
-                        }
+        Clustering(
+            items = clusterItems,
+            onClusterClick = { cluster ->
+                // Tocar un grupo acerca el mapa hacia ese punto.
+                scope.launch {
+                    cameraPositionState.animate(
+                        CameraUpdateFactory.newLatLngZoom(
+                            cluster.position,
+                            cameraPositionState.position.zoom + 2f
+                        )
                     )
                 }
+                true
+            },
+            onClusterItemClick = { item ->
+                onMarkerClick(item.property.id)
+                true // consume el evento: sin globo de información por defecto
+            },
+            clusterContent = { cluster ->
+                Surface(
+                    shape = CircleShape,
+                    color = NavyColor,
+                    border = BorderStroke(2.dp, Color.White),
+                    shadowElevation = 4.dp
+                ) {
+                    Box(modifier = Modifier.size(42.dp), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = cluster.size.toString(),
+                            color = Color.White,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            },
+            clusterItemContent = { item ->
+                Image(
+                    bitmap = pinBitmaps.getValue(item.property.type),
+                    contentDescription = item.property.title,
+                    modifier = Modifier.size(PIN_WIDTH_DP.dp, PIN_HEIGHT_DP.dp)
+                )
+            },
+            // Por defecto la librería solo agrupa cuando hay 4 o más; aquí bajamos el mínimo a 2.
+            onClusterManager = { manager ->
+                (manager.renderer as? DefaultClusterRenderer<*>)?.minClusterSize = 2
             }
-        }
+        )
     }
 }
 
@@ -267,7 +326,7 @@ private fun MapHeader(
     ) {
         Image(
             painter = painterResource(R.drawable.ic_nearhouse_logo),
-            contentDescription = "Logo NearHome",
+            contentDescription = stringResource(R.string.logo_cd),
             modifier = Modifier.size(40.dp).clip(CircleShape)
         )
         Row(
@@ -283,7 +342,7 @@ private fun MapHeader(
             Spacer(Modifier.width(8.dp))
             Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
                 if (searchQuery.isEmpty()) {
-                    Text("Busca por ubicación", fontSize = 13.sp, color = Color.Gray, maxLines = 1)
+                    Text(stringResource(R.string.map_search_location), fontSize = 13.sp, color = Color.Gray, maxLines = 1)
                 }
                 BasicTextField(
                     value = searchQuery,
@@ -297,7 +356,7 @@ private fun MapHeader(
             // En Mapa el ícono muestra "lista" para regresar a la vista de Lista.
             Icon(
                 imageVector = Icons.Default.FormatListBulleted,
-                contentDescription = "Ver lista",
+                contentDescription = stringResource(R.string.map_view_list),
                 tint = Color.Black,
                 modifier = Modifier.size(20.dp).noRippleClickable { onToggleToList() }
             )
@@ -305,78 +364,86 @@ private fun MapHeader(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun FilterRow(
     uiState: MapUiState,
-    onFilterClick: () -> Unit,
     onTypeToggled: (PropertyType?) -> Unit,
-    onSortSelected: (SortOption) -> Unit
+    onFilterClick: () -> Unit
 ) {
+    val filterState by PropertyFilterManager.filterState.collectAsState()
+    val activeCount = filterState.getSelectedCount()
+    val hasFilters = activeCount > 0
+
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 2.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        // Filtrar: no despliega nada, redirige a su propia pantalla (pendiente de conectar en NearHouseApp)
-        OutlinedButton(
-            onClick = onFilterClick,
-            shape = RoundedCornerShape(8.dp),
-            border = BorderStroke(1.dp, BorderColor),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black),
-            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-        ) {
-            Icon(painterResource(R.drawable.ic_filtrar), contentDescription = null, tint = Color.Black, modifier = Modifier.size(14.dp))
-            Spacer(Modifier.width(6.dp))
-            Text("Filtrar", fontSize = 13.sp, fontWeight = FontWeight.Medium)
-        }
-
-        // Ordenar
-        DropdownChip(label = "Ordenar", iconRes = R.drawable.ic_ordenar) { dismiss ->
-            SortOption.entries.filter { it != SortOption.NONE }.forEach { option ->
-            }
-        }
-
         // Tipo de propiedad: "Todo" por defecto, multi-selección con indicador de color
         val typeLabelText = when (uiState.selectedTypes.size) {
-            0 -> "Todo"
+            0 -> stringResource(R.string.map_type_todo)
             1 -> typeLabel(uiState.selectedTypes.first())
-            else -> "${uiState.selectedTypes.size} tipos"
+            else -> stringResource(R.string.map_type_types, uiState.selectedTypes.size)
         }
         TypeFilterChip(
             label = typeLabelText,
             selectedTypes = uiState.selectedTypes,
             onTypeToggled = onTypeToggled
         )
-    }
-}
 
-@Composable
-private fun DropdownChip(
-    label: String,
-    iconRes: Int?,
-    menuContent: @Composable ColumnScope.(dismiss: () -> Unit) -> Unit
-) {
-    var expanded by remember { mutableStateOf(false) }
-    Box {
-        OutlinedButton(
-            onClick = { expanded = true },
+        FilterChip(
+            selected = hasFilters,
+            onClick = onFilterClick,
+            label = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_filtrar),
+                        contentDescription = stringResource(R.string.home_filter_btn),
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(text = stringResource(R.string.home_filter_btn), fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                    if (hasFilters) {
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Box(
+                            modifier = Modifier
+                                .size(18.dp)
+                                .background(Color(0xFF0B2C4D), CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = activeCount.toString(),
+                                color = Color.White,
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(2.dp))
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowDown,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+            },
             shape = RoundedCornerShape(8.dp),
-            border = BorderStroke(1.dp, BorderColor),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black),
-            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-        ) {
-            if (iconRes != null) {
-                Icon(painterResource(iconRes), contentDescription = null, tint = Color.Black, modifier = Modifier.size(14.dp))
-                Spacer(Modifier.width(6.dp))
-            }
-            Text(label, fontSize = 13.sp, fontWeight = FontWeight.Medium)
-            Spacer(Modifier.width(4.dp))
-            Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, modifier = Modifier.size(16.dp))
-        }
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-            containerColor = Color.White
-        ) { menuContent { expanded = false } }
+            colors = FilterChipDefaults.filterChipColors(
+                containerColor = Color.White,
+                selectedContainerColor = Color(0xFFE0F2FE),
+                labelColor = Color.Black,
+                selectedLabelColor = Color(0xFF0369A1)
+            ),
+            border = FilterChipDefaults.filterChipBorder(
+                enabled = true,
+                selected = hasFilters,
+                borderColor = BorderColor,
+                selectedBorderColor = Color(0xFF0369A1)
+            )
+        )
     }
 }
 
@@ -429,13 +496,13 @@ private fun TypeFilterChip(
         ) {
             // Fila "Todo" (con chevron, como el chip abierto del mockup)
             TypeCheckRow(
-                label = "Todo",
+                label = stringResource(R.string.map_type_todo),
                 color = PinColors.Todo,
                 checked = selectedTypes.isEmpty(),
                 trailing = {
                     Icon(
                         Icons.Default.KeyboardArrowDown,
-                        contentDescription = "Cerrar",
+                        contentDescription = stringResource(R.string.common_close),
                         tint = Color(0xFF9CA3AF),
                         modifier = Modifier.size(22.dp).noRippleClickable { expanded = false }
                     )
@@ -497,7 +564,7 @@ private fun PropertyPreviewSheet(
     ) {
         Box(modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
             Text(
-                "Detalle de la propiedad",
+                stringResource(R.string.map_preview_title),
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = TextDark,
@@ -505,7 +572,7 @@ private fun PropertyPreviewSheet(
             )
             Icon(
                 Icons.Default.Close,
-                contentDescription = "Cerrar",
+                contentDescription = stringResource(R.string.common_close),
                 tint = TextDark,
                 modifier = Modifier.align(Alignment.CenterEnd).size(24.dp).noRippleClickable { onClose() }
             )
@@ -543,7 +610,7 @@ private fun PropertyPreviewSheet(
                             modifier = Modifier.size(64.dp)
                         )
                         Spacer(Modifier.height(6.dp))
-                        Text("Imagen ${page + 1}", color = Color.White.copy(alpha = 0.8f), fontSize = 14.sp)
+                        Text(stringResource(R.string.property_image_format, page + 1), color = Color.White.copy(alpha = 0.8f), fontSize = 14.sp)
                     }
                 }
             }
@@ -564,7 +631,7 @@ private fun PropertyPreviewSheet(
             ) {
                 Icon(
                     painter = painterResource(if (property.isSaved) R.drawable.ic_guardar_relleno_abajo else R.drawable.ic_guardar_abajo),
-                    contentDescription = "Guardar propiedad",
+                    contentDescription = stringResource(R.string.property_save_cd),
                     tint = Color.White,
                     modifier = Modifier.size(18.dp).scale(if (property.isSaved) 1.45f else 1.0f)
                 )
@@ -579,9 +646,9 @@ private fun PropertyPreviewSheet(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(verticalAlignment = Alignment.Bottom) {
-                Text("MX \$${formatCurrency(property.price)}", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextDark)
+                Text(stringResource(R.string.property_price_format, formatCurrency(property.price)), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextDark)
                 if (property.listingType == ListingType.RENTA) {
-                    Text(" / mes", fontSize = 14.sp, color = TextGray, modifier = Modifier.padding(bottom = 2.dp))
+                    Text(stringResource(R.string.property_per_month), fontSize = 14.sp, color = TextGray, modifier = Modifier.padding(bottom = 2.dp))
                 }
             }
             Surface(color = BadgeBlueBg, shape = RoundedCornerShape(6.dp)) {
@@ -605,9 +672,9 @@ private fun PropertyPreviewSheet(
 
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
             val (typeText, typeIcon) = when (property.type) {
-                PropertyType.DEPARTAMENTO -> "Dept." to R.drawable.ic_departamento
-                PropertyType.CASA -> "Casa" to R.drawable.ic_casa_relleno_abajo
-                PropertyType.TERRENO -> "Terreno" to R.drawable.ic_terreno
+                PropertyType.DEPARTAMENTO -> stringResource(R.string.property_short_apartment) to R.drawable.ic_departamento
+                PropertyType.CASA -> stringResource(R.string.property_short_house) to R.drawable.ic_casa_relleno_abajo
+                PropertyType.TERRENO -> stringResource(R.string.property_short_land) to R.drawable.ic_terreno
             }
             FeatureItem(typeIcon, typeText)
             if (property.type == PropertyType.TERRENO) {
@@ -615,9 +682,9 @@ private fun PropertyPreviewSheet(
                     FeatureItem(R.drawable.ic_regla_medicion, "${property.frontMeters.toInt()}x${property.depthMeters.toInt()} m")
                 }
             } else {
-                property.bedrooms?.let { FeatureItem(R.drawable.ic_habitaciones, "$it recámaras") }
-                property.bathrooms?.let { FeatureItem(R.drawable.ic_bathrooms, "$it baños") }
-                property.garages?.let { FeatureItem(R.drawable.ic_cocheras, "$it cocheras") }
+                property.bedrooms?.let { FeatureItem(R.drawable.ic_habitaciones, stringResource(R.string.property_bedrooms_format, it)) }
+                property.bathrooms?.let { FeatureItem(R.drawable.ic_bathrooms, stringResource(R.string.property_bathrooms_format, it)) }
+                property.garages?.let { FeatureItem(R.drawable.ic_cocheras, stringResource(R.string.property_garages_format, it)) }
             }
         }
     }

@@ -52,6 +52,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.equipo4.nearhome.R
 import kotlinx.coroutines.delay
 
+import androidx.compose.ui.res.stringResource
+
 private val PrimaryNavy = Color(0xFF0B2C4D)
 private val ErrorRed = Color(0xFFE53935)
 private val GrayInputBg = Color(0xFFF2F3F5)
@@ -122,7 +124,7 @@ private fun VerificationInputContent(
                 Spacer(modifier = Modifier.height(48.dp))
 
                 Text(
-                    text = "Verifica tu Número",
+                    text = stringResource(R.string.phone_verify_title),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black,
@@ -136,7 +138,7 @@ private fun VerificationInputContent(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Text(
-                    text = "Hemos enviado un codigo de verificación\npor SMS al número: ${uiState.phoneNumber}",
+                    text = stringResource(R.string.phone_verify_sent, uiState.phoneNumber),
                     fontSize = 13.sp,
                     color = Color.Black,
                     textAlign = TextAlign.Center,
@@ -146,7 +148,7 @@ private fun VerificationInputContent(
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Text(
-                    text = "Introduce el codigo:",
+                    text = stringResource(R.string.phone_verify_enter_code),
                     fontSize = 13.sp,
                     color = Color.Black,
                     textAlign = TextAlign.Center
@@ -185,7 +187,7 @@ private fun VerificationInputContent(
                     )
                 ) {
                     Text(
-                        text = "Verificar Número",
+                        text = stringResource(R.string.phone_verify_button),
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -205,15 +207,18 @@ private fun VerificationInputContent(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
+                val footerNoCode = stringResource(R.string.phone_verify_no_code)
+                val footerResend = stringResource(R.string.phone_verify_resend)
+                val footerWait = stringResource(R.string.phone_verify_wait, uiState.timerSeconds)
                 val annotatedFooter = buildAnnotatedString {
-                    append("¿No has recibido el codigo?. ")
+                    append(footerNoCode)
                     if (uiState.canResend) {
                         withStyle(style = SpanStyle(color = ResendLinkColor, fontWeight = FontWeight.SemiBold)) {
-                            append("Reenviar SMS")
+                            append(footerResend)
                         }
                     } else {
                         withStyle(style = SpanStyle(color = GraySubtext)) {
-                            append("Espera ${uiState.timerSeconds}s")
+                            append(footerWait)
                         }
                     }
                 }
@@ -325,7 +330,7 @@ private fun VerifiedSuccessScreen() {
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "Número Verificado",
+                text = stringResource(R.string.phone_verified_title),
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black,
@@ -342,7 +347,7 @@ private fun VerifiedSuccessScreen() {
             ) {
                 Icon(
                     imageVector = Icons.Default.Check,
-                    contentDescription = "Verificado",
+                    contentDescription = stringResource(R.string.phone_verified_cd),
                     tint = Color.White,
                     modifier = Modifier.size(90.dp)
                 )

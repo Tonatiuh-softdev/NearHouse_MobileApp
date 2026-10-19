@@ -1,8 +1,15 @@
 package com.equipo4.nearhome.domain.model
 
-enum class ReportType(val label: String) {
-    PUBLICACION("Publicación"),
-    USUARIO("Usuario")
+import androidx.annotation.StringRes
+
+import com.equipo4.nearhome.util.AppStrings
+import com.equipo4.nearhome.R
+
+enum class ReportType(@StringRes val labelRes: Int) {
+    PUBLICACION(R.string.type_publication),
+    USUARIO(R.string.type_user);
+
+    val label: String get() = AppStrings.get(labelRes)
 }
 
 enum class ReportStatus {

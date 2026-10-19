@@ -44,6 +44,7 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.appcompat)
     implementation(libs.maps.compose)
     implementation(libs.maps.compose.utils)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -66,8 +67,17 @@ dependencies {
     // Pantalla de carga: animación Lottie + Splash Screen API nativa
     implementation(libs.lottie.compose)
     implementation(libs.androidx.core.splashscreen)
-}
+    // Retrofit y Convertidor Gson
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 
+    // OkHttp y Logging Interceptor (Nivel BASIC)
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+
+    implementation(libs.coil.compose)
+    implementation(libs.play.services.location)
+}
 
 secrets {
     propertiesFileName = "secrets.properties"

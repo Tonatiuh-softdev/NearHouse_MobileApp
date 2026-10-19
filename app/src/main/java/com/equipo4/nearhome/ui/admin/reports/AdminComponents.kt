@@ -21,6 +21,10 @@ import com.equipo4.nearhome.domain.model.Report
 import com.equipo4.nearhome.domain.model.ReportStatus
 import com.equipo4.nearhome.domain.model.ReportType
 
+import androidx.compose.ui.res.stringResource
+import com.equipo4.nearhome.R
+import androidx.compose.ui.res.pluralStringResource
+
 @Composable
 fun ReportTypeTag(type: ReportType) {
     val (bg, textColor, icon) = when (type) {
@@ -71,7 +75,7 @@ fun ReportStatusBadge() {
                 modifier = Modifier.size(14.dp)
             )
             Text(
-                text = "Atendido",
+                text = stringResource(R.string.status_attended),
                 color = Color(0xFF15803D),
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium
@@ -110,7 +114,7 @@ fun ReportCardItem(
                 } else {
                     Icon(
                         imageVector = Icons.Default.ChevronRight,
-                        contentDescription = "Ver detalle",
+                        contentDescription = stringResource(R.string.common_view_detail),
                         tint = Color(0xFF9CA3AF),
                         modifier = Modifier.size(20.dp)
                     )
@@ -133,7 +137,7 @@ fun ReportCardItem(
                     text = report.result,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Medium,
-                    color = if (report.result.contains("Cerrado")) Color(0xFF6B7280) else Color(0xFF15803D)
+                    color = if ((report.result.contains("Cerrado") || report.result.contains("Closed"))) Color(0xFF6B7280) else Color(0xFF15803D)
                 )
             }
 
@@ -146,7 +150,7 @@ fun ReportCardItem(
             ) {
                 val dateText = if (report.status == ReportStatus.ATENDIDO) {
                     val rawDate = report.attendedDate ?: report.date
-                    if (rawDate.startsWith("Atendido")) rawDate else "Atendido · $rawDate"
+                    if (rawDate.startsWith("Atendido") || rawDate.startsWith("Attended")) rawDate else stringResource(R.string.attended_date_prefix, rawDate)
                 } else {
                     report.date
                 }
@@ -166,7 +170,7 @@ fun ReportCardItem(
                         tint = Color(0xFF6B7280),
                         modifier = Modifier.size(14.dp)
                     )
-                    val evidencesText = if (report.evidences.size == 1) "1 evidencia" else "${report.evidences.size} evidencias"
+                    val evidencesText = pluralStringResource(R.plurals.evidences_count, report.evidences.size, report.evidences.size)
                     Text(
                         text = evidencesText,
                         fontSize = 12.sp,

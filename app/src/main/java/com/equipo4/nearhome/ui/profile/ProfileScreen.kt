@@ -64,10 +64,17 @@ fun ProfileScreen(
     onTermsClick: () -> Unit = {},
     onPrivacyClick: () -> Unit = {},
     onLogoutClick: () -> Unit = {},
+    onSessionExpired: () -> Unit = {},
     onBottomTabSelected: (Int) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+
+    // Cuando la API responde 401 a la petición con token, volvemos al login.
+    LaunchedEffect(Unit) {
+        viewModel.sessionExpired.collect { onSessionExpired() }
+    }
+
     // El cambio de rol solo existe en builds de prueba (debug); en producción el rol viene de la sesión.
     val isDebuggable = (context.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0
     ProfileContent(
@@ -122,11 +129,7 @@ fun ProfileContent(
                 ProfileRow(
                     Icons.Outlined.Verified, stringResource(R.string.profile_my_listings),
                     showDivider = uiState.showAccountAdmin || uiState.showAdminPanel,
-                    onClick = {
-                        if (uiState.role == UserRole.COMPRADOR) {
-                            onMyListingsClick()
-                        }
-                    }
+                    onClick = onMyListingsClick
                 )
             }
             if (uiState.showAccountAdmin) {
@@ -169,6 +172,8 @@ fun ProfileContent(
         }
     }
 
+    val darkOnLabel = stringResource(R.string.dark_mode_on)
+    val darkOffLabel = stringResource(R.string.dark_mode_off)
     when (openSheet) {
         SettingSheetType.LANGUAGE -> SettingSheet(
             title = stringResource(R.string.profile_language),
@@ -181,9 +186,9 @@ fun ProfileContent(
         SettingSheetType.DARK_MODE -> SettingSheet(
             title = stringResource(R.string.profile_dark_mode),
             subtitle = stringResource(R.string.profile_dark_mode_subtitle),
-            options = listOf("Activado", "Desactivado"),
-            selected = uiState.darkModeLabel,
-            onSelect = { onDarkModeSelected(it == "Activado") },
+            options = listOf(darkOnLabel, darkOffLabel),
+            selected = if (uiState.darkModeEnabled) darkOnLabel else darkOffLabel,
+            onSelect = { onDarkModeSelected(it == darkOnLabel) },
             onDismiss = { openSheet = null }
         )
         SettingSheetType.ROLE -> {

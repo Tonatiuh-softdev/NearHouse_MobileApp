@@ -35,7 +35,7 @@ import com.equipo4.nearhome.ui.theme.NoticeTone
 import com.equipo4.nearhome.ui.theme.adminAccent
 import com.equipo4.nearhome.ui.theme.noticeColors
 import com.equipo4.nearhome.ui.theme.onAdminAccent
-import com.equipo4.nearhome.util.SessionManager
+import com.equipo4.nearhome.data.local.SessionManager
 
 /**
  * Pantalla de confirmación. Las cinco acciones comparten la misma estructura
@@ -60,8 +60,9 @@ fun ListingActionScreen(
     val form by viewModel.form.collectAsState()
     val listing = viewModel.listing
     val context = LocalContext.current
-    val actor = remember { SessionManager(context).getUserName() }
-        ?.takeIf { it.isNotBlank() } ?: stringResource(R.string.listing_default_actor)
+    val actor = remember<String?> {
+        SessionManager(context).getUserName()
+    }?.takeIf { it.isNotBlank() } ?: stringResource(R.string.listing_default_actor)
 
     val successMessage = when (action) {
         ListingAction.APROBAR -> stringResource(R.string.listing_msg_approved)

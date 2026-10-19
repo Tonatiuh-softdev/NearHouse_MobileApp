@@ -29,6 +29,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 
+import androidx.compose.ui.res.stringResource
+import com.equipo4.nearhome.R
+
 private val DarkNavyHeader = Color(0xFF0D253A)
 private val LightBlueActive = Color(0xFF3897F0)
 private val TextDark = Color(0xFF333333)
@@ -104,7 +107,7 @@ fun LegalDocumentScreen(
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Regresar",
+                            contentDescription = stringResource(R.string.common_back),
                             tint = DarkNavyHeader
                         )
                     }
@@ -157,7 +160,7 @@ fun LegalDocumentScreen(
                                         Icons.Default.KeyboardArrowUp
                                     else
                                         Icons.Default.KeyboardArrowDown,
-                                    contentDescription = "Seleccionar sección",
+                                    contentDescription = stringResource(R.string.legal_select_section),
                                     tint = TextDark
                                 )
                             }
@@ -181,7 +184,7 @@ fun LegalDocumentScreen(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Última actualización: ${document.lastUpdated}",
+                            text = stringResource(R.string.legal_last_updated, document.lastUpdated),
                             fontSize = 13.sp,
                             fontStyle = FontStyle.Italic,
                             color = TextGray
@@ -275,14 +278,14 @@ fun LegalDocumentScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 Text(
-                                    text = "Transparencia NearHouse",
+                                    text = stringResource(R.string.legal_transparency_title),
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = DarkNavyHeader
                                 )
                                 Spacer(modifier = Modifier.height(6.dp))
                                 Text(
-                                    text = "Mantenemos nuestras políticas actualizadas para garantizar un entorno seguro, claro y confiable para todos nuestros usuarios.",
+                                    text = stringResource(R.string.legal_transparency_body),
                                     fontSize = 13.sp,
                                     color = TextGray,
                                     textAlign = TextAlign.Center
@@ -309,7 +312,7 @@ fun LegalDocumentScreen(
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = "Volver arriba",
+                                text = stringResource(R.string.legal_back_to_top),
                                 fontSize = 13.sp,
                                 color = LightBlueActive,
                                 fontWeight = FontWeight.Medium
@@ -330,14 +333,14 @@ fun LegalDocumentScreen(
                                 HorizontalDivider(color = BorderDivider)
                                 Spacer(modifier = Modifier.height(16.dp))
                                 Text(
-                                    text = "NearHouse © 2026",
+                                    text = stringResource(R.string.legal_copyright),
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     color = DarkNavyHeader
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
-                                    text = "Todos los derechos reservados",
+                                    text = stringResource(R.string.legal_rights_reserved),
                                     fontSize = 12.sp,
                                     color = TextGray
                                 )

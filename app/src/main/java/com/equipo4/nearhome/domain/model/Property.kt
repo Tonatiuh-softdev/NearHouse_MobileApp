@@ -28,5 +28,14 @@ data class Property(
     val images: List<Int> = emptyList(),
     val isSaved: Boolean = false,
     val latitude: Double? = null,
-    val longitude: Double? = null
+    val longitude: Double? = null,
+    val colonia: String = "Centro",
+    val niveles: Int? = null,
+    val piso: Int? = null,
+    val jardinPatio: Boolean = false,
+    val mascotasPermitidas: Boolean = false,
+    val elevador: Boolean = false,
+    val amueblado: Boolean = false,
+    val usoSuelo: String? = null,
+    val superficieSqM: Double? = null
 )

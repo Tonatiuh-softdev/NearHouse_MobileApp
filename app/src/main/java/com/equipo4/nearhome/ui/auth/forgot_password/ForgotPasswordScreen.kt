@@ -22,6 +22,9 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+import androidx.compose.ui.res.stringResource
+import com.equipo4.nearhome.R
+
 private val PrimaryDarkBlue = Color(0xFF0A2B42)
 private val LinkBlue = Color(0xFF64B5F6)
 private val FieldBackground = Color(0xFFF8FAFC)
@@ -81,7 +84,7 @@ fun ForgotPasswordScreen(
                     IconButton(onClick = onNavigateToLogin) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Volver",
+                            contentDescription = stringResource(R.string.forgot_back),
                             tint = TextDark
                         )
                     }
@@ -95,7 +98,7 @@ fun ForgotPasswordScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "¿Olvidaste tu contraseña?",
+                        text = stringResource(R.string.forgot_title),
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
                         color = TextDark,
@@ -110,13 +113,13 @@ fun ForgotPasswordScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Correo Electrónico:",
+                            text = stringResource(R.string.forgot_email_label),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
                             color = TextDark
                         )
                         Text(
-                            text = "Volver",
+                            text = stringResource(R.string.forgot_back),
                             fontSize = 13.sp,
                             color = LinkBlue,
                             modifier = Modifier.clickable { onNavigateToLogin() }
@@ -151,12 +154,15 @@ fun ForgotPasswordScreen(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
+                    val helperPrefix = stringResource(R.string.forgot_helper_prefix)
+                    val helperAction = stringResource(R.string.forgot_reset_button)
+                    val helperSuffix = stringResource(R.string.forgot_helper_suffix)
                     val helperText = buildAnnotatedString {
-                        append("Al presionar “")
+                        append(helperPrefix)
                         withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = TextDark)) {
-                            append("Restablecer Contraseña")
+                            append(helperAction)
                         }
-                        append("” se le enviará un correo para Restablecer la contraseña")
+                        append(helperSuffix)
                     }
 
                     Text(
@@ -189,7 +195,7 @@ fun ForgotPasswordScreen(
                             )
                         } else {
                             Text(
-                                text = "Restablecer Contraseña",
+                                text = stringResource(R.string.forgot_reset_button),
                                 color = Color.White,
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Medium
@@ -213,12 +219,14 @@ fun ForgotPasswordScreen(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
+                    val noAccountText = stringResource(R.string.forgot_no_account)
+                    val registerText = stringResource(R.string.forgot_register)
                     val signUpAnnotatedText = buildAnnotatedString {
                         withStyle(style = SpanStyle(color = TextMuted)) {
-                            append("No tengo cuenta. ")
+                            append(noAccountText)
                         }
                         withStyle(style = SpanStyle(color = LinkBlue, fontWeight = FontWeight.Medium)) {
-                            append("Registrarme")
+                            append(registerText)
                         }
                     }
 

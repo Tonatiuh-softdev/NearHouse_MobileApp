@@ -43,6 +43,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -55,6 +56,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.equipo4.nearhome.R
 import com.equipo4.nearhome.domain.model.Country
 
 private val PrimaryNavy = Color(0xFF0B2C4D)
@@ -72,12 +74,10 @@ fun CompleteProfileScreen(
     val uiState by viewModel.uiState.collectAsState()
     val focusManager = LocalFocusManager.current
 
-    // Validaciones de Mayúscula Inicial
     val isFirstNameCapitalInvalid = uiState.firstName.isNotEmpty() && !uiState.firstName.first().isUpperCase()
     val isFirstLastNameCapitalInvalid = uiState.firstLastName.isNotEmpty() && !uiState.firstLastName.first().isUpperCase()
     val isSecondLastNameCapitalInvalid = uiState.secondLastName.isNotEmpty() && !uiState.secondLastName.first().isUpperCase()
 
-    // Formulario válido si el ViewModel confirma validez y se cumplen las restricciones locales de mayúsculas
     val isFormValid = uiState.isFormValid &&
             !isFirstNameCapitalInvalid &&
             !isFirstLastNameCapitalInvalid &&
@@ -104,7 +104,7 @@ fun CompleteProfileScreen(
             Spacer(modifier = Modifier.height(48.dp))
 
             Text(
-                text = "Completa tu perfil",
+                text = stringResource(R.string.complete_profile_title),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black,
@@ -114,7 +114,7 @@ fun CompleteProfileScreen(
             Spacer(modifier = Modifier.height(6.dp))
 
             Text(
-                text = "Ingresa tus datos personales para continuar.",
+                text = stringResource(R.string.complete_profile_subtitle),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
                 color = SubtitleColor,
@@ -125,16 +125,16 @@ fun CompleteProfileScreen(
 
             // Campo: Nombre(s)
             ProfileInputField(
-                labelText = "Nombre(s):",
+                labelText = stringResource(R.string.user_detail_names) + ":",
                 isRequired = true,
                 value = uiState.firstName,
                 onValueChange = viewModel::onFirstNameChanged,
-                placeholder = "Tu nombre",
+                placeholder = stringResource(R.string.complete_profile_first_name_placeholder),
                 isError = uiState.isFirstNameError || isFirstNameCapitalInvalid,
                 errorMessage = if (isFirstNameCapitalInvalid) {
-                    "El nombre debe iniciar con mayúscula"
+                    stringResource(R.string.complete_profile_first_name_error_capital)
                 } else {
-                    "El nombre es obligatorio"
+                    stringResource(R.string.complete_profile_first_name_error_required)
                 },
                 onFocusChanged = viewModel::onFirstNameFocusChanged
             )
@@ -143,16 +143,16 @@ fun CompleteProfileScreen(
 
             // Campo: Primer Apellido
             ProfileInputField(
-                labelText = "Primer Apellido:",
+                labelText = stringResource(R.string.user_detail_first_lastname) + ":",
                 isRequired = true,
                 value = uiState.firstLastName,
                 onValueChange = viewModel::onFirstLastNameChanged,
-                placeholder = "Tu primer apellido",
+                placeholder = stringResource(R.string.complete_profile_first_lastname_placeholder),
                 isError = uiState.isFirstLastNameError || isFirstLastNameCapitalInvalid,
                 errorMessage = if (isFirstLastNameCapitalInvalid) {
-                    "El primer apellido debe iniciar con mayúscula"
+                    stringResource(R.string.complete_profile_first_lastname_error_capital)
                 } else {
-                    "El primer apellido es obligatorio"
+                    stringResource(R.string.complete_profile_first_lastname_error_required)
                 },
                 onFocusChanged = viewModel::onFirstLastNameFocusChanged
             )
@@ -161,33 +161,33 @@ fun CompleteProfileScreen(
 
             // Campo: Segundo Apellido (Opcional)
             ProfileInputField(
-                labelText = "Segundo Apellido:",
+                labelText = stringResource(R.string.user_detail_second_lastname) + ":",
                 isRequired = false,
                 value = uiState.secondLastName,
                 onValueChange = viewModel::onSecondLastNameChanged,
                 placeholder = "(opcional)",
                 isError = isSecondLastNameCapitalInvalid,
-                errorMessage = if (isSecondLastNameCapitalInvalid) "El segundo apellido debe iniciar con mayúscula" else null
+                errorMessage = if (isSecondLastNameCapitalInvalid) stringResource(R.string.complete_profile_second_lastname_error_capital) else null
             )
 
             Spacer(modifier = Modifier.height(18.dp))
 
             // Campo: Fecha de nacimiento
             Column(modifier = Modifier.fillMaxWidth()) {
-                FormLabel(text = "Fecha de nacimiento:", isRequired = true)
+                FormLabel(text = stringResource(R.string.complete_profile_birthdate_label), isRequired = true)
                 Spacer(modifier = Modifier.height(6.dp))
 
                 CustomOutlinedDatePicker(
                     value = uiState.birthDate,
                     onDateSelected = viewModel::onBirthDateSelected,
                     isError = uiState.isBirthDateError,
-                    placeholder = "DD/MM/AAAA"
+                    placeholder = stringResource(R.string.complete_profile_birthdate_placeholder)
                 )
 
                 if (uiState.isBirthDateError) {
                     Spacer(modifier = Modifier.height(6.dp))
                     ErrorIconTextMessage(
-                        message = uiState.birthDateErrorMessage ?: "La fecha de nacimiento es obligatoria"
+                        message = uiState.birthDateErrorMessage ?: stringResource(R.string.complete_profile_birthdate_error)
                     )
                 }
             }
@@ -196,7 +196,7 @@ fun CompleteProfileScreen(
 
             // Campo: Teléfono
             Column(modifier = Modifier.fillMaxWidth()) {
-                FormLabel(text = "Teléfono:", isRequired = true)
+                FormLabel(text = stringResource(R.string.complete_profile_phone_label), isRequired = true)
                 Spacer(modifier = Modifier.height(6.dp))
 
                 PhoneInputField(
@@ -213,9 +213,9 @@ fun CompleteProfileScreen(
                     Spacer(modifier = Modifier.height(6.dp))
                     ErrorIconTextMessage(
                         message = uiState.phoneErrorMessage ?: if (uiState.phoneNumber.isEmpty()) {
-                            "El número telefónico es obligatorio"
+                            stringResource(R.string.complete_profile_phone_error_required)
                         } else {
-                            "Formato inválido (10 dígitos)"
+                            stringResource(R.string.complete_profile_phone_error_format)
                         }
                     )
                 }
@@ -226,36 +226,40 @@ fun CompleteProfileScreen(
             // Botón Continuar
             Button(
                 onClick = {
-                    val isValid = viewModel.onContinueClicked()
-                    if (isValid && isFormValid) {
-                        val digits = uiState.phoneNumber.filter { it.isDigit() }
-                        val formattedPhone = if (digits.length == 10) {
-                            "${uiState.selectedCountry.code} ${digits.substring(0, 3)}-${digits.substring(3, 6)}-${digits.substring(6)}"
-                        } else {
-                            "${uiState.selectedCountry.code} ${uiState.phoneNumber}"
+                    if (isFormValid) {
+                        viewModel.onContinueClicked { formattedPhone ->
+                            onCompleteProfileSuccess(formattedPhone)
                         }
-                        onCompleteProfileSuccess(formattedPhone)
                     }
                 },
+                enabled = !uiState.isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(46.dp),
                 shape = RoundedCornerShape(10.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isFormValid) PrimaryNavy else DisabledButtonBg,
+                    containerColor = if (isFormValid && !uiState.isLoading) PrimaryNavy else DisabledButtonBg,
                     contentColor = Color.White
                 )
             ) {
-                Text(
-                    text = "Continuar",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                if (uiState.isLoading) {
+                    androidx.compose.material3.CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = Color.White,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(
+                        text = stringResource(R.string.create_listing_continue),
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
 
             if (uiState.showGeneralError && !isFormValid) {
                 Spacer(modifier = Modifier.height(10.dp))
-                ErrorIconTextMessage(message = "Por favor, complete los campos obligatorios.")
+                ErrorIconTextMessage(message = stringResource(R.string.complete_profile_general_error))
             }
 
             Spacer(modifier = Modifier.height(36.dp))
@@ -418,7 +422,7 @@ private fun PhoneInputField(
                 Spacer(modifier = Modifier.width(2.dp))
                 Icon(
                     imageVector = Icons.Default.ArrowDropDown,
-                    contentDescription = "Seleccionar País",
+                    contentDescription = null,
                     tint = Color.Gray,
                     modifier = Modifier.size(18.dp)
                 )
@@ -445,7 +449,7 @@ private fun PhoneInputField(
                         contentAlignment = Alignment.CenterStart
                     ) {
                         if (phoneNumber.isEmpty()) {
-                            Text("123-456-7890", color = Color.LightGray, fontSize = 14.sp)
+                            Text(stringResource(R.string.complete_profile_phone_placeholder), color = Color.LightGray, fontSize = 14.sp)
                         }
                         innerTextField()
                     }
@@ -516,7 +520,7 @@ private fun CustomOutlinedDatePicker(
                     }
                     Icon(
                         imageVector = Icons.Default.CalendarToday,
-                        contentDescription = "Fecha",
+                        contentDescription = null,
                         tint = Color.Black,
                         modifier = Modifier.size(18.dp)
                     )
@@ -614,7 +618,7 @@ private fun CountrySelectionContent(
             .padding(16.dp)
     ) {
         Text(
-            text = "Seleccionar País",
+            text = stringResource(R.string.complete_profile_select_country),
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
             color = Color.Black
@@ -625,7 +629,7 @@ private fun CountrySelectionContent(
         OutlinedTextField(
             value = searchQuery,
             onValueChange = onSearchQueryChange,
-            placeholder = { Text("Buscar país o código...") },
+            placeholder = { Text(stringResource(R.string.complete_profile_search_country)) },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true
         )

@@ -21,6 +21,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+import androidx.compose.ui.res.stringResource
+import com.equipo4.nearhome.R
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CheckoutScreen(
@@ -51,7 +54,7 @@ fun CheckoutScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = if (plan.isFreeTrial) "Prueba gratuita" else "Confirmar pago",
+                        text = if (plan.isFreeTrial) stringResource(R.string.free_trial_title) else stringResource(R.string.confirm_payment_title),
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
                         color = Color(0xFF1F2937)
@@ -61,7 +64,7 @@ fun CheckoutScreen(
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Regresar",
+                            contentDescription = stringResource(R.string.common_back),
                             tint = Color(0xFF1F2937)
                         )
                     }
@@ -104,14 +107,14 @@ fun CheckoutScreen(
                             )
                             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                                 Text(
-                                    text = "No se te cobrará durante tu primer mes",
+                                    text = stringResource(R.string.free_trial_banner_title),
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color(0xFF1F2937),
                                     lineHeight = 16.sp
                                 )
                                 Text(
-                                    text = "Se te pedirá un método de pago para activarlo automáticamente al finalizar tu mes de prueba, salvo que canceles antes.",
+                                    text = stringResource(R.string.free_trial_banner),
                                     fontSize = 12.sp,
                                     color = Color(0xFF4B5563),
                                     lineHeight = 16.sp
@@ -132,7 +135,7 @@ fun CheckoutScreen(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Plan ${plan.name}",
+                            text = stringResource(R.string.checkout_plan_format, plan.name),
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF0B2C4D)
@@ -168,7 +171,7 @@ fun CheckoutScreen(
                 Spacer(Modifier.height(16.dp))
 
                 Text(
-                    text = "Método de pago",
+                    text = stringResource(R.string.payment_method_title),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF1F2937),
@@ -179,7 +182,7 @@ fun CheckoutScreen(
 
                 // Número de tarjeta
                 Column {
-                    Text("Número de tarjeta:", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = Color(0xFF374151))
+                    Text(stringResource(R.string.card_number_label), fontSize = 13.sp, fontWeight = FontWeight.Medium, color = Color(0xFF374151))
                     Spacer(Modifier.height(4.dp))
                     OutlinedTextField(
                         value = cardNumber,
@@ -206,12 +209,12 @@ fun CheckoutScreen(
 
                 // Nombre del titular
                 Column {
-                    Text("Nombre del titular:", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = Color(0xFF374151))
+                    Text(stringResource(R.string.card_holder_label), fontSize = 13.sp, fontWeight = FontWeight.Medium, color = Color(0xFF374151))
                     Spacer(Modifier.height(4.dp))
                     OutlinedTextField(
                         value = cardHolder,
                         onValueChange = viewModel::onCardHolderChanged,
-                        placeholder = { Text("Como aparece en la tarjeta") },
+                        placeholder = { Text(stringResource(R.string.checkout_cardholder_hint)) },
                         isError = cardHolderError != null,
                         shape = RoundedCornerShape(12.dp),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -236,7 +239,7 @@ fun CheckoutScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Vencimiento:", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = Color(0xFF374151))
+                        Text(stringResource(R.string.card_expiry_label), fontSize = 13.sp, fontWeight = FontWeight.Medium, color = Color(0xFF374151))
                         Spacer(Modifier.height(4.dp))
                         OutlinedTextField(
                             value = expiryDate,
@@ -260,7 +263,7 @@ fun CheckoutScreen(
                     }
 
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("CVV:", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = Color(0xFF374151))
+                        Text(stringResource(R.string.card_cvv_label), fontSize = 13.sp, fontWeight = FontWeight.Medium, color = Color(0xFF374151))
                         Spacer(Modifier.height(4.dp))
                         OutlinedTextField(
                             value = cvv,
@@ -300,7 +303,7 @@ fun CheckoutScreen(
                     )
                     Spacer(Modifier.width(8.dp))
                     Text(
-                        text = "Guardar esta tarjeta para futuros cobros",
+                        text = stringResource(R.string.save_card_checkbox),
                         fontSize = 13.sp,
                         color = Color(0xFF4B5563)
                     )
@@ -325,7 +328,7 @@ fun CheckoutScreen(
                         CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
                     } else {
                         Text(
-                            text = if (plan.isFreeTrial) "Activar prueba gratuita" else "Confirmar y pagar",
+                            text = if (plan.isFreeTrial) stringResource(R.string.activate_free_trial_btn) else stringResource(R.string.confirm_and_pay_btn),
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFFFFFFFF)
@@ -350,7 +353,7 @@ fun CheckoutScreen(
                             modifier = Modifier.size(16.dp)
                         )
                         Text(
-                            text = "Por favor, complete los campos obligatorios.",
+                            text = stringResource(R.string.error_fill_mandatory_dot),
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Medium,
                             color = Color(0xFFDC2626)
@@ -363,9 +366,9 @@ fun CheckoutScreen(
                 // Texto debajo del botón
                 Text(
                     text = if (plan.isFreeTrial) {
-                        "Puedes cancelar en cualquier momento antes de que termine tu mes de prueba."
+                        stringResource(R.string.free_trial_footer)
                     } else {
-                        "La suscripción se renueva automáticamente cada mes. Puedes cancelarla cuando quieras."
+                        stringResource(R.string.confirm_payment_footer)
                     },
                     fontSize = 12.sp,
                     color = Color(0xFF6B7280),

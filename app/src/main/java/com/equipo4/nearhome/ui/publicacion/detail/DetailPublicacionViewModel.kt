@@ -12,6 +12,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+import com.equipo4.nearhome.util.AppStrings
+import com.equipo4.nearhome.R
+
 class DetailPublicacionViewModel(
     private val repository: PropiedadRepository = Repositories.propiedades
 ) : ViewModel() {
@@ -25,12 +28,12 @@ class DetailPublicacionViewModel(
             try {
                 val property = repository.getById(id)
                 if (property == null) {
-                    _uiState.value = DetailPublicacionUiState.Error("No se encontró la publicación")
+                    _uiState.value = DetailPublicacionUiState.Error(AppStrings.get(R.string.detail_error_not_found))
                 } else {
                     _uiState.value = DetailPublicacionUiState.Success(property.toDetail())
                 }
             } catch (e: Exception) {
-                _uiState.value = DetailPublicacionUiState.Error("Error al cargar la publicación")
+                _uiState.value = DetailPublicacionUiState.Error(AppStrings.get(R.string.detail_error_load))
             }
         }
     }
@@ -50,9 +53,9 @@ class DetailPublicacionViewModel(
 /** Adapta una propiedad del repositorio al modelo del detalle (descripción y vendedor son de prueba). */
 private fun Property.toDetail(): PublicacionDetail {
     val tipoLabel = when (type) {
-        PropertyType.CASA -> "Casa"
-        PropertyType.DEPARTAMENTO -> "Departamento"
-        PropertyType.TERRENO -> "Terreno"
+        PropertyType.CASA -> AppStrings.get(R.string.search_filters_type_house)
+        PropertyType.DEPARTAMENTO -> AppStrings.get(R.string.search_filters_type_apartment)
+        PropertyType.TERRENO -> AppStrings.get(R.string.search_filters_type_land)
     }
     return PublicacionDetail(
         id = id,

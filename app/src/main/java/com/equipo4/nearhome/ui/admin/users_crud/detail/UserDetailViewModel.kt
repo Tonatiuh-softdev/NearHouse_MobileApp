@@ -10,6 +10,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+import com.equipo4.nearhome.util.AppStrings
+import com.equipo4.nearhome.R
+
 class UserDetailViewModel(val userId: String) : ViewModel() {
     private val userRepository = Repositories.users
 
@@ -68,14 +71,14 @@ class UserDetailViewModel(val userId: String) : ViewModel() {
         var hasError = false
 
         if (n.isBlank()) {
-            nombreError.value = "Este campo es obligatorio"
+            nombreError.value = AppStrings.get(R.string.field_required)
             hasError = true
         } else {
             nombreError.value = null
         }
 
         if (pAp.isBlank()) {
-            apellidoError.value = "Este campo es obligatorio"
+            apellidoError.value = AppStrings.get(R.string.field_required)
             hasError = true
         } else {
             apellidoError.value = null
@@ -83,7 +86,7 @@ class UserDetailViewModel(val userId: String) : ViewModel() {
 
         val emailRegex = Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$")
         if (c.isBlank() || !emailRegex.matches(c)) {
-            correoError.value = "Ingresa un correo válido, por ejemplo nombre@dominio.com."
+            correoError.value = AppStrings.get(R.string.user_detail_email_error)
             hasError = true
         } else {
             correoError.value = null
@@ -91,7 +94,7 @@ class UserDetailViewModel(val userId: String) : ViewModel() {
 
         val cleanPhone = t.replace(Regex("[^0-9]"), "")
         if (cleanPhone.length < 10) {
-            telefonoError.value = "Usa solo números e incluye 10 dígitos."
+            telefonoError.value = AppStrings.get(R.string.user_detail_phone_error)
             hasError = true
         } else {
             telefonoError.value = null

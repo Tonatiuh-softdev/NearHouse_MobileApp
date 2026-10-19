@@ -10,6 +10,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+import com.equipo4.nearhome.util.AppStrings
+import com.equipo4.nearhome.R
+
 class BlockUserViewModel(val userId: String) : ViewModel() {
     private val userRepository = Repositories.users
 
@@ -32,10 +35,10 @@ class BlockUserViewModel(val userId: String) : ViewModel() {
         val u = _user.value ?: return
         if (u.status == com.equipo4.nearhome.domain.model.UserAccountStatus.BLOQUEADO) {
             userRepository.unblockUser(userId)
-            onSuccess("Cuenta reactivada")
+            onSuccess(AppStrings.get(R.string.block_user_msg_reactivated))
         } else {
             userRepository.blockUser(userId, reason.value.takeIf { it.isNotBlank() })
-            onSuccess("Cuenta bloqueada")
+            onSuccess(AppStrings.get(R.string.block_user_msg_blocked))
         }
     }
 }

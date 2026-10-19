@@ -43,6 +43,8 @@ import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
 
+import androidx.compose.ui.res.stringResource
+
 private val NavyColor = Color(0xFF0B2C4D)
 private val LightGrayBg = Color(0xFFF3F4F6)
 private val SectionGrayBg = Color(0xFFF8F9FA)
@@ -130,7 +132,7 @@ private fun PropertyImageCarousel(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Imagen ${page + 1}",
+                    text = stringResource(R.string.property_image_format, page + 1),
                     color = Color.White.copy(alpha = 0.7f),
                     fontSize = 15.sp
                 )
@@ -170,7 +172,7 @@ private fun PropertyImageCarousel(
             }
             Icon(
                 painter = painterResource(id = bookmarkIcon),
-                contentDescription = "Guardar propiedad",
+                contentDescription = stringResource(R.string.property_save_cd),
                 tint = Color.White,
                 modifier = Modifier
                     .size(18.dp)
@@ -192,7 +194,7 @@ private fun PropertyImageCarousel(
             ) {
                 Icon(
                     imageVector = Icons.Default.KeyboardArrowLeft,
-                    contentDescription = "Anterior",
+                    contentDescription = stringResource(R.string.common_previous),
                     tint = Color.White
                 )
             }
@@ -212,7 +214,7 @@ private fun PropertyImageCarousel(
             ) {
                 Icon(
                     imageVector = Icons.Default.KeyboardArrowRight,
-                    contentDescription = "Siguiente",
+                    contentDescription = stringResource(R.string.common_next),
                     tint = Color.White
                 )
             }
@@ -239,14 +241,14 @@ private fun PropertyInfoContent(
 
             Row(verticalAlignment = Alignment.Bottom) {
                 Text(
-                    text = "MX \$$formattedPrice",
+                    text = stringResource(R.string.property_price_format, formattedPrice),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = TextDark
                 )
                 if (property.listingType == ListingType.RENTA) {
                     Text(
-                        text = " / mes",
+                        text = stringResource(R.string.property_per_month),
                         fontSize = 14.sp,
                         color = TextGray,
                         modifier = Modifier.padding(bottom = 2.dp)
@@ -312,9 +314,9 @@ private fun PropertyInfoContent(
             verticalAlignment = Alignment.CenterVertically
         ) {
             val (typeText, typeIcon) = when (property.type) {
-                PropertyType.DEPARTAMENTO -> "Dept." to R.drawable.ic_departamento
-                PropertyType.CASA -> "Casa" to R.drawable.ic_casa_relleno_abajo
-                PropertyType.TERRENO -> "Terreno" to R.drawable.ic_terreno
+                PropertyType.DEPARTAMENTO -> stringResource(R.string.property_short_apartment) to R.drawable.ic_departamento
+                PropertyType.CASA -> stringResource(R.string.property_short_house) to R.drawable.ic_casa_relleno_abajo
+                PropertyType.TERRENO -> stringResource(R.string.property_short_land) to R.drawable.ic_terreno
             }
 
             FeatureItem(iconRes = typeIcon, text = typeText)
@@ -330,19 +332,19 @@ private fun PropertyInfoContent(
                 property.bedrooms?.let {
                     FeatureItem(
                         iconRes = R.drawable.ic_habitaciones,
-                        text = "$it recamaras"
+                        text = stringResource(R.string.property_bedrooms_format, it)
                     )
                 }
                 property.bathrooms?.let {
                     FeatureItem(
                         iconRes = R.drawable.ic_bathrooms,
-                        text = "$it baños"
+                        text = stringResource(R.string.property_bathrooms_format, it)
                     )
                 }
                 property.garages?.let {
                     FeatureItem(
                         iconRes = R.drawable.ic_cocheras,
-                        text = "$it cocheras"
+                        text = stringResource(R.string.property_garages_format, it)
                     )
                 }
             }
