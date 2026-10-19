@@ -43,7 +43,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
-import coil3.compose.AsyncImage
+import coil.compose.AsyncImage
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
 import com.equipo4.nearhome.ui.home.filter.ALL_COLONIAS

@@ -3,11 +3,6 @@ package com.equipo4.nearhome.ui.home.map
 import android.content.Context
 import android.graphics.Bitmap
 import androidx.annotation.DrawableRes
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.platform.LocalContext
-import androidx.core.content.ContextCompat
-import com.google.maps.android.clustering.view.DefaultClusterRenderer
-import kotlin.math.roundToInt
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -32,10 +27,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -43,6 +41,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.domain.model.ListingType
@@ -50,8 +49,6 @@ import com.equipo4.nearhome.domain.model.Property
 import com.equipo4.nearhome.domain.model.PropertyType
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
 import com.equipo4.nearhome.ui.home.filter.PropertyFilterManager
-import com.equipo4.nearhome.ui.theme.adminAccent
-import com.equipo4.nearhome.ui.theme.onAdminAccent
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
@@ -62,10 +59,7 @@ import com.google.maps.android.compose.rememberCameraPositionState
 import java.text.NumberFormat
 import java.util.Locale
 import kotlinx.coroutines.launch
-import androidx.compose.ui.graphics.luminance
-import com.google.maps.android.compose.ComposeMapColorScheme
-
-import androidx.compose.ui.res.stringResource
+import kotlin.math.roundToInt
 
 private val NavyColor = Color(0xFF0B2C4D)
 private val LightGrayBg = Color(0xFFF3F4F6)
@@ -75,14 +69,10 @@ private val BadgeBlueText = Color(0xFF1E88E5)
 private val TextDark = Color(0xFF1F2937)
 private val TextGray = Color(0xFF6B7280)
 
-/** Tamaño de los pines en el mapa (dp). Si se ven grandes o chicos, se ajusta aquí. */
+/** Tamaño de los pines en el mapa (dp). */
 private const val PIN_WIDTH_DP = 28
 private const val PIN_HEIGHT_DP = 39
 
-/**
- * Fuente única de color por tipo de propiedad. Los indicadores del filtro usan estos colores,
- * que fueron muestreados del cuerpo de cada pin (ic_pin_*.png) para que coincidan con el mapa.
- */
 object PinColors {
     val Todo = Color(0xFF000000)
     val Casa = Color(0xFFE30B0C)
@@ -109,7 +99,6 @@ private fun typeLabel(type: PropertyType) = when (type) {
     PropertyType.DEPARTAMENTO -> stringResource(R.string.map_type_apartments)
 }
 
-/** Dibuja un drawable (PNG o vector) en un bitmap del tamaño pedido en dp. Se usa una sola vez por tipo. */
 private fun scaledPinBitmap(
     context: Context,
     @DrawableRes resId: Int,
@@ -131,11 +120,12 @@ private fun scaledPinBitmap(
 /** Elemento que el clustering agrupa: una propiedad con coordenadas. */
 private data class PropertyClusterItem(
     val property: Property,
-    override val position: LatLng
+    private val itemPosition: LatLng
 ) : ClusterItem {
-    override val title: String? = property.title
-    override val snippet: String? = null
-    override val zIndex: Float? = 0f
+    override fun getPosition(): LatLng = itemPosition
+    override fun getTitle(): String? = property.title
+    override fun getSnippet(): String? = null
+    override fun getZIndex(): Float? = 0f
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -221,11 +211,6 @@ fun MapScreen(
     }
 }
 
-/**
- * Mapa real de Google Maps, centrado en Manzanillo. Un elemento por propiedad visible, con el
- * pin de su tipo; los cercanos se agrupan cuando el mapa está alejado (clustering).
- * El clic en un pin se consume (devuelve true) para que Google no muestre su globo por defecto.
- */
 @Composable
 private fun GoogleMapView(
     properties: List<Property>,
@@ -235,21 +220,16 @@ private fun GoogleMapView(
     val manzanillo = LatLng(19.08, -104.32)
     val scope = rememberCoroutineScope()
 
-    // El mapa sigue el tema de la app: fondo oscuro -> mapa oscuro; fondo claro -> mapa claro.
-    val isDarkTheme = MaterialTheme.colorScheme.background.luminance() < 0.5f
-
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(manzanillo, 13f)
     }
 
-    // Un bitmap por tipo, creado UNA sola vez (antes se decodificaba el PNG en cada pin).
     val pinBitmaps = remember {
         PropertyType.entries.associateWith { type ->
             scaledPinBitmap(context, pinRes(type), PIN_WIDTH_DP, PIN_HEIGHT_DP).asImageBitmap()
         }
     }
 
-    // Solo las propiedades con coordenadas. Se recalcula únicamente si cambia la lista visible.
     val clusterItems = remember(properties) {
         properties.mapNotNull { property ->
             val lat = property.latitude
@@ -260,13 +240,11 @@ private fun GoogleMapView(
 
     GoogleMap(
         modifier = Modifier.fillMaxSize(),
-        cameraPositionState = cameraPositionState,
-        mapColorScheme = if (isDarkTheme) ComposeMapColorScheme.DARK else ComposeMapColorScheme.LIGHT
+        cameraPositionState = cameraPositionState
     ) {
         Clustering(
             items = clusterItems,
             onClusterClick = { cluster ->
-                // Tocar un grupo acerca el mapa hacia ese punto.
                 scope.launch {
                     cameraPositionState.animate(
                         CameraUpdateFactory.newLatLngZoom(
@@ -279,7 +257,7 @@ private fun GoogleMapView(
             },
             onClusterItemClick = { item ->
                 onMarkerClick(item.property.id)
-                true // consume el evento: sin globo de información por defecto
+                true
             },
             clusterContent = { cluster ->
                 Surface(
@@ -304,10 +282,6 @@ private fun GoogleMapView(
                     contentDescription = item.property.title,
                     modifier = Modifier.size(PIN_WIDTH_DP.dp, PIN_HEIGHT_DP.dp)
                 )
-            },
-            // Por defecto la librería solo agrupa cuando hay 4 o más; aquí bajamos el mínimo a 2.
-            onClusterManager = { manager ->
-                (manager.renderer as? DefaultClusterRenderer<*>)?.minClusterSize = 2
             }
         )
     }
@@ -353,7 +327,6 @@ private fun MapHeader(
                 )
             }
             Spacer(Modifier.width(8.dp))
-            // En Mapa el ícono muestra "lista" para regresar a la vista de Lista.
             Icon(
                 imageVector = Icons.Default.FormatListBulleted,
                 contentDescription = stringResource(R.string.map_view_list),
@@ -379,7 +352,6 @@ private fun FilterRow(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 2.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        // Tipo de propiedad: "Todo" por defecto, multi-selección con indicador de color
         val typeLabelText = when (uiState.selectedTypes.size) {
             0 -> stringResource(R.string.map_type_todo)
             1 -> typeLabel(uiState.selectedTypes.first())
@@ -447,11 +419,6 @@ private fun FilterRow(
     }
 }
 
-/**
- * Chip "Todo" con panel como el mockup: el panel se abre sobre el chip, la primera fila es "Todo"
- * con chevron, y cada opción lleva un checkbox cuadrado con borde del color del tipo
- * (relleno cuando está seleccionado).
- */
 @Composable
 private fun TypeFilterChip(
     label: String,
@@ -463,8 +430,6 @@ private fun TypeFilterChip(
     val density = LocalDensity.current
 
     Box(modifier = Modifier.onSizeChanged { chipHeight = with(density) { it.height.toDp() } }) {
-        // Ancho FIJO: si el chip cambiara de ancho con la etiqueta ("Todo", "Casas", "2 tipos"...),
-        // el panel se reposicionaría cada vez que se cambia el filtro.
         OutlinedButton(
             onClick = { expanded = true },
             modifier = Modifier.width(120.dp),
@@ -494,7 +459,6 @@ private fun TypeFilterChip(
             border = BorderStroke(1.dp, BorderColor),
             modifier = Modifier.width(210.dp)
         ) {
-            // Fila "Todo" (con chevron, como el chip abierto del mockup)
             TypeCheckRow(
                 label = stringResource(R.string.map_type_todo),
                 color = PinColors.Todo,
@@ -701,7 +665,6 @@ private fun FeatureItem(iconRes: Int, text: String) {
 private fun formatCurrency(amount: Double): String =
     NumberFormat.getNumberInstance(Locale.US).format(amount.toLong())
 
-/** clickable sin ripple: evita el rectángulo gris oscuro al presionar pines, el sheet, etc. */
 @Composable
 private fun Modifier.noRippleClickable(onClick: () -> Unit): Modifier =
     clickable(

@@ -20,7 +20,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
+import coil.compose.AsyncImage
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.domain.model.PropertyType
 import java.io.File

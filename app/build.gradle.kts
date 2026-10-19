@@ -6,9 +6,7 @@ plugins {
 
 android {
     namespace = "com.equipo4.nearhome"
-    compileSdk {
-        version = release(37)
-    }
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.equipo4.nearhome"
@@ -46,9 +44,6 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
-    implementation(libs.androidx.appcompat)
-    implementation(libs.maps.compose)
-    implementation(libs.maps.compose.utils)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
@@ -57,6 +52,13 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
+
+    // Soporte AppCompat
+    implementation("androidx.appcompat:appcompat:1.7.0")
+
+    // Google Maps para Compose
+    implementation("com.google.maps.android:maps-compose:4.3.3")
+    implementation("com.google.maps.android:maps-compose-utils:4.3.3")
 
     // ViewModel para Jetpack Compose
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
@@ -79,9 +81,9 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
 
-    implementation(libs.coil.compose)
-    implementation(libs.play.services.location)
-}
+    // Carga de imágenes (Coil) y Servicios de Ubicación Google
+    implementation("io.coil-kt:coil-compose:2.6.0")
+    implementation("com.google.android.gms:play-services-location:21.3.0")
 
     // Credential Manager y Google Identity (Inicio de sesión con Google)
     implementation("androidx.credentials:credentials:1.2.2")
