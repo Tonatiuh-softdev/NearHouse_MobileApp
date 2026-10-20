@@ -1,13 +1,18 @@
 package com.equipo4.nearhome.ui.auth.register
 
 import android.app.Application
+import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.equipo4.nearhome.R
 import com.equipo4.nearhome.data.local.SessionManager
+import com.equipo4.nearhome.data.model.RegistroTemporal
+import com.equipo4.nearhome.data.remote.GoogleAuthManager
 import com.equipo4.nearhome.di.NetworkModule
 import com.equipo4.nearhome.network.AuthApi
 import com.equipo4.nearhome.network.RequestCodigoCorreo
 import com.equipo4.nearhome.network.VerifyCodigoCorreoRequest
+import com.equipo4.nearhome.util.AppStrings
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,11 +22,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.io.IOException
-import com.equipo4.nearhome.data.model.RegistroTemporal
-
-import com.equipo4.nearhome.util.AppStrings
-import com.equipo4.nearhome.R
-
 
 class SignUpViewModel(
     application: Application
@@ -51,6 +51,42 @@ class SignUpViewModel(
 
     fun onTermsAcceptedChanged(isAccepted: Boolean) {
         _uiState.update { it.copy(isTermsAccepted = isAccepted, showTermsError = false) }
+    }
+
+    /**
+     * Entregable 1: Inicia la autenticación de Google desde la pantalla de Registro
+     */
+    fun onGoogleLoginClicked(context: Context) {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    isLoading = true,
+                    emailErrorMessage = null,
+                    googleSuccessMessage = null
+                )
+            }
+
+            val googleAuthManager = GoogleAuthManager(context)
+            val result = googleAuthManager.getFirebaseIdToken()
+
+            result.fold(
+                onSuccess = { firebaseToken ->
+                    _uiState.update { it.copy(isLoading = false) }
+                    if (firebaseToken != null) {
+                        // Requisito Entregable 1: Mostrar mensaje temporal al obtener el token
+                        _uiState.update { it.copy(googleSuccessMessage = "Cuenta de Google lista") }
+                    }
+                },
+                onFailure = { error ->
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            emailErrorMessage = error.message ?: "No se pudo iniciar sesión con Google. Inténtalo de nuevo."
+                        )
+                    }
+                }
+            )
+        }
     }
 
     fun onSubmitForm() {

@@ -1,5 +1,6 @@
 package com.equipo4.nearhome.ui.auth.register
 
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -55,6 +56,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
@@ -95,6 +97,14 @@ fun SignUpScreen(
     onNavigateToPrivacy: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+
+    // Entregable 1: Despliega Toast cuando la cuenta de Google queda lista
+    LaunchedEffect(uiState.googleSuccessMessage) {
+        uiState.googleSuccessMessage?.let { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+    }
 
     BackHandler(enabled = uiState.step == SignUpStep.OTP_VERIFICATION) {
         viewModel.onBackToForm()
@@ -108,6 +118,7 @@ fun SignUpScreen(
             onConfirmPasswordChange = viewModel::onConfirmPasswordChanged,
             onTermsAcceptedChange = viewModel::onTermsAcceptedChanged,
             onSubmit = viewModel::onSubmitForm,
+            onGoogleLoginClick = { viewModel.onGoogleLoginClicked(context) },
             onNavigateToLogin = onNavigateToLogin,
             onNavigateToTerms = onNavigateToTerms,
             onNavigateToPrivacy = onNavigateToPrivacy
@@ -136,6 +147,7 @@ private fun SignUpFormContent(
     onConfirmPasswordChange: (String) -> Unit,
     onTermsAcceptedChange: (Boolean) -> Unit,
     onSubmit: () -> Unit,
+    onGoogleLoginClick: () -> Unit,
     onNavigateToLogin: () -> Unit,
     onNavigateToTerms: () -> Unit,
     onNavigateToPrivacy: () -> Unit
@@ -349,8 +361,10 @@ private fun SignUpFormContent(
 
             Spacer(modifier = Modifier.height(18.dp))
 
+            // Botón "Continuar con Google"
             Button(
-                onClick = { },
+                onClick = onGoogleLoginClick,
+                enabled = !uiState.isLoading,
                 shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = GoogleButtonBg,

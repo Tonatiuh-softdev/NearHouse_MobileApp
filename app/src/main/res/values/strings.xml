@@ -28,6 +28,7 @@
     <string name="measure_applied_prefix">Medida aplicada: %s</string>
     <string name="closed_without_measure">Cerrado sin aplicar medida</string>
     <string name="attended_date_prefix">Atendido · %s</string>
+    <string name="default_web_client_id">424289712499-tcqb92huv82t8ggmnd1k8kcm2vaflu9g.apps.googleusercontent.com</string>
 
     <plurals name="pending_reports_subtitle">
         <item quantity="one">1 pendiente por revisar</item>

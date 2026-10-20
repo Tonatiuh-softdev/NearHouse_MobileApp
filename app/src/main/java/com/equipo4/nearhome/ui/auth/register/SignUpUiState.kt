@@ -23,7 +23,8 @@ data class SignUpUiState(
     val otpErrorMessage: String? = null,
     val resendCountdown: Int = 30,
     val canResendCode: Boolean = false,
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val googleSuccessMessage: String? = null
 ) {
     // 🔹 Limpia espacios accidentales al inicio y al final
     private val cleanEmail: String get() = email.trim()

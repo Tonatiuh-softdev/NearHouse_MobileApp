@@ -1,5 +1,6 @@
 package com.equipo4.nearhome.ui.auth.login
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -19,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -49,6 +51,14 @@ fun LoginScreen(
     onLoginSuccess: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+
+    // Entregable 1: Muestra el Toast cuando la cuenta de Google queda lista
+    LaunchedEffect(uiState.googleSuccessMessage) {
+        uiState.googleSuccessMessage?.let { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+    }
 
     // Navega a Home SÓLO cuando la API responde con éxito
     LaunchedEffect(uiState.isSuccess) {
@@ -63,7 +73,7 @@ fun LoginScreen(
         onPasswordChange = viewModel::onPasswordChanged,
         onTogglePasswordVisibility = viewModel::togglePasswordVisibility,
         onLoginClick = viewModel::onLoginClicked,
-        onGoogleLoginClick = viewModel::onGoogleLoginClicked,
+        onGoogleLoginClick = { viewModel.onGoogleLoginClicked(context) },
         onForgotPasswordClick = onNavigateToForgotPassword,
         onRegisterClick = onNavigateToRegister
     )
@@ -206,7 +216,7 @@ private fun LoginContent(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Muestra mensaje de error devuelto por la API / Red
+            // Muestra mensaje de error devuelto por la API / Red / Google
             if (uiState.errorMessage != null) {
                 Text(
                     text = uiState.errorMessage!!,
@@ -288,9 +298,10 @@ private fun LoginContent(
 
             Spacer(modifier = Modifier.height(18.dp))
 
-            // Botón "Continuar con Google" (fuera del alcance de esta tarea)
+            // Botón "Continuar con Google"
             Button(
                 onClick = onGoogleLoginClick,
+                enabled = !uiState.isLoading,
                 shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = GoogleButtonBg,
