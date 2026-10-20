@@ -59,6 +59,33 @@
     <string name="profile_section_profile">Perfil</string>
     <string name="profile_my_listings">Mis anuncios</string>
 
+    <!-- Editar Perfil -->
+    <string name="edit_profile_back">Regresar</string>
+    <string name="edit_profile_close">Cerrar</string>
+    <string name="edit_profile_cancel">Cancelar</string>
+    <string name="edit_profile_save">Guardar</string>
+    <string name="edit_profile_picture_title">Foto de perfil</string>
+    <string name="edit_profile_first_name">Nombre(s)</string>
+    <string name="edit_profile_first_last_name">Primer Apellido</string>
+    <string name="edit_profile_second_last_name">Segundo Apellido</string>
+    <string name="edit_profile_optional_hint">(opcional)</string>
+
+    <string name="edit_profile_option_camera">Cámara</string>
+    <string name="edit_profile_option_gallery">Galería</string>
+    <string name="edit_profile_option_delete_photo">Eliminar foto</string>
+
+    <string name="edit_profile_error_required">Este campo es obligatorio</string>
+    <string name="edit_profile_error_only_letters">Solo se permiten letras y espacios</string>
+    <string name="edit_profile_updated_success">Perfil actualizado</string>
+
+    <string name="edit_profile_discard_title">¿Descartar cambios?</string>
+    <string name="edit_profile_discard_message">Tienes cambios sin guardar. Si sales ahora, se perderán.</string>
+    <string name="edit_profile_discard_confirm">Descartar</string>
+
+    <string name="edit_profile_camera_permission_title">Permiso de cámara requerido</string>
+    <string name="edit_profile_camera_permission_message">Necesitamos acceso a tu cámara para tomar tu nueva foto de perfil.</string>
+    <string name="edit_profile_open_settings">Abrir ajustes</string>
+
     <!-- Suscripción y Planes -->
     <string name="choose_plan_title">Elige tu plan</string>
     <string name="choose_plan_header_title">¡Empieza a publicar tus inmuebles!</string>

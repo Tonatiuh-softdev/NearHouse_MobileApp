@@ -77,6 +77,9 @@ dependencies {
 
     implementation(libs.coil.compose)
     implementation(libs.play.services.location)
+
+    // Carga de imágenes con Coil en Compose
+    implementation("io.coil-kt:coil-compose:2.6.0")
 }
 
 secrets {

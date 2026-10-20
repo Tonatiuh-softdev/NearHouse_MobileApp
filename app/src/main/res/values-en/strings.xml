@@ -60,6 +60,33 @@
     <string name="profile_section_profile">Profile</string>
     <string name="profile_my_listings">My listings</string>
 
+    <!-- Edit Profile -->
+    <string name="edit_profile_back">Back</string>
+    <string name="edit_profile_close">Close</string>
+    <string name="edit_profile_cancel">Cancel</string>
+    <string name="edit_profile_save">Save</string>
+    <string name="edit_profile_picture_title">Profile picture</string>
+    <string name="edit_profile_first_name">First name(s)</string>
+    <string name="edit_profile_first_last_name">First last name</string>
+    <string name="edit_profile_second_last_name">Second last name</string>
+    <string name="edit_profile_optional_hint">(optional)</string>
+
+    <string name="edit_profile_option_camera">Camera</string>
+    <string name="edit_profile_option_gallery">Gallery</string>
+    <string name="edit_profile_option_delete_photo">Delete photo</string>
+
+    <string name="edit_profile_error_required">This field is required</string>
+    <string name="edit_profile_error_only_letters">Only letters and spaces allowed</string>
+    <string name="edit_profile_updated_success">Profile updated</string>
+
+    <string name="edit_profile_discard_title">Discard changes?</string>
+    <string name="edit_profile_discard_message">You have unsaved changes. If you leave now, they will be lost.</string>
+    <string name="edit_profile_discard_confirm">Discard</string>
+
+    <string name="edit_profile_camera_permission_title">Camera permission required</string>
+    <string name="edit_profile_camera_permission_message">We need access to your camera to take your new profile picture.</string>
+    <string name="edit_profile_open_settings">Open settings</string>
+
     <!-- Suscripción y Planes -->
     <string name="choose_plan_title">Choose your plan</string>
     <string name="choose_plan_header_title">Start publishing your properties!</string>
