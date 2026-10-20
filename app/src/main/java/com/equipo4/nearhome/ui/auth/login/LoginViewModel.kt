@@ -16,6 +16,8 @@ import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.io.IOException
 import kotlin.coroutines.cancellation.CancellationException
+import android.content.Context
+import com.equipo4.nearhome.data.remote.GoogleAuthManager
 
 import com.equipo4.nearhome.util.AppStrings
 import com.equipo4.nearhome.R
@@ -147,7 +149,36 @@ class LoginViewModel(
         }
     }
 
-    fun onGoogleLoginClicked() {
-        // Fuera del alcance de esta tarea
+    fun onGoogleLoginClicked(context: Context) {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    isLoading = true,
+                    errorMessage = null,
+                    googleSuccessMessage = null
+                )
+            }
+
+            val googleAuthManager = GoogleAuthManager(context)
+            val result = googleAuthManager.getFirebaseIdToken()
+
+            result.fold(
+                onSuccess = { firebaseToken ->
+                    _uiState.update { it.copy(isLoading = false) }
+                    if (firebaseToken != null) {
+                        // Requisito Entregable 1: Mensaje temporal
+                        _uiState.update { it.copy(googleSuccessMessage = "Cuenta de Google lista") }
+                    }
+                },
+                onFailure = { error ->
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = error.message ?: "No se pudo iniciar sesión con Google. Inténtalo de nuevo."
+                        )
+                    }
+                }
+            )
+        }
     }
 }
