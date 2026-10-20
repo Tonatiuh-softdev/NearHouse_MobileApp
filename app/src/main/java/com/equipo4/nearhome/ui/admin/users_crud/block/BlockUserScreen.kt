@@ -28,6 +28,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.domain.model.UserAccountStatus
 import com.equipo4.nearhome.ui.admin.users_crud.UserStatusBadge
+import com.equipo4.nearhome.ui.theme.NoticeTone
+import com.equipo4.nearhome.ui.theme.noticeColors
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -45,6 +47,7 @@ fun BlockUserScreen(
     val scope = rememberCoroutineScope()
 
     val isBlocked = user?.status == UserAccountStatus.BLOQUEADO
+    val warningColors = noticeColors(NoticeTone.WARNING)
 
     Scaffold(
         topBar = {
@@ -55,12 +58,12 @@ fun BlockUserScreen(
                             text = if (isBlocked) stringResource(R.string.unblock_user_title) else stringResource(R.string.block_user_title),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF1F2937)
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = stringResource(R.string.block_user_subtitle),
                             fontSize = 12.sp,
-                            color = Color(0xFF6B7280)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 },
@@ -69,17 +72,17 @@ fun BlockUserScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.common_back),
-                            tint = Color(0xFF1F2937)
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
         },
         bottomBar = {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                color = Color.White,
+                color = MaterialTheme.colorScheme.surface,
                 shadowElevation = 8.dp
             ) {
                 Row(
@@ -95,8 +98,8 @@ fun BlockUserScreen(
                             .weight(1f)
                             .height(50.dp),
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF0B2C4D)),
-                        border = BorderStroke(1.dp, Color(0xFFD1D5DB))
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
                     ) {
                         Text(
                             text = stringResource(R.string.listing_action_cancel),
@@ -118,21 +121,21 @@ fun BlockUserScreen(
                             .height(50.dp),
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = if (isBlocked) Color(0xFF16A34A) else Color(0xFFDC2626)
+                            containerColor = if (isBlocked) Color(0xFF16A34A) else MaterialTheme.colorScheme.error,
+                            contentColor = MaterialTheme.colorScheme.onError
                         )
                     ) {
                         Text(
                             text = if (isBlocked) stringResource(R.string.unblock_user_title) else stringResource(R.string.block_user_title),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color.White,
                             maxLines = 1
                         )
                     }
                 }
             }
         },
-        containerColor = Color(0xFFF9FAFB)
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         if (user == null) {
             Box(
@@ -141,7 +144,7 @@ fun BlockUserScreen(
                     .padding(innerPadding),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(color = Color(0xFF0B2C4D))
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
         } else {
             val currentUser = user!!
@@ -160,13 +163,13 @@ fun BlockUserScreen(
                     Box(
                         modifier = Modifier
                             .size(48.dp)
-                            .background(Color(0xFFFEF3C7), CircleShape),
+                            .background(warningColors.container, CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.Warning,
                             contentDescription = null,
-                            tint = Color(0xFFD97706),
+                            tint = warningColors.content,
                             modifier = Modifier.size(26.dp)
                         )
                     }
@@ -175,13 +178,13 @@ fun BlockUserScreen(
                             text = if (isBlocked) stringResource(R.string.unblock_user_question) else stringResource(R.string.block_user_question),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF1F2937)
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(
                             text = if (isBlocked) stringResource(R.string.unblock_user_desc) else stringResource(R.string.block_user_desc),
                             fontSize = 13.sp,
-                            color = Color(0xFF6B7280)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -189,7 +192,7 @@ fun BlockUserScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     elevation = CardDefaults.cardElevation(0.dp)
                 ) {
                     Row(
@@ -211,12 +214,12 @@ fun BlockUserScreen(
                             Box(
                                 modifier = Modifier
                                     .size(50.dp)
-                                    .background(Color(0xFF0B2C4D), CircleShape),
+                                    .background(MaterialTheme.colorScheme.primary, CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
                                     text = currentUser.initials,
-                                    color = Color.White,
+                                    color = MaterialTheme.colorScheme.onPrimary,
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -228,12 +231,12 @@ fun BlockUserScreen(
                                 text = currentUser.name,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF1F2937)
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
                                 text = currentUser.email,
                                 fontSize = 13.sp,
-                                color = Color(0xFF6B7280)
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Spacer(Modifier.height(4.dp))
                             UserStatusBadge(currentUser.status)
@@ -242,9 +245,9 @@ fun BlockUserScreen(
                 }
 
                 Surface(
-                    color = Color(0xFFFEF3C7).copy(alpha = 0.5f),
+                    color = warningColors.container,
                     shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(1.dp, Color(0xFFD97706))
+                    border = BorderStroke(1.dp, warningColors.content.copy(alpha = 0.5f))
                 ) {
                     Text(
                         text = if (isBlocked)
@@ -252,7 +255,7 @@ fun BlockUserScreen(
                         else
                             stringResource(R.string.block_user_warning),
                         fontSize = 13.sp,
-                        color = Color(0xFF92400E),
+                        color = warningColors.content,
                         modifier = Modifier.padding(14.dp)
                     )
                 }
@@ -263,19 +266,21 @@ fun BlockUserScreen(
                             text = stringResource(R.string.block_user_reason_label),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF1F2937)
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(Modifier.height(6.dp))
                         OutlinedTextField(
                             value = reason,
                             onValueChange = { if (it.length <= 250) viewModel.reason.value = it },
-                            placeholder = { Text(stringResource(R.string.block_user_reason_hint)) },
+                            placeholder = { Text(stringResource(R.string.block_user_reason_hint), color = MaterialTheme.colorScheme.onSurfaceVariant) },
                             shape = RoundedCornerShape(12.dp),
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = Color(0xFF0B2C4D),
-                                unfocusedBorderColor = Color(0xFFD1D5DB),
-                                focusedContainerColor = Color.White,
-                                unfocusedContainerColor = Color.White
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                             ),
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -286,7 +291,7 @@ fun BlockUserScreen(
                         Text(
                             text = stringResource(R.string.block_user_char_count, reason.length),
                             fontSize = 11.sp,
-                            color = Color(0xFF6B7280),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.align(Alignment.End)
                         )
                     }
@@ -295,8 +300,8 @@ fun BlockUserScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    border = BorderStroke(1.dp, Color(0xFFE5E7EB)),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                     elevation = CardDefaults.cardElevation(0.dp)
                 ) {
                     Column(
@@ -314,7 +319,7 @@ fun BlockUserScreen(
                                 text = stringResource(R.string.block_user_action_result),
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF1F2937)
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             UserStatusBadge(
                                 if (isBlocked) UserAccountStatus.VERIFICADO_ACTIVO else UserAccountStatus.BLOQUEADO
@@ -328,12 +333,12 @@ fun BlockUserScreen(
                             Box(
                                 modifier = Modifier
                                     .size(40.dp)
-                                    .background(Color(0xFFFEE2E2), CircleShape),
+                                    .background(MaterialTheme.colorScheme.errorContainer, CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
                                     text = currentUser.initials,
-                                    color = Color(0xFFDC2626),
+                                    color = MaterialTheme.colorScheme.error,
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -344,14 +349,14 @@ fun BlockUserScreen(
                                     text = currentUser.name,
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF1F2937)
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Spacer(Modifier.height(2.dp))
                                 Text(
                                     text = if (isBlocked) stringResource(R.string.block_user_reactivated_success) else stringResource(R.string.block_user_suspended_desc),
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Medium,
-                                    color = Color(0xFFDC2626)
+                                    color = MaterialTheme.colorScheme.error
                                 )
                             }
                         }
@@ -361,7 +366,7 @@ fun BlockUserScreen(
                 Text(
                     text = stringResource(R.string.block_user_history_notice),
                     fontSize = 11.sp,
-                    color = Color(0xFF9CA3AF),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
                 )
