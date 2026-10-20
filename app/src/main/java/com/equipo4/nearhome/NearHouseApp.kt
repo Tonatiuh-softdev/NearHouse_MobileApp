@@ -52,6 +52,7 @@ import com.equipo4.nearhome.ui.home.filter.SearchFiltersScreen
 import com.equipo4.nearhome.ui.legal.PoliticaPrivacidadScreen
 import com.equipo4.nearhome.ui.legal.TerminosCondicionesScreen
 import com.equipo4.nearhome.ui.profile.ProfileScreen
+import com.equipo4.nearhome.ui.profile.seller.EditProfileScreen
 import com.equipo4.nearhome.ui.profile.seller.MyListingsScreen
 import com.equipo4.nearhome.ui.saved.SavedScreen
 import com.equipo4.nearhome.ui.publicacion.detail.DetailPublicacionScreen
@@ -80,6 +81,7 @@ object AppRoutes {
     const val SAVED = "saved"
     const val PROFILE = "profile"
     const val MY_LISTINGS = "my_listings"
+    const val EDIT_PROFILE = "edit_profile"
     const val PUBLICACION_DETAIL = "publicacion_detail"
     const val TERMS_AND_CONDITIONS = "terms_and_conditions"
     const val PRIVACY_POLICY = "privacy_policy"
@@ -105,6 +107,7 @@ object AppRoutes {
     const val CREATE_LISTING_STEP4 = "create_listing_step4"
     const val CREATE_LISTING_PREVIEW = "create_listing_preview"
 }
+
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
@@ -339,10 +342,30 @@ fun NearHouseApp() {
         composable(AppRoutes.MY_LISTINGS) {
             MyListingsScreen(
                 onBackClick = { navController.popBackStack() },
-                onEditProfileClick = { /* Navegar a editar perfil */ },
+                onEditProfileClick = { navController.navigate(AppRoutes.EDIT_PROFILE) },
                 onCreateListingClick = { navController.navigate(AppRoutes.CREATE_LISTING_GRAPH) },
                 onPropertyClick = { propertyId ->
                     navController.navigate("${AppRoutes.PUBLICACION_DETAIL}/$propertyId")
+                },
+                onBottomTabSelected = onBottomTab
+            )
+        }
+
+        // Pantalla: Editar Perfil (Vendedor / Admin / SuperAdmin)
+        composable(AppRoutes.EDIT_PROFILE) {
+            EditProfileScreen(
+                onNavigateToMyListingsWithSnackbar = { message ->
+                    if (message.isNotEmpty()) {
+                        navController.previousBackStackEntry
+                            ?.savedStateHandle
+                            ?.set("snackbar_msg", message)
+                    }
+                    navController.popBackStack()
+                },
+                onNavigateToAccount = {
+                    navController.navigate(AppRoutes.PROFILE) {
+                        popUpTo(AppRoutes.EDIT_PROFILE) { inclusive = true }
+                    }
                 },
                 onBottomTabSelected = onBottomTab
             )
