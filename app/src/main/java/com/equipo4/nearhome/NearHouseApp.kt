@@ -2,6 +2,8 @@ package com.equipo4.nearhome
 
 import android.graphics.Color
 import com.equipo4.nearhome.ui.theme.NearHomeTheme
+import androidx.compose.foundation.isSystemInDarkTheme
+import com.equipo4.nearhome.data.local.SettingsManager
 import android.net.Uri
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
@@ -101,7 +103,6 @@ object AppRoutes {
     const val CREATE_LISTING_STEP4 = "create_listing_step4"
     const val CREATE_LISTING_PREVIEW = "create_listing_preview"
 }
-
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
@@ -117,7 +118,13 @@ class MainActivity : AppCompatActivity() {
         )
         super.onCreate(savedInstanceState)
         setContent {
-            NearHomeTheme {
+            val context = LocalContext.current
+            remember { SettingsManager(context) }
+            val darkModeState by SettingsManager.darkModeState.collectAsState()
+            val systemInDark = isSystemInDarkTheme()
+            val useDarkTheme = darkModeState ?: systemInDark
+
+            NearHomeTheme(darkTheme = useDarkTheme) {
                 NearHouseApp()
             }
         }

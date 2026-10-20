@@ -15,7 +15,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -26,14 +25,11 @@ import coil3.compose.AsyncImage
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.domain.model.PropertyType
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
+import com.equipo4.nearhome.ui.theme.NoticeTone
+import com.equipo4.nearhome.ui.theme.noticeColors
 import java.io.File
 import java.text.NumberFormat
 import java.util.Locale
-
-// Colores del aviso de revisión (ámbar)
-internal val NoticeBg = Color(0xFFFFF4E5)
-internal val NoticeBorder = Color(0xFFF2C58B)
-internal val NoticeText = Color(0xFF9A4A00)
 
 @StringRes
 internal fun propertyTypeRes(type: PropertyType?): Int = when (type) {
@@ -42,7 +38,6 @@ internal fun propertyTypeRes(type: PropertyType?): Int = when (type) {
     else -> R.string.listing_type_land
 }
 
-/** $18,500 a partir de los dígitos guardados. */
 internal fun formatPrice(digits: String): String {
     val n = digits.toLongOrNull() ?: return "\$0"
     return "\$" + NumberFormat.getIntegerInstance(Locale.US).format(n)
@@ -69,7 +64,7 @@ fun CreateListingStep4Screen(
     val perMonth = stringResource(R.string.create_listing_per_month)
 
     Scaffold(
-        containerColor = cs.surface,
+        containerColor = cs.background,
         topBar = { StepHeader(stringResource(R.string.create_listing_step4_title), step = 4, onBack = onBack) },
         bottomBar = {
             Column(Modifier.background(cs.surface)) {
@@ -90,7 +85,8 @@ fun CreateListingStep4Screen(
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(
                     stringResource(R.string.create_listing_step4_heading),
-                    style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold
+                    style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold,
+                    color = cs.onSurface
                 )
                 Text(
                     stringResource(R.string.create_listing_step4_subtitle),
@@ -100,7 +96,7 @@ fun CreateListingStep4Screen(
 
             // Tarjeta principal: portada, tipo, precio y título
             Column(
-                Modifier.fillMaxWidth().border(1.dp, cs.outlineVariant, RoundedCornerShape(12.dp)).padding(10.dp),
+                Modifier.fillMaxWidth().background(cs.surface, RoundedCornerShape(12.dp)).border(1.dp, cs.outlineVariant, RoundedCornerShape(12.dp)).padding(10.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 state.photos.firstOrNull()?.let { cover ->
@@ -121,13 +117,13 @@ fun CreateListingStep4Screen(
                     )
                     Text(
                         formatPrice(state.price) + if (state.isRent) " $perMonth" else "",
-                        style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold
+                        style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = cs.onSurface
                     )
                 }
                 Text(
                     state.title,
                     style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold,
-                    maxLines = 2, overflow = TextOverflow.Ellipsis
+                    maxLines = 2, overflow = TextOverflow.Ellipsis, color = cs.onSurface
                 )
             }
 
@@ -146,7 +142,7 @@ fun CreateListingStep4Screen(
             ) {
                 Text(
                     state.description,
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.bodySmall, color = cs.onSurface,
                     maxLines = 5, overflow = TextOverflow.Ellipsis
                 )
                 if (state.rules.isNotBlank()) {
@@ -155,7 +151,7 @@ fun CreateListingStep4Screen(
                         stringResource(R.string.create_listing_ad_rules),
                         style = MaterialTheme.typography.labelSmall, color = cs.onSurfaceVariant
                     )
-                    Text(state.rules, style = MaterialTheme.typography.bodySmall)
+                    Text(state.rules, style = MaterialTheme.typography.bodySmall, color = cs.onSurface)
                 }
             }
 
@@ -176,7 +172,6 @@ fun CreateListingStep4Screen(
     }
 }
 
-/** Filas del resumen según el tipo de inmueble. */
 @Composable
 private fun propertyRows(state: CreateListingState): List<Pair<String, String>> {
     val yes = stringResource(R.string.create_listing_yes)
@@ -231,7 +226,7 @@ private fun propertyRows(state: CreateListingState): List<Pair<String, String>> 
 private fun SummaryCard(title: String, onEdit: () -> Unit, content: @Composable ColumnScope.() -> Unit) {
     val cs = MaterialTheme.colorScheme
     Column(
-        Modifier.fillMaxWidth().border(1.dp, cs.outlineVariant, RoundedCornerShape(12.dp)).padding(14.dp),
+        Modifier.fillMaxWidth().background(cs.surface, RoundedCornerShape(12.dp)).border(1.dp, cs.outlineVariant, RoundedCornerShape(12.dp)).padding(14.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Row(
@@ -239,7 +234,7 @@ private fun SummaryCard(title: String, onEdit: () -> Unit, content: @Composable 
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+            Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = cs.onSurface)
             Text(
                 stringResource(R.string.create_listing_edit),
                 style = MaterialTheme.typography.labelMedium, color = cs.primary, fontWeight = FontWeight.SemiBold,
@@ -252,37 +247,38 @@ private fun SummaryCard(title: String, onEdit: () -> Unit, content: @Composable 
 
 @Composable
 private fun SummaryRow(label: String, value: String) {
+    val cs = MaterialTheme.colorScheme
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
             label,
-            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodySmall, color = cs.onSurfaceVariant,
             modifier = Modifier.weight(1f)
         )
         Text(
             value,
-            style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold,
+            style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.SemiBold, color = cs.onSurface,
             textAlign = TextAlign.End, maxLines = 2, overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1.4f)
         )
     }
 }
 
-/** Aviso ámbar: el anuncio pasa por revisión antes de publicarse. */
 @Composable
 internal fun ReviewNotice() {
+    val warningColors = noticeColors(NoticeTone.WARNING)
     Row(
         Modifier.fillMaxWidth()
             .clip(RoundedCornerShape(10.dp))
-            .background(NoticeBg)
-            .border(1.dp, NoticeBorder, RoundedCornerShape(10.dp))
+            .background(warningColors.container)
+            .border(1.dp, warningColors.content.copy(alpha = 0.3f), RoundedCornerShape(10.dp))
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Icon(Icons.Default.Warning, null, tint = NoticeText, modifier = Modifier.size(18.dp))
+        Icon(Icons.Default.Warning, null, tint = warningColors.content, modifier = Modifier.size(18.dp))
         Text(
             stringResource(R.string.create_listing_review_notice),
-            style = MaterialTheme.typography.bodySmall, color = NoticeText
+            style = MaterialTheme.typography.bodySmall, color = warningColors.content
         )
     }
 }

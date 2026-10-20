@@ -14,7 +14,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.FilterList
-import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -23,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -32,16 +32,10 @@ import com.equipo4.nearhome.R
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
 import com.equipo4.nearhome.ui.common.PropertyCard
 import com.equipo4.nearhome.ui.home.filter.PropertyFilterManager
+import com.equipo4.nearhome.ui.theme.nearHouseColors
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
-
-import androidx.compose.ui.res.stringResource
-
-private val LightGrayBg = Color(0xFFF3F4F6)
-private val SectionGrayBg = Color(0xFFF8F9FA)
-private val BorderColor = Color(0xFFE5E7EB)
-private val TextGray = Color(0xFF6B7280)
 
 @Composable
 fun HomeScreen(
@@ -65,7 +59,7 @@ fun HomeScreen(
                 onTabSelected = onBottomTabSelected
             )
         },
-        containerColor = Color.White
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -98,13 +92,13 @@ fun HomeScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(SectionGrayBg)
+                    .background(MaterialTheme.colorScheme.background)
             ) {
                 Text(
                     text = stringResource(R.string.home_properties_count, formatNumber(uiState.properties.size)),
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
-                    color = TextGray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                 )
 
@@ -161,14 +155,14 @@ private fun HomeHeader(
                 .weight(1f)
                 .height(46.dp)
                 .clip(RoundedCornerShape(23.dp))
-                .background(LightGrayBg)
+                .background(MaterialTheme.nearHouseColors.searchBarBg)
                 .padding(horizontal = 14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 imageVector = Icons.Default.Search,
                 contentDescription = null,
-                tint = Color.Black,
+                tint = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.size(20.dp)
             )
 
@@ -182,7 +176,7 @@ private fun HomeHeader(
                     Text(
                         text = stringResource(R.string.home_search_location),
                         fontSize = 13.sp,
-                        color = Color.Gray,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1
                     )
                 }
@@ -192,7 +186,7 @@ private fun HomeHeader(
                     singleLine = true,
                     textStyle = TextStyle(
                         fontSize = 13.sp,
-                        color = Color.Black
+                        color = MaterialTheme.colorScheme.onSurface
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -203,7 +197,7 @@ private fun HomeHeader(
             Icon(
                 painter = painterResource(id = R.drawable.ic_localizacion),
                 contentDescription = stringResource(R.string.home_view_map),
-                tint = Color.Black,
+                tint = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier
                     .size(18.dp)
                     .clickable { onToggleToMap() }
@@ -239,12 +233,12 @@ private fun FilterAndSortRow(
                         Box(
                             modifier = Modifier
                                 .size(18.dp)
-                                .background(Color(0xFF0B2C4D), CircleShape),
+                                .background(MaterialTheme.colorScheme.primary, CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
                                 text = activeCount.toString(),
-                                color = Color.White,
+                                color = MaterialTheme.colorScheme.onPrimary,
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -254,24 +248,30 @@ private fun FilterAndSortRow(
             },
             shape = RoundedCornerShape(10.dp),
             colors = FilterChipDefaults.filterChipColors(
-                containerColor = Color.White,
-                selectedContainerColor = Color(0xFFE0F2FE),
-                labelColor = Color(0xFF1F2937),
-                selectedLabelColor = Color(0xFF0369A1)
+                containerColor = MaterialTheme.nearHouseColors.filterChipBg,
+                selectedContainerColor = MaterialTheme.nearHouseColors.filterChipSelectedBg,
+                labelColor = MaterialTheme.colorScheme.onSurface,
+                selectedLabelColor = MaterialTheme.colorScheme.primary
+            ),
+            border = FilterChipDefaults.filterChipBorder(
+                enabled = true,
+                selected = hasFilters,
+                borderColor = MaterialTheme.colorScheme.outline,
+                selectedBorderColor = MaterialTheme.colorScheme.primary
             )
         )
 
         OutlinedButton(
             onClick = { },
             shape = RoundedCornerShape(8.dp),
-            border = BorderStroke(1.dp, BorderColor),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface),
             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_ordenar),
                 contentDescription = stringResource(R.string.home_sort),
-                tint = Color.Black,
+                tint = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.size(14.dp)
             )
             Spacer(modifier = Modifier.width(6.dp))

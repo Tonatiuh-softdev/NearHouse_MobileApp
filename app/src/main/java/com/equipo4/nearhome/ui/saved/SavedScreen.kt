@@ -20,25 +20,17 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.equipo4.nearhome.R
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
 import com.equipo4.nearhome.ui.common.PropertyCard
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-
-import androidx.compose.ui.res.stringResource
-import com.equipo4.nearhome.R
-
-private val NavyColor = Color(0xFF0B2C4D)
-private val BorderColor = Color(0xFFE5E7EB)
-private val TextDark = Color(0xFF1F2937)
-private val TextGray = Color(0xFF6B7280)
-private val EmptyCircle = Color(0xFFF5F5F5)
-private val EmptyIcon = Color(0xFF757575)
 
 @Composable
 fun SavedScreen(
@@ -48,23 +40,26 @@ fun SavedScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val scope = rememberCoroutineScope()
-    // IDs en animación de salida: primero se oculta la tarjeta y luego se quita del repositorio.
     var removing by remember { mutableStateOf(setOf<String>()) }
 
     Scaffold(
         topBar = { SavedTopBar() },
         bottomBar = { NearHomeBottomBar(selectedTab = 1, onTabSelected = onBottomTabSelected) },
-        containerColor = Color.White
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
             when {
                 uiState.isLoading -> CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center), color = NavyColor
+                    modifier = Modifier.align(Alignment.Center),
+                    color = MaterialTheme.colorScheme.primary
                 )
 
                 uiState.errorMessage != null -> Text(
-                    uiState.errorMessage!!, color = TextGray, fontSize = 14.sp,
-                    modifier = Modifier.align(Alignment.Center).padding(24.dp), textAlign = TextAlign.Center
+                    uiState.errorMessage!!,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 14.sp,
+                    modifier = Modifier.align(Alignment.Center).padding(24.dp),
+                    textAlign = TextAlign.Center
                 )
 
                 uiState.properties.isEmpty() -> EmptySavedState()
@@ -80,7 +75,7 @@ fun SavedScreen(
                         ) {
                             Box(modifier = Modifier.padding(bottom = 16.dp)) {
                                 PropertyCard(
-                                    property = property.copy(isSaved = true), // siempre relleno aquí
+                                    property = property.copy(isSaved = true),
                                     onToggleSave = {
                                         removing = removing + property.id
                                         scope.launch {
@@ -102,29 +97,36 @@ fun SavedScreen(
 
 @Composable
 private fun SavedTopBar() {
-    Column(modifier = Modifier.fillMaxWidth().background(Color.White).statusBarsPadding()) {
+    Column(modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface).statusBarsPadding()) {
         Box(
             modifier = Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 16.dp),
             contentAlignment = Alignment.CenterStart
         ) {
-            Text(stringResource(R.string.saved_properties_title), fontSize = 16.sp, fontWeight = FontWeight.Normal, color = TextDark)
+            Text(
+                stringResource(R.string.saved_properties_title),
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Normal,
+                color = MaterialTheme.colorScheme.onSurface
+            )
         }
-        HorizontalDivider(color = BorderColor)
+        HorizontalDivider(color = MaterialTheme.colorScheme.outline)
     }
 }
 
 @Composable
 private fun EmptySavedState() {
+    val emptyCircleColor = MaterialTheme.colorScheme.surfaceVariant
+    val emptyIconColor = MaterialTheme.colorScheme.onSurfaceVariant
+
     Column(
         modifier = Modifier.fillMaxSize().padding(horizontal = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
         Box(
-            modifier = Modifier.size(180.dp).background(EmptyCircle, CircleShape),
+            modifier = Modifier.size(180.dp).background(emptyCircleColor, CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            // Marcador tachado (bookmark con diagonal), dibujado con Canvas.
             Canvas(modifier = Modifier.size(84.dp)) {
                 val w = size.width
                 val h = size.height
@@ -137,20 +139,24 @@ private fun EmptySavedState() {
                     lineTo(w * 0.18f, h * 0.92f)
                     close()
                 }
-                drawPath(bookmark, EmptyIcon, style = stroke)
-                drawLine(Color(0xFFF5F5F5), Offset(w * 0.02f, h * 1.0f), Offset(w * 1.0f, h * 0.0f), strokeWidth = 18.dp.toPx())
-                drawLine(EmptyIcon, Offset(w * 0.02f, h * 1.0f), Offset(w * 1.0f, h * 0.0f), strokeWidth = 7.dp.toPx(), cap = StrokeCap.Round)
+                drawPath(bookmark, emptyIconColor, style = stroke)
+                drawLine(emptyCircleColor, Offset(w * 0.02f, h * 1.0f), Offset(w * 1.0f, h * 0.0f), strokeWidth = 18.dp.toPx())
+                drawLine(emptyIconColor, Offset(w * 0.02f, h * 1.0f), Offset(w * 1.0f, h * 0.0f), strokeWidth = 7.dp.toPx(), cap = StrokeCap.Round)
             }
         }
         Spacer(Modifier.height(28.dp))
         Text(
             stringResource(R.string.saved_empty_title),
-            fontSize = 18.sp, color = TextDark, textAlign = TextAlign.Center
+            fontSize = 18.sp,
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Center
         )
         Spacer(Modifier.height(8.dp))
         Text(
             stringResource(R.string.saved_empty_subtitle),
-            fontSize = 12.sp, color = TextGray, textAlign = TextAlign.Center
+            fontSize = 12.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
         )
     }
 }

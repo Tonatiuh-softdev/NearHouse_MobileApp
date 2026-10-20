@@ -3,23 +3,17 @@ package com.equipo4.nearhome.ui.common
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,37 +21,23 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.domain.model.ListingType
 import com.equipo4.nearhome.domain.model.Property
 import com.equipo4.nearhome.domain.model.PropertyType
+import com.equipo4.nearhome.ui.theme.nearHouseColors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
 
-import androidx.compose.ui.res.stringResource
-
-private val NavyColor = Color(0xFF0B2C4D)
-private val LightGrayBg = Color(0xFFF3F4F6)
-private val SectionGrayBg = Color(0xFFF8F9FA)
-private val BorderColor = Color(0xFFE5E7EB)
-private val BadgeBlueBg = Color(0xFFEBF5FF)
-private val BadgeBlueText = Color(0xFF1E88E5)
-private val TextDark = Color(0xFF1F2937)
-private val TextGray = Color(0xFF6B7280)
-
-/**
- * Tarjeta de propiedad compartida (Lista, Guardados, etc.). Movida tal cual desde HomeScreen.
- * El ícono de guardado se pinta relleno cuando property.isSaved == true.
- */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PropertyCard(
@@ -74,9 +54,9 @@ fun PropertyCard(
             .fillMaxWidth()
             .clickable { onClick() },
         shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        border = BorderStroke(1.dp, BorderColor)
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             PropertyImageCarousel(
@@ -108,7 +88,7 @@ private fun PropertyImageCarousel(
     Box(
         modifier = modifier
             .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFFE5E7EB))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
     ) {
         HorizontalPager(
             state = pagerState,
@@ -244,25 +224,25 @@ private fun PropertyInfoContent(
                     text = stringResource(R.string.property_price_format, formattedPrice),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = TextDark
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 if (property.listingType == ListingType.RENTA) {
                     Text(
                         text = stringResource(R.string.property_per_month),
                         fontSize = 14.sp,
-                        color = TextGray,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(bottom = 2.dp)
                     )
                 }
             }
 
             Surface(
-                color = BadgeBlueBg,
+                color = MaterialTheme.nearHouseColors.tagRentaBg,
                 shape = RoundedCornerShape(6.dp)
             ) {
                 Text(
                     text = property.listingType.name,
-                    color = BadgeBlueText,
+                    color = MaterialTheme.nearHouseColors.tagRentaText,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
@@ -277,7 +257,7 @@ private fun PropertyInfoContent(
             text = property.title.uppercase(),
             fontSize = 13.sp,
             fontWeight = FontWeight.Bold,
-            color = TextDark,
+            color = MaterialTheme.colorScheme.onSurface,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
@@ -299,7 +279,7 @@ private fun PropertyInfoContent(
             Text(
                 text = property.location,
                 fontSize = 12.sp,
-                color = TextGray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -364,13 +344,13 @@ private fun FeatureItem(
         Icon(
             painter = painterResource(id = iconRes),
             contentDescription = null,
-            tint = TextGray,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(15.dp)
         )
         Text(
             text = text,
             fontSize = 12.sp,
-            color = TextGray
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }

@@ -36,6 +36,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -50,13 +51,14 @@ import com.equipo4.nearhome.domain.model.Property
 import com.equipo4.nearhome.domain.model.PropertyType
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
 import com.equipo4.nearhome.ui.home.filter.PropertyFilterManager
-import com.equipo4.nearhome.ui.theme.adminAccent
-import com.equipo4.nearhome.ui.theme.onAdminAccent
+import com.equipo4.nearhome.ui.theme.nearHouseColors
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.maps.android.clustering.ClusterItem
 import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.clustering.Clustering
 import com.google.maps.android.compose.rememberCameraPositionState
 import java.text.NumberFormat
@@ -65,26 +67,11 @@ import kotlinx.coroutines.launch
 import androidx.compose.ui.graphics.luminance
 import com.google.maps.android.compose.ComposeMapColorScheme
 
-import androidx.compose.ui.res.stringResource
-
-private val NavyColor = Color(0xFF0B2C4D)
-private val LightGrayBg = Color(0xFFF3F4F6)
-private val BorderColor = Color(0xFFE5E7EB)
-private val BadgeBlueBg = Color(0xFFEBF5FF)
-private val BadgeBlueText = Color(0xFF1E88E5)
-private val TextDark = Color(0xFF1F2937)
-private val TextGray = Color(0xFF6B7280)
-
-/** Tamaño de los pines en el mapa (dp). Si se ven grandes o chicos, se ajusta aquí. */
 private const val PIN_WIDTH_DP = 28
 private const val PIN_HEIGHT_DP = 39
 
-/**
- * Fuente única de color por tipo de propiedad. Los indicadores del filtro usan estos colores,
- * que fueron muestreados del cuerpo de cada pin (ic_pin_*.png) para que coincidan con el mapa.
- */
 object PinColors {
-    val Todo = Color(0xFF000000)
+    val Todo = Color(0xFF808080)
     val Casa = Color(0xFFE30B0C)
     val Terreno = Color(0xFF94A945)
     val Departamento = Color(0xFF3136BD)
@@ -109,7 +96,6 @@ private fun typeLabel(type: PropertyType) = when (type) {
     PropertyType.DEPARTAMENTO -> stringResource(R.string.map_type_apartments)
 }
 
-/** Dibuja un drawable (PNG o vector) en un bitmap del tamaño pedido en dp. Se usa una sola vez por tipo. */
 private fun scaledPinBitmap(
     context: Context,
     @DrawableRes resId: Int,
@@ -128,7 +114,6 @@ private fun scaledPinBitmap(
     return bitmap
 }
 
-/** Elemento que el clustering agrupa: una propiedad con coordenadas. */
 private data class PropertyClusterItem(
     val property: Property,
     override val position: LatLng
@@ -152,7 +137,7 @@ fun MapScreen(
 
     Scaffold(
         bottomBar = { NearHomeBottomBar(selectedTab = 0, onTabSelected = onBottomTabSelected) },
-        containerColor = Color.White
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
             MapHeader(
@@ -175,24 +160,24 @@ fun MapScreen(
 
                 if (uiState.isLoading) {
                     Box(
-                        modifier = Modifier.fillMaxSize().background(Color.White.copy(alpha = 0.7f)),
+                        modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)),
                         contentAlignment = Alignment.Center
-                    ) { CircularProgressIndicator(color = NavyColor) }
+                    ) { CircularProgressIndicator(color = MaterialTheme.colorScheme.primary) }
                 }
 
                 uiState.errorMessage?.let { message ->
                     Surface(
                         modifier = Modifier.align(Alignment.Center).padding(24.dp),
                         shape = RoundedCornerShape(16.dp),
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.surface,
                         shadowElevation = 6.dp
                     ) {
                         Column(Modifier.padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(message, color = TextDark, fontSize = 14.sp, textAlign = TextAlign.Center)
+                            Text(message, color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp, textAlign = TextAlign.Center)
                             Spacer(Modifier.height(12.dp))
                             Button(
                                 onClick = viewModel::loadProperties,
-                                colors = ButtonDefaults.buttonColors(containerColor = NavyColor)
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                             ) { Text(stringResource(R.string.map_retry)) }
                         }
                     }
@@ -206,7 +191,8 @@ fun MapScreen(
         ModalBottomSheet(
             onDismissRequest = viewModel::onSheetDismissed,
             sheetState = sheetState,
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface
         ) {
             PropertyPreviewSheet(
                 property = property,
@@ -221,11 +207,6 @@ fun MapScreen(
     }
 }
 
-/**
- * Mapa real de Google Maps, centrado en Manzanillo. Un elemento por propiedad visible, con el
- * pin de su tipo; los cercanos se agrupan cuando el mapa está alejado (clustering).
- * El clic en un pin se consume (devuelve true) para que Google no muestre su globo por defecto.
- */
 @Composable
 private fun GoogleMapView(
     properties: List<Property>,
@@ -235,21 +216,18 @@ private fun GoogleMapView(
     val manzanillo = LatLng(19.08, -104.32)
     val scope = rememberCoroutineScope()
 
-    // El mapa sigue el tema de la app: fondo oscuro -> mapa oscuro; fondo claro -> mapa claro.
     val isDarkTheme = MaterialTheme.colorScheme.background.luminance() < 0.5f
 
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(manzanillo, 13f)
     }
 
-    // Un bitmap por tipo, creado UNA sola vez (antes se decodificaba el PNG en cada pin).
     val pinBitmaps = remember {
         PropertyType.entries.associateWith { type ->
             scaledPinBitmap(context, pinRes(type), PIN_WIDTH_DP, PIN_HEIGHT_DP).asImageBitmap()
         }
     }
 
-    // Solo las propiedades con coordenadas. Se recalcula únicamente si cambia la lista visible.
     val clusterItems = remember(properties) {
         properties.mapNotNull { property ->
             val lat = property.latitude
@@ -258,15 +236,24 @@ private fun GoogleMapView(
         }
     }
 
+    val mapProperties = remember(isDarkTheme) {
+        if (isDarkTheme) {
+            val styleOptions = MapStyleOptions.loadRawResourceStyle(context, R.raw.map_style_dark)
+            MapProperties(mapStyleOptions = styleOptions)
+        } else {
+            MapProperties()
+        }
+    }
+
     GoogleMap(
         modifier = Modifier.fillMaxSize(),
         cameraPositionState = cameraPositionState,
+        properties = mapProperties,
         mapColorScheme = if (isDarkTheme) ComposeMapColorScheme.DARK else ComposeMapColorScheme.LIGHT
     ) {
         Clustering(
             items = clusterItems,
             onClusterClick = { cluster ->
-                // Tocar un grupo acerca el mapa hacia ese punto.
                 scope.launch {
                     cameraPositionState.animate(
                         CameraUpdateFactory.newLatLngZoom(
@@ -279,12 +266,12 @@ private fun GoogleMapView(
             },
             onClusterItemClick = { item ->
                 onMarkerClick(item.property.id)
-                true // consume el evento: sin globo de información por defecto
+                true
             },
             clusterContent = { cluster ->
                 Surface(
                     shape = CircleShape,
-                    color = NavyColor,
+                    color = MaterialTheme.colorScheme.primary,
                     border = BorderStroke(2.dp, Color.White),
                     shadowElevation = 4.dp
                 ) {
@@ -305,7 +292,6 @@ private fun GoogleMapView(
                     modifier = Modifier.size(PIN_WIDTH_DP.dp, PIN_HEIGHT_DP.dp)
                 )
             },
-            // Por defecto la librería solo agrupa cuando hay 4 o más; aquí bajamos el mínimo a 2.
             onClusterManager = { manager ->
                 (manager.renderer as? DefaultClusterRenderer<*>)?.minClusterSize = 2
             }
@@ -334,30 +320,29 @@ private fun MapHeader(
                 .weight(1f)
                 .height(46.dp)
                 .clip(RoundedCornerShape(23.dp))
-                .background(LightGrayBg)
+                .background(MaterialTheme.nearHouseColors.searchBarBg)
                 .padding(horizontal = 14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(Icons.Default.Search, contentDescription = null, tint = Color.Black, modifier = Modifier.size(20.dp))
+            Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(20.dp))
             Spacer(Modifier.width(8.dp))
             Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
                 if (searchQuery.isEmpty()) {
-                    Text(stringResource(R.string.map_search_location), fontSize = 13.sp, color = Color.Gray, maxLines = 1)
+                    Text(stringResource(R.string.map_search_location), fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
                 }
                 BasicTextField(
                     value = searchQuery,
                     onValueChange = onQueryChange,
                     singleLine = true,
-                    textStyle = TextStyle(fontSize = 13.sp, color = Color.Black),
+                    textStyle = TextStyle(fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface),
                     modifier = Modifier.fillMaxWidth()
                 )
             }
             Spacer(Modifier.width(8.dp))
-            // En Mapa el ícono muestra "lista" para regresar a la vista de Lista.
             Icon(
                 imageVector = Icons.Default.FormatListBulleted,
                 contentDescription = stringResource(R.string.map_view_list),
-                tint = Color.Black,
+                tint = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.size(20.dp).noRippleClickable { onToggleToList() }
             )
         }
@@ -379,7 +364,6 @@ private fun FilterRow(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 2.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        // Tipo de propiedad: "Todo" por defecto, multi-selección con indicador de color
         val typeLabelText = when (uiState.selectedTypes.size) {
             0 -> stringResource(R.string.map_type_todo)
             1 -> typeLabel(uiState.selectedTypes.first())
@@ -411,12 +395,12 @@ private fun FilterRow(
                         Box(
                             modifier = Modifier
                                 .size(18.dp)
-                                .background(Color(0xFF0B2C4D), CircleShape),
+                                .background(MaterialTheme.colorScheme.primary, CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
                                 text = activeCount.toString(),
-                                color = Color.White,
+                                color = MaterialTheme.colorScheme.onPrimary,
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -432,26 +416,21 @@ private fun FilterRow(
             },
             shape = RoundedCornerShape(8.dp),
             colors = FilterChipDefaults.filterChipColors(
-                containerColor = Color.White,
-                selectedContainerColor = Color(0xFFE0F2FE),
-                labelColor = Color.Black,
-                selectedLabelColor = Color(0xFF0369A1)
+                containerColor = MaterialTheme.nearHouseColors.filterChipBg,
+                selectedContainerColor = MaterialTheme.nearHouseColors.filterChipSelectedBg,
+                labelColor = MaterialTheme.colorScheme.onSurface,
+                selectedLabelColor = MaterialTheme.colorScheme.primary
             ),
             border = FilterChipDefaults.filterChipBorder(
                 enabled = true,
                 selected = hasFilters,
-                borderColor = BorderColor,
-                selectedBorderColor = Color(0xFF0369A1)
+                borderColor = MaterialTheme.colorScheme.outline,
+                selectedBorderColor = MaterialTheme.colorScheme.primary
             )
         )
     }
 }
 
-/**
- * Chip "Todo" con panel como el mockup: el panel se abre sobre el chip, la primera fila es "Todo"
- * con chevron, y cada opción lleva un checkbox cuadrado con borde del color del tipo
- * (relleno cuando está seleccionado).
- */
 @Composable
 private fun TypeFilterChip(
     label: String,
@@ -463,14 +442,15 @@ private fun TypeFilterChip(
     val density = LocalDensity.current
 
     Box(modifier = Modifier.onSizeChanged { chipHeight = with(density) { it.height.toDp() } }) {
-        // Ancho FIJO: si el chip cambiara de ancho con la etiqueta ("Todo", "Casas", "2 tipos"...),
-        // el panel se reposicionaría cada vez que se cambia el filtro.
         OutlinedButton(
             onClick = { expanded = true },
             modifier = Modifier.width(120.dp),
             shape = RoundedCornerShape(8.dp),
-            border = BorderStroke(1.dp, BorderColor),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+            colors = ButtonDefaults.outlinedButtonColors(
+                containerColor = MaterialTheme.nearHouseColors.filterChipBg,
+                contentColor = MaterialTheme.colorScheme.onSurface
+            ),
             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
         ) {
             Text(
@@ -490,11 +470,10 @@ private fun TypeFilterChip(
             onDismissRequest = { expanded = false },
             offset = DpOffset(0.dp, -chipHeight),
             shape = RoundedCornerShape(12.dp),
-            containerColor = Color.White,
-            border = BorderStroke(1.dp, BorderColor),
+            containerColor = MaterialTheme.colorScheme.surface,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
             modifier = Modifier.width(210.dp)
         ) {
-            // Fila "Todo" (con chevron, como el chip abierto del mockup)
             TypeCheckRow(
                 label = stringResource(R.string.map_type_todo),
                 color = PinColors.Todo,
@@ -503,7 +482,7 @@ private fun TypeFilterChip(
                     Icon(
                         Icons.Default.KeyboardArrowDown,
                         contentDescription = stringResource(R.string.common_close),
-                        tint = Color(0xFF9CA3AF),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(22.dp).noRippleClickable { expanded = false }
                     )
                 }
@@ -539,11 +518,11 @@ private fun TypeCheckRow(
             modifier = Modifier
                 .size(22.dp)
                 .clip(RoundedCornerShape(6.dp))
-                .background(if (checked) color else Color.White)
+                .background(if (checked) color else MaterialTheme.colorScheme.surface)
                 .border(2.dp, color, RoundedCornerShape(6.dp))
         )
         Spacer(Modifier.width(14.dp))
-        Text(label, fontSize = 16.sp, color = TextDark, modifier = Modifier.weight(1f))
+        Text(label, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
         trailing?.invoke()
     }
 }
@@ -567,13 +546,13 @@ private fun PropertyPreviewSheet(
                 stringResource(R.string.map_preview_title),
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
-                color = TextDark,
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.align(Alignment.Center)
             )
             Icon(
                 Icons.Default.Close,
                 contentDescription = stringResource(R.string.common_close),
-                tint = TextDark,
+                tint = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.align(Alignment.CenterEnd).size(24.dp).noRippleClickable { onClose() }
             )
         }
@@ -646,27 +625,46 @@ private fun PropertyPreviewSheet(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(verticalAlignment = Alignment.Bottom) {
-                Text(stringResource(R.string.property_price_format, formatCurrency(property.price)), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextDark)
+                Text(
+                    stringResource(R.string.property_price_format, formatCurrency(property.price)),
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
                 if (property.listingType == ListingType.RENTA) {
-                    Text(stringResource(R.string.property_per_month), fontSize = 14.sp, color = TextGray, modifier = Modifier.padding(bottom = 2.dp))
+                    Text(
+                        stringResource(R.string.property_per_month),
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 2.dp)
+                    )
                 }
             }
-            Surface(color = BadgeBlueBg, shape = RoundedCornerShape(6.dp)) {
+            Surface(color = MaterialTheme.nearHouseColors.tagRentaBg, shape = RoundedCornerShape(6.dp)) {
                 Text(
                     property.listingType.name,
-                    color = BadgeBlueText, fontSize = 11.sp, fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.nearHouseColors.tagRentaText,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                 )
             }
         }
 
         Spacer(Modifier.height(6.dp))
-        Text(property.title.uppercase(), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextDark, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(
+            property.title.uppercase(),
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
         Spacer(Modifier.height(6.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(painterResource(R.drawable.ic_pin_localizacion), contentDescription = null, tint = Color.Unspecified, modifier = Modifier.size(16.dp))
             Spacer(Modifier.width(4.dp))
-            Text(property.location, fontSize = 12.sp, color = TextGray, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(property.location, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         Spacer(Modifier.height(10.dp))
 
@@ -693,15 +691,14 @@ private fun PropertyPreviewSheet(
 @Composable
 private fun FeatureItem(iconRes: Int, text: String) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-        Icon(painterResource(iconRes), contentDescription = null, tint = TextGray, modifier = Modifier.size(15.dp))
-        Text(text, fontSize = 12.sp, color = TextGray)
+        Icon(painterResource(iconRes), contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(15.dp))
+        Text(text, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
 private fun formatCurrency(amount: Double): String =
     NumberFormat.getNumberInstance(Locale.US).format(amount.toLong())
 
-/** clickable sin ripple: evita el rectángulo gris oscuro al presionar pines, el sheet, etc. */
 @Composable
 private fun Modifier.noRippleClickable(onClick: () -> Unit): Modifier =
     clickable(
