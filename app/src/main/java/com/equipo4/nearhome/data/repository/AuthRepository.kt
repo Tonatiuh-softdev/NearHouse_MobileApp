@@ -1,11 +1,12 @@
 package com.equipo4.nearhome.data.repository
 
+import com.equipo4.nearhome.data.remote.dto.GoogleAuthRequestDto
+import com.equipo4.nearhome.data.remote.dto.GoogleAuthResponseDto
 import com.equipo4.nearhome.network.AuthApi
 import com.equipo4.nearhome.network.CheckTelefonoRequest
 import com.equipo4.nearhome.network.LoginResponse
 import com.equipo4.nearhome.network.NetworkClient
 import com.equipo4.nearhome.network.RegistroFinalRequest
-
 import com.equipo4.nearhome.util.AppStrings
 import com.equipo4.nearhome.R
 
@@ -23,6 +24,24 @@ class AuthRepository(
             }
         } catch (e: Exception) {
             Result.failure(Exception(AppStrings.get(R.string.auth_error_connection, e.message.orEmpty())))
+        }
+    }
+
+    /**
+     * Consume POST /auth/google enviando el idToken obtenido de Firebase.
+     */
+    suspend fun loginWithGoogle(firebaseToken: String): Result<GoogleAuthResponseDto> {
+        return try {
+            val response = authApi.loginWithGoogle(GoogleAuthRequestDto(firebaseToken))
+            val body = response.body()
+            if (response.isSuccessful && body != null) {
+                Result.success(body)
+            } else {
+                val errorDetail = response.errorBody()?.string() ?: AppStrings.get(R.string.auth_error_invalid_data)
+                Result.failure(Exception(AppStrings.get(R.string.auth_error_server, response.code(), errorDetail)))
+            }
+        } catch (e: Exception) {
+            Result.failure(Exception(AppStrings.get(R.string.auth_error_comm, e.message.orEmpty())))
         }
     }
 
