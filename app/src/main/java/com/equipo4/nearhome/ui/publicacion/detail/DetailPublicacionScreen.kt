@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -31,8 +32,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.domain.model.PropertyType
 import com.equipo4.nearhome.ui.common.FakeMapPreview
-
-import androidx.compose.ui.res.stringResource
+import com.equipo4.nearhome.ui.theme.nearHouseColors
 import com.equipo4.nearhome.util.AppStrings
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -57,15 +57,23 @@ fun DetailPublicacionScreen(
                 title = { },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.common_back))
+                        Icon(
+                            Icons.Default.ArrowBack,
+                            contentDescription = stringResource(R.string.common_back),
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
                 },
                 actions = {
                     IconButton(onClick = { showBottomSheet = true }) {
-                        Icon(Icons.Default.MoreVert, contentDescription = stringResource(R.string.detail_options_menu_cd))
+                        Icon(
+                            Icons.Default.MoreVert,
+                            contentDescription = stringResource(R.string.detail_options_menu_cd),
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
         }
     ) { innerPadding ->
@@ -73,16 +81,19 @@ fun DetailPublicacionScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .background(Color.White)
+                .background(MaterialTheme.colorScheme.background)
         ) {
             when (val state = uiState) {
                 is DetailPublicacionUiState.Loading -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                    CircularProgressIndicator(
+                        modifier = Modifier.align(Alignment.Center),
+                        color = MaterialTheme.colorScheme.primary
+                    )
                 }
                 is DetailPublicacionUiState.Error -> {
                     Text(
                         text = state.mensaje,
-                        color = Color.Red,
+                        color = MaterialTheme.colorScheme.error,
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
@@ -97,7 +108,8 @@ fun DetailPublicacionScreen(
                     if (showBottomSheet) {
                         ModalBottomSheet(
                             onDismissRequest = { showBottomSheet = false },
-                            containerColor = Color.White
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            contentColor = MaterialTheme.colorScheme.onSurface
                         ) {
                             HerramientasBottomSheet(
                                 esPropietario = pub.esPropietario,
@@ -150,18 +162,18 @@ private fun DetailContent(
                 .fillMaxWidth()
                 .height(260.dp)
         ) {
-            // Etiqueta para Vendedor
+            // Etiqueta para Vendedor ("Tu Publicación")
             if (pub.esPropietario) {
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(12.dp)
-                        .background(Color(0xFF007AFF), RoundedCornerShape(12.dp))
+                        .background(MaterialTheme.nearHouseColors.tagTuPublicacionBg, RoundedCornerShape(12.dp))
                         .padding(horizontal = 10.dp, vertical = 4.dp)
                 ) {
                     Text(
                         text = stringResource(R.string.detail_your_listing),
-                        color = Color.White,
+                        color = MaterialTheme.nearHouseColors.tagTuPublicacionText,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium
                     )
@@ -174,6 +186,7 @@ private fun DetailContent(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(48.dp)
+                .background(MaterialTheme.colorScheme.surface)
         ) {
             Box(
                 modifier = Modifier
@@ -186,7 +199,7 @@ private fun DetailContent(
                     Icon(
                         imageVector = Icons.Outlined.PhotoCamera,
                         contentDescription = stringResource(R.string.detail_photos_cd),
-                        tint = if (selectedTab == 0) Color(0xFF007AFF) else Color.Gray
+                        tint = if (selectedTab == 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     if (selectedTab == 0) {
@@ -194,7 +207,7 @@ private fun DetailContent(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(2.dp)
-                                .background(Color(0xFF007AFF))
+                                .background(MaterialTheme.colorScheme.primary)
                         )
                     }
                 }
@@ -210,7 +223,7 @@ private fun DetailContent(
                     Icon(
                         imageVector = Icons.Outlined.LocationOn,
                         contentDescription = stringResource(R.string.search_filters_location),
-                        tint = if (selectedTab == 1) Color(0xFF007AFF) else Color.Gray
+                        tint = if (selectedTab == 1) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     if (selectedTab == 1) {
@@ -218,7 +231,7 @@ private fun DetailContent(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(2.dp)
-                                .background(Color(0xFF007AFF))
+                                .background(MaterialTheme.colorScheme.primary)
                         )
                     }
                 }
@@ -227,7 +240,7 @@ private fun DetailContent(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // --- PRECIO Y TIPO DE PROPIEDAD (ORDEN CONDICIONADO POR ROL) ---
+        // --- PRECIO Y TIPO DE PROPIEDAD ---
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
             if (pub.esPropietario) {
                 TipoPropiedadSection(pub.tipoPropiedad)
@@ -246,13 +259,13 @@ private fun DetailContent(
                 Icon(
                     imageVector = Icons.Outlined.LocationOn,
                     contentDescription = null,
-                    tint = Color.Gray,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(16.dp)
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
                     text = pub.direccion,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 13.sp
                 )
             }
@@ -274,7 +287,7 @@ private fun DetailContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // --- FILA DE ESPECIFICACIONES CON LOS NUEVOS ÍCONOS ---
+            // --- FILA DE ESPECIFICACIONES ---
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -292,7 +305,7 @@ private fun DetailContent(
                 text = pub.titulo.uppercase(),
                 fontWeight = FontWeight.Bold,
                 fontSize = 15.sp,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             Spacer(modifier = Modifier.height(6.dp))
@@ -300,14 +313,14 @@ private fun DetailContent(
             Text(
                 text = pub.descripcion,
                 fontSize = 13.sp,
-                color = Color.DarkGray,
+                color = MaterialTheme.colorScheme.onSurface,
                 maxLines = if (isExpandedDescription || pub.esPropietario) Int.MAX_VALUE else 3
             )
 
             if (!pub.esPropietario && !isExpandedDescription) {
                 Text(
                     text = stringResource(R.string.detail_read_more),
-                    color = Color(0xFF007AFF),
+                    color = MaterialTheme.colorScheme.primary,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Medium,
                     modifier = Modifier
@@ -323,7 +336,7 @@ private fun DetailContent(
                 text = stringResource(R.string.detail_more_details),
                 fontWeight = FontWeight.Bold,
                 fontSize = 15.sp,
-                color = Color.Black
+                color = MaterialTheme.colorScheme.onSurface
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -331,12 +344,12 @@ private fun DetailContent(
             Row(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.weight(1f)) {
                     pub.caracteristicasColumna1.forEach { item ->
-                        Text(text = item, fontSize = 13.sp, color = Color.Gray)
+                        Text(text = item, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
                 Column(modifier = Modifier.weight(1f)) {
                     pub.caracteristicasColumna2.forEach { item ->
-                        Text(text = item, fontSize = 13.sp, color = Color.Gray)
+                        Text(text = item, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
@@ -349,11 +362,16 @@ private fun DetailContent(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.Center
                 ) {
-                    Text(text = stringResource(R.string.detail_report_question), fontSize = 12.sp, color = Color.Gray)
+                    Text(
+                        text = stringResource(R.string.detail_report_question),
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = stringResource(R.string.detail_report_here),
                         fontSize = 12.sp,
-                        color = Color(0xFF007AFF),
+                        color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.clickable { onReportClick() }
                     )
@@ -373,13 +391,16 @@ private fun DetailContent(
                         }
                         context.startActivity(intent)
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF25D366)),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.nearHouseColors.whatsappBtnBg,
+                        contentColor = MaterialTheme.nearHouseColors.whatsappBtnText
+                    ),
                     shape = RoundedCornerShape(8.dp),
                     modifier = Modifier.weight(1f)
                 ) {
-                    Icon(imageVector = Icons.Default.Phone, contentDescription = null, tint = Color.White)
+                    Icon(imageVector = Icons.Default.Phone, contentDescription = null, tint = MaterialTheme.nearHouseColors.whatsappBtnText)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = "WhatsApp", color = Color.White, fontWeight = FontWeight.Bold)
+                    Text(text = "WhatsApp", color = MaterialTheme.nearHouseColors.whatsappBtnText, fontWeight = FontWeight.Bold)
                 }
 
                 Button(
@@ -390,13 +411,16 @@ private fun DetailContent(
                         }
                         context.startActivity(intent)
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2B5B84)),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.nearHouseColors.correoBtnBg,
+                        contentColor = MaterialTheme.nearHouseColors.correoBtnText
+                    ),
                     shape = RoundedCornerShape(8.dp),
                     modifier = Modifier.weight(1f)
                 ) {
-                    Icon(imageVector = Icons.Default.Email, contentDescription = null, tint = Color.White)
+                    Icon(imageVector = Icons.Default.Email, contentDescription = null, tint = MaterialTheme.nearHouseColors.correoBtnText)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = stringResource(R.string.detail_email), color = Color.White, fontWeight = FontWeight.Bold)
+                    Text(text = stringResource(R.string.detail_email), color = MaterialTheme.nearHouseColors.correoBtnText, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -410,13 +434,13 @@ private fun PrecioSection(precio: Double, esRenta: Boolean) {
             text = if (esRenta) stringResource(R.string.detail_rent_price_format, String.format("%,.0f", precio)) else stringResource(R.string.property_price_format, String.format("%,.0f", precio)),
             fontWeight = FontWeight.Bold,
             fontSize = 18.sp,
-            color = Color.Black
+            color = MaterialTheme.colorScheme.onSurface
         )
         if (esRenta) {
             Text(
                 text = stringResource(R.string.detail_per_month),
                 fontSize = 13.sp,
-                color = Color.Gray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 2.dp)
             )
         }
@@ -429,11 +453,11 @@ private fun TipoPropiedadSection(tipo: String) {
         Icon(
             painter = painterResource(id = R.drawable.ic_departamento),
             contentDescription = null,
-            tint = Color.Unspecified,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(18.dp)
         )
         Spacer(modifier = Modifier.width(6.dp))
-        Text(text = tipo, fontSize = 13.sp, color = Color.Gray)
+        Text(text = tipo, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -448,19 +472,19 @@ private fun FeatureItem(
             Icon(
                 painter = painterResource(id = iconRes),
                 contentDescription = null,
-                tint = Color.Unspecified,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(18.dp)
             )
         } else if (vectorIcon != null) {
             Icon(
                 imageVector = vectorIcon,
                 contentDescription = null,
-                tint = Color.Gray,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(18.dp)
             )
         }
         Spacer(modifier = Modifier.width(4.dp))
-        Text(text = label, fontSize = 11.sp, color = Color.Gray)
+        Text(text = label, fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
@@ -482,6 +506,7 @@ private fun HerramientasBottomSheet(
             text = stringResource(R.string.detail_tools),
             fontWeight = FontWeight.Bold,
             fontSize = 16.sp,
+            color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.align(Alignment.CenterHorizontally)
         )
         Spacer(modifier = Modifier.height(16.dp))
@@ -494,9 +519,9 @@ private fun HerramientasBottomSheet(
                     .padding(vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.Outlined.Edit, contentDescription = null)
+                Icon(Icons.Outlined.Edit, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface)
                 Spacer(modifier = Modifier.width(12.dp))
-                Text(text = stringResource(R.string.create_listing_edit))
+                Text(text = stringResource(R.string.create_listing_edit), color = MaterialTheme.colorScheme.onSurface)
             }
             Row(
                 modifier = Modifier
@@ -505,9 +530,9 @@ private fun HerramientasBottomSheet(
                     .padding(vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.Outlined.Share, contentDescription = null)
+                Icon(Icons.Outlined.Share, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface)
                 Spacer(modifier = Modifier.width(12.dp))
-                Text(text = stringResource(R.string.detail_share))
+                Text(text = stringResource(R.string.detail_share), color = MaterialTheme.colorScheme.onSurface)
             }
         } else {
             Row(
@@ -519,10 +544,14 @@ private fun HerramientasBottomSheet(
             ) {
                 Icon(
                     imageVector = if (estaGuardado) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
-                    contentDescription = null
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.width(12.dp))
-                Text(text = if (estaGuardado) stringResource(R.string.detail_saved) else stringResource(R.string.detail_save))
+                Text(
+                    text = if (estaGuardado) stringResource(R.string.detail_saved) else stringResource(R.string.detail_save),
+                    color = MaterialTheme.colorScheme.onSurface
+                )
             }
             Row(
                 modifier = Modifier
@@ -531,9 +560,9 @@ private fun HerramientasBottomSheet(
                     .padding(vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.Outlined.Share, contentDescription = null)
+                Icon(Icons.Outlined.Share, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface)
                 Spacer(modifier = Modifier.width(12.dp))
-                Text(text = stringResource(R.string.detail_share))
+                Text(text = stringResource(R.string.detail_share), color = MaterialTheme.colorScheme.onSurface)
             }
             Row(
                 modifier = Modifier
@@ -542,9 +571,9 @@ private fun HerramientasBottomSheet(
                     .padding(vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.Outlined.Flag, contentDescription = null)
+                Icon(Icons.Outlined.Flag, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface)
                 Spacer(modifier = Modifier.width(12.dp))
-                Text(text = stringResource(R.string.detail_report))
+                Text(text = stringResource(R.string.detail_report), color = MaterialTheme.colorScheme.onSurface)
             }
         }
     }

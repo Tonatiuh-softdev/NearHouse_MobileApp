@@ -14,22 +14,32 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.equipo4.nearhome.R
 import com.equipo4.nearhome.domain.model.Report
 import com.equipo4.nearhome.domain.model.ReportStatus
 import com.equipo4.nearhome.domain.model.ReportType
 
-import androidx.compose.ui.res.stringResource
-import com.equipo4.nearhome.R
-import androidx.compose.ui.res.pluralStringResource
-
 @Composable
 fun ReportTypeTag(type: ReportType) {
+    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+
     val (bg, textColor, icon) = when (type) {
-        ReportType.PUBLICACION -> Triple(Color(0xFFFFF7ED), Color(0xFFC2410C), Icons.Outlined.Home)
-        ReportType.USUARIO -> Triple(Color(0xFFEFF6FF), Color(0xFF1D4ED8), Icons.Outlined.Person)
+        ReportType.PUBLICACION -> if (isDark) {
+            Triple(Color(0xFF382314), Color(0xFFFB923C), Icons.Outlined.Home)
+        } else {
+            Triple(Color(0xFFFFF7ED), Color(0xFFC2410C), Icons.Outlined.Home)
+        }
+        ReportType.USUARIO -> if (isDark) {
+            Triple(Color(0xFF122840), Color(0xFF60A5FA), Icons.Outlined.Person)
+        } else {
+            Triple(Color(0xFFEFF6FF), Color(0xFF1D4ED8), Icons.Outlined.Person)
+        }
     }
 
     Surface(
@@ -59,8 +69,12 @@ fun ReportTypeTag(type: ReportType) {
 
 @Composable
 fun ReportStatusBadge() {
+    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val bg = if (isDark) Color(0xFF143821) else Color(0xFFDCFCE7)
+    val textColor = if (isDark) Color(0xFF4ADE80) else Color(0xFF15803D)
+
     Surface(
-        color = Color(0xFFDCFCE7),
+        color = bg,
         shape = RoundedCornerShape(12.dp)
     ) {
         Row(
@@ -71,12 +85,12 @@ fun ReportStatusBadge() {
             Icon(
                 imageVector = Icons.Default.CheckCircle,
                 contentDescription = null,
-                tint = Color(0xFF15803D),
+                tint = textColor,
                 modifier = Modifier.size(14.dp)
             )
             Text(
                 text = stringResource(R.string.status_attended),
-                color = Color(0xFF15803D),
+                color = textColor,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium
             )
@@ -94,7 +108,7 @@ fun ReportCardItem(
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(
@@ -115,7 +129,7 @@ fun ReportCardItem(
                     Icon(
                         imageVector = Icons.Default.ChevronRight,
                         contentDescription = stringResource(R.string.common_view_detail),
-                        tint = Color(0xFF9CA3AF),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -127,17 +141,19 @@ fun ReportCardItem(
                 text = report.motive,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = Color(0xFF1F2937),
+                color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 2
             )
 
             if (report.status == ReportStatus.ATENDIDO && !report.result.isNullOrEmpty()) {
                 Spacer(Modifier.height(4.dp))
+                val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+                val greenResultColor = if (isDark) Color(0xFF4ADE80) else Color(0xFF15803D)
                 Text(
                     text = report.result,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Medium,
-                    color = if ((report.result.contains("Cerrado") || report.result.contains("Closed"))) Color(0xFF6B7280) else Color(0xFF15803D)
+                    color = if ((report.result.contains("Cerrado") || report.result.contains("Closed"))) MaterialTheme.colorScheme.onSurfaceVariant else greenResultColor
                 )
             }
 
@@ -157,7 +173,7 @@ fun ReportCardItem(
                 Text(
                     text = dateText,
                     fontSize = 12.sp,
-                    color = Color(0xFF6B7280)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Row(
@@ -167,14 +183,14 @@ fun ReportCardItem(
                     Icon(
                         imageVector = Icons.Outlined.PhotoCamera,
                         contentDescription = null,
-                        tint = Color(0xFF6B7280),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(14.dp)
                     )
                     val evidencesText = pluralStringResource(R.plurals.evidences_count, report.evidences.size, report.evidences.size)
                     Text(
                         text = evidencesText,
                         fontSize = 12.sp,
-                        color = Color(0xFF6B7280)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }

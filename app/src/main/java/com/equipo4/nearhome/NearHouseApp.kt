@@ -2,6 +2,8 @@ package com.equipo4.nearhome
 
 import android.graphics.Color
 import com.equipo4.nearhome.ui.theme.NearHomeTheme
+import androidx.compose.foundation.isSystemInDarkTheme
+import com.equipo4.nearhome.data.local.SettingsManager
 import android.net.Uri
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
@@ -50,6 +52,8 @@ import com.equipo4.nearhome.ui.home.filter.SearchFiltersScreen
 import com.equipo4.nearhome.ui.legal.PoliticaPrivacidadScreen
 import com.equipo4.nearhome.ui.legal.TerminosCondicionesScreen
 import com.equipo4.nearhome.ui.profile.ProfileScreen
+import com.equipo4.nearhome.ui.profile.seller.EditProfileScreen
+import com.equipo4.nearhome.ui.profile.seller.MyListingsScreen
 import com.equipo4.nearhome.ui.saved.SavedScreen
 import com.equipo4.nearhome.ui.publicacion.detail.DetailPublicacionScreen
 import com.equipo4.nearhome.ui.splash.SplashScreen
@@ -76,6 +80,8 @@ object AppRoutes {
     const val SEARCH_FILTERS = "search_filters"
     const val SAVED = "saved"
     const val PROFILE = "profile"
+    const val MY_LISTINGS = "my_listings"
+    const val EDIT_PROFILE = "edit_profile"
     const val PUBLICACION_DETAIL = "publicacion_detail"
     const val TERMS_AND_CONDITIONS = "terms_and_conditions"
     const val PRIVACY_POLICY = "privacy_policy"
@@ -117,7 +123,13 @@ class MainActivity : AppCompatActivity() {
         )
         super.onCreate(savedInstanceState)
         setContent {
-            NearHomeTheme {
+            val context = LocalContext.current
+            remember { SettingsManager(context) }
+            val darkModeState by SettingsManager.darkModeState.collectAsState()
+            val systemInDark = isSystemInDarkTheme()
+            val useDarkTheme = darkModeState ?: systemInDark
+
+            NearHomeTheme(darkTheme = useDarkTheme) {
                 NearHouseApp()
             }
         }
@@ -296,7 +308,15 @@ fun NearHouseApp() {
         // Pantalla: Perfil (Vendedor/Arrendador/Admin)
         composable(AppRoutes.PROFILE) {
             ProfileScreen(
-                onMyListingsClick = { navController.navigate(AppRoutes.CREATE_LISTING_GRAPH) },
+                onMyListingsClick = {
+                    val userRole = sessionManager.getUserRole()
+                    // Si es Comprador va al flujo existente/planes; Vendedor, Admin o SuperAdmin van a Mis Anuncios
+                    if (userRole.equals("Comprador", ignoreCase = true)) {
+                        navController.navigate(AppRoutes.CREATE_LISTING_GRAPH)
+                    } else {
+                        navController.navigate(AppRoutes.MY_LISTINGS)
+                    }
+                },
                 onAccountClick = {},
                 onAdminPanelClick = {
                     navController.navigate(AppRoutes.ADMIN_PANEL)
@@ -312,6 +332,39 @@ fun NearHouseApp() {
                 onSessionExpired = {
                     navController.navigate(AppRoutes.LOGIN) {
                         popUpTo(0) { inclusive = true }
+                    }
+                },
+                onBottomTabSelected = onBottomTab
+            )
+        }
+
+        // Pantalla: Mis Anuncios (Vendedor / Admin / SuperAdmin)
+        composable(AppRoutes.MY_LISTINGS) {
+            MyListingsScreen(
+                onBackClick = { navController.popBackStack() },
+                onEditProfileClick = { navController.navigate(AppRoutes.EDIT_PROFILE) },
+                onCreateListingClick = { navController.navigate(AppRoutes.CREATE_LISTING_GRAPH) },
+                onPropertyClick = { propertyId ->
+                    navController.navigate("${AppRoutes.PUBLICACION_DETAIL}/$propertyId")
+                },
+                onBottomTabSelected = onBottomTab
+            )
+        }
+
+        // Pantalla: Editar Perfil (Vendedor / Admin / SuperAdmin)
+        composable(AppRoutes.EDIT_PROFILE) {
+            EditProfileScreen(
+                onNavigateToMyListingsWithSnackbar = { message ->
+                    if (message.isNotEmpty()) {
+                        navController.previousBackStackEntry
+                            ?.savedStateHandle
+                            ?.set("snackbar_msg", message)
+                    }
+                    navController.popBackStack()
+                },
+                onNavigateToAccount = {
+                    navController.navigate(AppRoutes.PROFILE) {
+                        popUpTo(AppRoutes.EDIT_PROFILE) { inclusive = true }
                     }
                 },
                 onBottomTabSelected = onBottomTab
@@ -381,7 +434,9 @@ fun NearHouseApp() {
                     onEdit = { navController.popBackStack(AppRoutes.CREATE_LISTING_STEP1, inclusive = false) },
                     onFinished = {
                         vm.reset()
-                        navController.popBackStack(AppRoutes.CREATE_LISTING_GRAPH, inclusive = true)
+                        navController.navigate(AppRoutes.MY_LISTINGS) {
+                            popUpTo(AppRoutes.CREATE_LISTING_GRAPH) { inclusive = true }
+                        }
                     }
                 )
             }
@@ -601,12 +656,10 @@ fun NearHouseApp() {
                     action = action,
                     onBackClick = { navController.popBackStack() },
                     onConfirmed = { message ->
-                        // Regresa al Detalle con el aviso verde.
                         navController.previousBackStackEntry?.savedStateHandle?.set(AppRoutes.LISTING_MESSAGE, message)
                         navController.popBackStack()
                     },
                     onDeleted = { message ->
-                        // Borra Detalle y Eliminar del historial y vuelve a la lista.
                         navController.getBackStackEntry(AppRoutes.ADMIN_LISTINGS)
                             .savedStateHandle[AppRoutes.LISTING_MESSAGE] = message
                         navController.popBackStack(AppRoutes.ADMIN_LISTINGS, inclusive = false)

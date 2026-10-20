@@ -22,25 +22,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.equipo4.nearhome.R
 import kotlinx.coroutines.launch
 
-import androidx.compose.ui.res.stringResource
-import com.equipo4.nearhome.R
-
-private val DarkNavyHeader = Color(0xFF0D253A)
-private val LightBlueActive = Color(0xFF3897F0)
-private val TextDark = Color(0xFF333333)
-private val TextGray = Color(0xFF64748B)
-private val UnselectedMenuText = Color(0xFF666666)
-private val IndexCardBackground = Color(0xFFF4F6F8)
-private val BorderDivider = Color(0xFFE2E8F0)
 private val OverlayDimColor = Color(0x66000000)
-private val FooterBgColor = Color(0xFFF8FAFC)
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -55,7 +46,6 @@ fun LegalDocumentScreen(
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
-    // Detección de sección activa
     val calculatedActiveSection by remember {
         derivedStateOf {
             val visibleItems = listState.layoutInfo.visibleItemsInfo
@@ -100,7 +90,7 @@ fun LegalDocumentScreen(
                         text = document.title,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = DarkNavyHeader
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 },
                 navigationIcon = {
@@ -108,12 +98,12 @@ fun LegalDocumentScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.common_back),
-                            tint = DarkNavyHeader
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.surface
                 )
             )
         },
@@ -123,7 +113,7 @@ fun LegalDocumentScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(Color.White)
+                .background(MaterialTheme.colorScheme.background)
         ) {
             LazyColumn(
                 state = listState,
@@ -137,10 +127,10 @@ fun LegalDocumentScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(Color.White)
+                            .background(MaterialTheme.colorScheme.surface)
                     ) {
                         Column {
-                            HorizontalDivider(color = BorderDivider, thickness = 1.dp)
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outline, thickness = 1.dp)
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -152,7 +142,7 @@ fun LegalDocumentScreen(
                                 Text(
                                     text = currentSectionTitle,
                                     fontSize = 14.sp,
-                                    color = TextDark,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     fontWeight = FontWeight.Medium
                                 )
                                 Icon(
@@ -161,10 +151,10 @@ fun LegalDocumentScreen(
                                     else
                                         Icons.Default.KeyboardArrowDown,
                                     contentDescription = stringResource(R.string.legal_select_section),
-                                    tint = TextDark
+                                    tint = MaterialTheme.colorScheme.onSurface
                                 )
                             }
-                            HorizontalDivider(color = BorderDivider, thickness = 1.dp)
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outline, thickness = 1.dp)
                         }
                     }
                 }
@@ -180,27 +170,27 @@ fun LegalDocumentScreen(
                             text = document.title,
                             fontSize = 22.sp,
                             fontWeight = FontWeight.Bold,
-                            color = DarkNavyHeader
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
                             text = stringResource(R.string.legal_last_updated, document.lastUpdated),
                             fontSize = 13.sp,
                             fontStyle = FontStyle.Italic,
-                            color = TextGray
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
                             text = document.subtitle,
                             fontSize = 14.sp,
-                            color = TextDark
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.height(20.dp))
 
                         // Caja de Índice
                         Surface(
                             modifier = Modifier.fillMaxWidth(),
-                            color = IndexCardBackground,
+                            color = MaterialTheme.colorScheme.surfaceVariant,
                             shape = RoundedCornerShape(12.dp)
                         ) {
                             Column(
@@ -218,12 +208,12 @@ fun LegalDocumentScreen(
                                             text = "• ",
                                             fontSize = 14.sp,
                                             fontWeight = FontWeight.Bold,
-                                            color = DarkNavyHeader
+                                            color = MaterialTheme.colorScheme.onSurface
                                         )
                                         Text(
                                             text = section.title,
                                             fontSize = 14.sp,
-                                            color = LightBlueActive,
+                                            color = MaterialTheme.colorScheme.primary,
                                             fontWeight = FontWeight.Normal
                                         )
                                     }
@@ -245,32 +235,31 @@ fun LegalDocumentScreen(
                             text = section.title,
                             fontSize = 17.sp,
                             fontWeight = FontWeight.Bold,
-                            color = DarkNavyHeader
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = section.content,
                             fontSize = 14.sp,
                             lineHeight = 20.sp,
-                            color = TextDark
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                     }
                 }
 
-                // 4. CIERRE VISUAL: Tarjeta de compromiso/transparencia, Botón "Volver arriba" y Footer
+                // 4. CIERRE VISUAL
                 item {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(top = 24.dp)
                     ) {
-                        // Tarjeta informativa neutra
                         Surface(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 20.dp),
-                            color = IndexCardBackground,
+                            color = MaterialTheme.colorScheme.surfaceVariant,
                             shape = RoundedCornerShape(12.dp)
                         ) {
                             Column(
@@ -281,13 +270,13 @@ fun LegalDocumentScreen(
                                     text = stringResource(R.string.legal_transparency_title),
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = DarkNavyHeader
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Spacer(modifier = Modifier.height(6.dp))
                                 Text(
                                     text = stringResource(R.string.legal_transparency_body),
                                     fontSize = 13.sp,
-                                    color = TextGray,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     textAlign = TextAlign.Center
                                 )
                             }
@@ -295,54 +284,52 @@ fun LegalDocumentScreen(
 
                         Spacer(modifier = Modifier.height(24.dp))
 
-                        // Botón para volver al inicio del documento
                         OutlinedButton(
                             onClick = scrollToTop,
                             modifier = Modifier.align(Alignment.CenterHorizontally),
                             shape = RoundedCornerShape(20.dp),
                             border = ButtonDefaults.outlinedButtonBorder.copy(
-                                brush = androidx.compose.ui.graphics.SolidColor(BorderDivider)
+                                brush = androidx.compose.ui.graphics.SolidColor(MaterialTheme.colorScheme.outline)
                             )
                         ) {
                             Icon(
                                 imageVector = Icons.Default.KeyboardControlKey,
                                 contentDescription = null,
-                                tint = LightBlueActive,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(18.dp)
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = stringResource(R.string.legal_back_to_top),
                                 fontSize = 13.sp,
-                                color = LightBlueActive,
+                                color = MaterialTheme.colorScheme.primary,
                                 fontWeight = FontWeight.Medium
                             )
                         }
 
                         Spacer(modifier = Modifier.height(32.dp))
 
-                        // Bloque de Footer estilizado
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(FooterBgColor)
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
                                 .padding(vertical = 24.dp, horizontal = 20.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                HorizontalDivider(color = BorderDivider)
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outline)
                                 Spacer(modifier = Modifier.height(16.dp))
                                 Text(
                                     text = stringResource(R.string.legal_copyright),
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.SemiBold,
-                                    color = DarkNavyHeader
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
                                     text = stringResource(R.string.legal_rights_reserved),
                                     fontSize = 12.sp,
-                                    color = TextGray
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
@@ -350,7 +337,7 @@ fun LegalDocumentScreen(
                 }
             }
 
-            // Capa gris de oscurecimiento (dim overlay)
+            // Capa gris de oscurecimiento
             AnimatedVisibility(
                 visible = uiState.isDropdownExpanded,
                 enter = fadeIn(),
@@ -377,7 +364,7 @@ fun LegalDocumentScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .shadow(6.dp),
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.surface
                 ) {
                     Column(
                         modifier = Modifier
@@ -390,7 +377,7 @@ fun LegalDocumentScreen(
                                 text = section.title,
                                 fontSize = 14.sp,
                                 fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal,
-                                color = if (isSelected) LightBlueActive else UnselectedMenuText,
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable { scrollToSection(index) }

@@ -15,7 +15,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -24,8 +24,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
-
-import androidx.compose.ui.res.pluralStringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,7 +37,7 @@ fun ReportsScreen(
     val attendedReports by viewModel.attendedReports.collectAsState()
     val pendingCount by viewModel.pendingCount.collectAsState()
 
-    var selectedTab by remember { mutableIntStateOf(0) } // 0: Pendientes, 1: Atendidos
+    var selectedTab by remember { mutableIntStateOf(0) }
 
     val subtitleText = when (selectedTab) {
         0 -> {
@@ -54,7 +52,7 @@ fun ReportsScreen(
 
     Scaffold(
         topBar = {
-            Column(modifier = Modifier.background(Color.White)) {
+            Column(modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
                 TopAppBar(
                     title = {
                         Column {
@@ -62,12 +60,12 @@ fun ReportsScreen(
                                 text = stringResource(R.string.reports_title),
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF1F2937)
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
                                 text = subtitleText,
                                 fontSize = 12.sp,
-                                color = Color(0xFF6B7280)
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     },
@@ -76,17 +74,17 @@ fun ReportsScreen(
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = stringResource(R.string.common_back),
-                                tint = Color(0xFF1F2937)
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
                 )
 
                 SecondaryTabRow(
                     selectedTabIndex = selectedTab,
-                    containerColor = Color.White,
-                    contentColor = Color(0xFF0B2C4D)
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    contentColor = MaterialTheme.colorScheme.primary
                 ) {
                     Tab(
                         selected = selectedTab == 0,
@@ -95,7 +93,7 @@ fun ReportsScreen(
                             Text(
                                 text = stringResource(R.string.tab_pending),
                                 fontWeight = if (selectedTab == 0) FontWeight.Bold else FontWeight.Normal,
-                                color = if (selectedTab == 0) Color(0xFF0B2C4D) else Color(0xFF6B7280)
+                                color = if (selectedTab == 0) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     )
@@ -106,16 +104,16 @@ fun ReportsScreen(
                             Text(
                                 text = stringResource(R.string.tab_attended),
                                 fontWeight = if (selectedTab == 1) FontWeight.Bold else FontWeight.Normal,
-                                color = if (selectedTab == 1) Color(0xFF0B2C4D) else Color(0xFF6B7280)
+                                color = if (selectedTab == 1) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     )
                 }
-                HorizontalDivider(color = Color(0xFFE5E7EB), thickness = 1.dp)
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline, thickness = 1.dp)
             }
         },
         bottomBar = { NearHomeBottomBar(selectedTab = 3, onTabSelected = onBottomTabSelected) },
-        containerColor = Color(0xFFF9FAFB)
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Box(
             modifier = Modifier
@@ -151,7 +149,7 @@ fun ReportsScreen(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(stringResource(R.string.reports_empty_attended), color = Color(0xFF6B7280))
+                            Text(stringResource(R.string.reports_empty_attended), color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     } else {
                         LazyColumn(
@@ -191,13 +189,13 @@ private fun EmptyPendingReports(
         Box(
             modifier = Modifier
                 .size(90.dp)
-                .background(Color(0xFFE5E7EB).copy(alpha = 0.5f), CircleShape),
+                .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = Icons.Outlined.Security,
                 contentDescription = null,
-                tint = Color(0xFF0B2C4D),
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(44.dp)
             )
         }
@@ -208,7 +206,7 @@ private fun EmptyPendingReports(
             text = stringResource(R.string.empty_pending_title),
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF1F2937),
+            color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center
         )
 
@@ -217,7 +215,7 @@ private fun EmptyPendingReports(
         Text(
             text = stringResource(R.string.empty_pending_subtitle),
             fontSize = 14.sp,
-            color = Color(0xFF6B7280),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(horizontal = 16.dp)
         )
@@ -227,8 +225,8 @@ private fun EmptyPendingReports(
         OutlinedButton(
             onClick = onConsultAttendedClick,
             shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF0B2C4D)),
-            border = BorderStroke(1.dp, Color(0xFF0B2C4D))
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
         ) {
             Icon(
                 imageVector = Icons.Outlined.History,

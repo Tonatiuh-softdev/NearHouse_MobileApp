@@ -17,7 +17,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -26,6 +25,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.equipo4.nearhome.ui.admin.users_crud.UserRoleTag
 import com.equipo4.nearhome.ui.admin.users_crud.UserStatusBadge
+import com.equipo4.nearhome.ui.theme.NoticeTone
+import com.equipo4.nearhome.ui.theme.noticeColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -69,12 +70,12 @@ fun UserDetailScreen(
                             text = "Detalle de usuario",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF1F2937)
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = subtitle,
                             fontSize = 12.sp,
-                            color = if (showGlobalError) Color(0xFFB91C1C) else Color(0xFF6B7280)
+                            color = if (showGlobalError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 },
@@ -83,17 +84,17 @@ fun UserDetailScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Regresar",
-                            tint = Color(0xFF1F2937)
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
         },
         bottomBar = {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                color = Color.White,
+                color = MaterialTheme.colorScheme.surface,
                 shadowElevation = 8.dp
             ) {
                 Column(
@@ -113,13 +114,15 @@ fun UserDetailScreen(
                             .fillMaxWidth()
                             .height(50.dp),
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0B2C4D))
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        )
                     ) {
                         Text(
                             text = if (showGlobalError) "Reintentar guardar" else "Guardar cambios",
                             fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
+                            fontWeight = FontWeight.Bold
                         )
                     }
 
@@ -133,8 +136,8 @@ fun UserDetailScreen(
                                 .weight(1f)
                                 .height(46.dp),
                             shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF0B2C4D)),
-                            border = BorderStroke(1.dp, Color(0xFFD1D5DB))
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
                         ) {
                             Text(
                                 text = "Bloquear / Suspender",
@@ -150,8 +153,8 @@ fun UserDetailScreen(
                                 .weight(1f)
                                 .height(46.dp),
                             shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFDC2626)),
-                            border = BorderStroke(1.dp, Color(0xFFDC2626))
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.error)
                         ) {
                             Text(
                                 text = "Eliminar cuenta",
@@ -164,7 +167,7 @@ fun UserDetailScreen(
                 }
             }
         },
-        containerColor = Color(0xFFF9FAFB)
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         if (user == null) {
             Box(
@@ -173,7 +176,7 @@ fun UserDetailScreen(
                     .padding(innerPadding),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(color = Color(0xFF0B2C4D))
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
         } else {
             val currentUser = user!!
@@ -187,10 +190,11 @@ fun UserDetailScreen(
             ) {
                 // Aviso rojo de error global
                 if (showGlobalError) {
+                    val dangerColors = noticeColors(NoticeTone.DANGER)
                     Surface(
-                        color = Color(0xFFFEE2E2),
+                        color = dangerColors.container,
                         shape = RoundedCornerShape(12.dp),
-                        border = BorderStroke(1.dp, Color(0xFFEF4444))
+                        border = BorderStroke(1.dp, dangerColors.content.copy(alpha = 0.5f))
                     ) {
                         Row(
                             modifier = Modifier
@@ -202,13 +206,13 @@ fun UserDetailScreen(
                             Box(
                                 modifier = Modifier
                                     .size(32.dp)
-                                    .background(Color(0xFFDC2626), CircleShape),
+                                    .background(dangerColors.content, CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
                                     imageVector = Icons.Outlined.Error,
                                     contentDescription = null,
-                                    tint = Color.White,
+                                    tint = dangerColors.container,
                                     modifier = Modifier.size(18.dp)
                                 )
                             }
@@ -217,24 +221,25 @@ fun UserDetailScreen(
                                     text = "No se guardaron los cambios",
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF991B1B)
+                                    color = dangerColors.content
                                 )
                                 Text(
                                     text = "Revisa los campos marcados e inténtalo de nuevo.",
                                     fontSize = 12.sp,
-                                    color = Color(0xFF7F1D1D)
+                                    color = dangerColors.content.copy(alpha = 0.85f)
                                 )
                             }
                         }
                     }
                 }
 
-                // Aviso verde de éxito (Cambios guardados con palomita)
+                // Aviso verde de éxito
                 if (isSavedSuccessfully && !showGlobalError) {
+                    val successColors = noticeColors(NoticeTone.SUCCESS)
                     Surface(
-                        color = Color(0xFFDCFCE7),
+                        color = successColors.container,
                         shape = RoundedCornerShape(12.dp),
-                        border = BorderStroke(1.dp, Color(0xFF16A34A))
+                        border = BorderStroke(1.dp, successColors.content.copy(alpha = 0.5f))
                     ) {
                         Row(
                             modifier = Modifier
@@ -246,13 +251,13 @@ fun UserDetailScreen(
                             Box(
                                 modifier = Modifier
                                     .size(32.dp)
-                                    .background(Color(0xFF16A34A), CircleShape),
+                                    .background(successColors.content, CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Check,
                                     contentDescription = null,
-                                    tint = Color.White,
+                                    tint = successColors.container,
                                     modifier = Modifier.size(18.dp)
                                 )
                             }
@@ -261,12 +266,12 @@ fun UserDetailScreen(
                                     text = "Cambios guardados",
                                     fontSize = 14.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF166534)
+                                    color = successColors.content
                                 )
                                 Text(
                                     text = "La información de ${currentUser.name} se actualizó correctamente.",
                                     fontSize = 12.sp,
-                                    color = Color(0xFF14532D)
+                                    color = successColors.content.copy(alpha = 0.85f)
                                 )
                             }
                         }
@@ -277,7 +282,7 @@ fun UserDetailScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     elevation = CardDefaults.cardElevation(0.dp)
                 ) {
                     Row(
@@ -299,12 +304,12 @@ fun UserDetailScreen(
                             Box(
                                 modifier = Modifier
                                     .size(60.dp)
-                                    .background(Color(0xFF0B2C4D), CircleShape),
+                                    .background(MaterialTheme.colorScheme.primary, CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
                                     text = currentUser.initials,
-                                    color = Color.White,
+                                    color = MaterialTheme.colorScheme.onPrimary,
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -318,13 +323,13 @@ fun UserDetailScreen(
                                 text = currentUser.name,
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF1F2937)
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Spacer(Modifier.height(2.dp))
                             Text(
                                 text = currentUser.email,
                                 fontSize = 13.sp,
-                                color = Color(0xFF6B7280)
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Spacer(Modifier.height(6.dp))
                             UserStatusBadge(currentUser.status, showBackground = false)
@@ -336,7 +341,7 @@ fun UserDetailScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     elevation = CardDefaults.cardElevation(0.dp)
                 ) {
                     Row(
@@ -347,25 +352,25 @@ fun UserDetailScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column {
-                            Text("ROL", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color(0xFF9CA3AF))
+                            Text("ROL", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Spacer(Modifier.height(4.dp))
                             UserRoleTag(currentUser.role)
                         }
                         Column {
-                            Text("ESTATUS", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color(0xFF9CA3AF))
+                            Text("ESTATUS", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Spacer(Modifier.height(4.dp))
                             UserStatusBadge(currentUser.status, showBackground = true)
                         }
                         Column {
-                            Text("REGISTRO", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color(0xFF9CA3AF))
+                            Text("REGISTRO", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Spacer(Modifier.height(4.dp))
-                            Text(currentUser.registrationDate, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF1F2937))
+                            Text(currentUser.registrationDate, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
                         }
                     }
                 }
 
                 // Formulario editable
-                Text("Información personal", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1F2937))
+                Text("Información personal", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
 
                 // Fila 1: Nombre(s) y Primer apellido
                 Row(
@@ -374,8 +379,8 @@ fun UserDetailScreen(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         val isNomError = nombreError != null
-                        val nomContainerColor = if (isNomError) Color(0xFFFEE2E2) else Color.White
-                        val nomLabelColor = if (isNomError) Color(0xFFB91C1C) else Color(0xFF374151)
+                        val nomContainerColor = if (isNomError) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.surface
+                        val nomLabelColor = if (isNomError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
 
                         Text("Nombre(s)", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = nomLabelColor)
                         Spacer(Modifier.height(6.dp))
@@ -385,23 +390,25 @@ fun UserDetailScreen(
                             isError = isNomError,
                             shape = RoundedCornerShape(12.dp),
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = if (isNomError) Color(0xFFEF4444) else Color(0xFF0B2C4D),
-                                unfocusedBorderColor = if (isNomError) Color(0xFFEF4444) else Color(0xFFD1D5DB),
+                                focusedBorderColor = if (isNomError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = if (isNomError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline,
                                 focusedContainerColor = nomContainerColor,
-                                unfocusedContainerColor = nomContainerColor
+                                unfocusedContainerColor = nomContainerColor,
+                                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                             ),
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth()
                         )
                         if (nombreError != null) {
-                            Text(nombreError!!, fontSize = 12.sp, color = Color(0xFFB91C1C))
+                            Text(nombreError!!, fontSize = 12.sp, color = MaterialTheme.colorScheme.error)
                         }
                     }
 
                     Column(modifier = Modifier.weight(1f)) {
                         val isApError = apellidoError != null
-                        val apContainerColor = if (isApError) Color(0xFFFEE2E2) else Color.White
-                        val apLabelColor = if (isApError) Color(0xFFB91C1C) else Color(0xFF374151)
+                        val apContainerColor = if (isApError) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.surface
+                        val apLabelColor = if (isApError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
 
                         Text("Primer apellido", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = apLabelColor)
                         Spacer(Modifier.height(6.dp))
@@ -411,33 +418,37 @@ fun UserDetailScreen(
                             isError = isApError,
                             shape = RoundedCornerShape(12.dp),
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = if (isApError) Color(0xFFEF4444) else Color(0xFF0B2C4D),
-                                unfocusedBorderColor = if (isApError) Color(0xFFEF4444) else Color(0xFFD1D5DB),
+                                focusedBorderColor = if (isApError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = if (isApError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline,
                                 focusedContainerColor = apContainerColor,
-                                unfocusedContainerColor = apContainerColor
+                                unfocusedContainerColor = apContainerColor,
+                                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                                unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                             ),
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth()
                         )
                         if (apellidoError != null) {
-                            Text(apellidoError!!, fontSize = 12.sp, color = Color(0xFFB91C1C))
+                            Text(apellidoError!!, fontSize = 12.sp, color = MaterialTheme.colorScheme.error)
                         }
                     }
                 }
 
                 // Segundo apellido (opcional)
                 Column(modifier = Modifier.fillMaxWidth()) {
-                    Text("Segundo apellido (opcional)", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color(0xFF374151))
+                    Text("Segundo apellido (opcional)", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
                     Spacer(Modifier.height(6.dp))
                     OutlinedTextField(
                         value = segundoApellido,
                         onValueChange = { viewModel.segundoApellido.value = it },
                         shape = RoundedCornerShape(12.dp),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFF0B2C4D),
-                            unfocusedBorderColor = Color(0xFFD1D5DB),
-                            focusedContainerColor = Color.White,
-                            unfocusedContainerColor = Color.White
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                            focusedContainerColor = MaterialTheme.colorScheme.surface,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                         ),
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
@@ -447,8 +458,8 @@ fun UserDetailScreen(
                 // Correo electrónico
                 Column(modifier = Modifier.fillMaxWidth()) {
                     val isEmailError = correoError != null
-                    val emailContainerColor = if (isEmailError) Color(0xFFFEE2E2) else Color.White
-                    val emailLabelColor = if (isEmailError) Color(0xFFB91C1C) else Color(0xFF374151)
+                    val emailContainerColor = if (isEmailError) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.surface
+                    val emailLabelColor = if (isEmailError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
 
                     Text("Correo electrónico", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = emailLabelColor)
                     Spacer(Modifier.height(6.dp))
@@ -458,24 +469,26 @@ fun UserDetailScreen(
                         isError = isEmailError,
                         shape = RoundedCornerShape(12.dp),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = if (isEmailError) Color(0xFFEF4444) else Color(0xFF0B2C4D),
-                            unfocusedBorderColor = if (isEmailError) Color(0xFFEF4444) else Color(0xFFD1D5DB),
+                            focusedBorderColor = if (isEmailError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = if (isEmailError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline,
                             focusedContainerColor = emailContainerColor,
-                            unfocusedContainerColor = emailContainerColor
+                            unfocusedContainerColor = emailContainerColor,
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                         ),
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
                     if (correoError != null) {
-                        Text(correoError!!, fontSize = 12.sp, color = Color(0xFFB91C1C))
+                        Text(correoError!!, fontSize = 12.sp, color = MaterialTheme.colorScheme.error)
                     }
                 }
 
                 // Teléfono
                 Column(modifier = Modifier.fillMaxWidth()) {
                     val isPhoneError = telefonoError != null
-                    val phoneContainerColor = if (isPhoneError) Color(0xFFFEE2E2) else Color.White
-                    val phoneLabelColor = if (isPhoneError) Color(0xFFB91C1C) else Color(0xFF374151)
+                    val phoneContainerColor = if (isPhoneError) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.surface
+                    val phoneLabelColor = if (isPhoneError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
 
                     Text("Teléfono", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = phoneLabelColor)
                     Spacer(Modifier.height(6.dp))
@@ -485,16 +498,18 @@ fun UserDetailScreen(
                         isError = isPhoneError,
                         shape = RoundedCornerShape(12.dp),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = if (isPhoneError) Color(0xFFEF4444) else Color(0xFF0B2C4D),
-                            unfocusedBorderColor = if (isPhoneError) Color(0xFFEF4444) else Color(0xFFD1D5DB),
+                            focusedBorderColor = if (isPhoneError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = if (isPhoneError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline,
                             focusedContainerColor = phoneContainerColor,
-                            unfocusedContainerColor = phoneContainerColor
+                            unfocusedContainerColor = phoneContainerColor,
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                         ),
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
                     if (telefonoError != null) {
-                        Text(telefonoError!!, fontSize = 12.sp, color = Color(0xFFB91C1C))
+                        Text(telefonoError!!, fontSize = 12.sp, color = MaterialTheme.colorScheme.error)
                     }
                 }
 

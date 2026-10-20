@@ -30,7 +30,6 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         ProfileUiState(
             userName = session.getUserName().orEmpty(),
             role = UserRole.fromDb(session.getUserRole()),
-            // Idioma activo (soporta cambios desde settings del sistema o perfil)
             language = run {
                 val tag = AppCompatDelegate.getApplicationLocales().get(0)?.language
                 when (tag) {
@@ -38,20 +37,24 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                     "es" -> "Español"
                     else -> settings.getLanguage().takeIf { it in LanguageOptions } ?: "Español"
                 }
-            }
+            },
+            darkModeEnabled = settings.getDarkMode() == true
         )
     )
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
 
-    // Evento de una sola vez: la sesión expiró (401)
     private val _sessionExpired = Channel<Unit>(Channel.BUFFERED)
     val sessionExpired = _sessionExpired.receiveAsFlow()
 
     init {
         verifySession()
+        viewModelScope.launch {
+            SettingsManager.darkModeState.collect { dark ->
+                _uiState.update { it.copy(darkModeEnabled = dark == true) }
+            }
+        }
     }
 
-    /** Petición con token. El interceptor ya borró la sesión si fue 401; aquí solo avisamos a la pantalla. */
     private fun verifySession() {
         viewModelScope.launch {
             try {
@@ -74,11 +77,13 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         _uiState.update { it.copy(language = language) }
     }
 
-    /** Solo para pruebas: cambia el rol y lo guarda en la sesión para que persista. */
     fun onRoleSelected(role: UserRole) {
         session.saveUser(_uiState.value.userName, role.dbValue)
         _uiState.update { it.copy(role = role) }
     }
 
-    fun onDarkModeSelected(enabled: Boolean) = _uiState.update { it.copy(darkModeEnabled = enabled) }
+    fun onDarkModeSelected(enabled: Boolean) {
+        settings.saveDarkMode(enabled)
+        _uiState.update { it.copy(darkModeEnabled = enabled) }
+    }
 }

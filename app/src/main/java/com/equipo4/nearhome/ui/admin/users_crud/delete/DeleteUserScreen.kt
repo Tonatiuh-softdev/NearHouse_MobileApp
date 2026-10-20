@@ -21,16 +21,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.equipo4.nearhome.ui.admin.users_crud.UserStatusBadge
-import kotlinx.coroutines.launch
-
-import androidx.compose.ui.res.stringResource
 import com.equipo4.nearhome.R
+import com.equipo4.nearhome.ui.admin.users_crud.UserStatusBadge
+import com.equipo4.nearhome.ui.theme.NoticeTone
+import com.equipo4.nearhome.ui.theme.noticeColors
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,6 +45,8 @@ fun DeleteUserScreen(
     )
     val user by viewModel.user.collectAsState()
     val scope = rememberCoroutineScope()
+    val dangerColors = noticeColors(NoticeTone.DANGER)
+    val warningColors = noticeColors(NoticeTone.WARNING)
 
     Scaffold(
         topBar = {
@@ -54,12 +57,12 @@ fun DeleteUserScreen(
                             text = stringResource(R.string.delete_user_title),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF1F2937)
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = stringResource(R.string.delete_user_irreversible),
                             fontSize = 12.sp,
-                            color = Color(0xFFDC2626)
+                            color = MaterialTheme.colorScheme.error
                         )
                     }
                 },
@@ -68,17 +71,17 @@ fun DeleteUserScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.common_back),
-                            tint = Color(0xFF1F2937)
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
         },
         bottomBar = {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                color = Color.White,
+                color = MaterialTheme.colorScheme.surface,
                 shadowElevation = 8.dp
             ) {
                 Row(
@@ -94,8 +97,8 @@ fun DeleteUserScreen(
                             .weight(1f)
                             .height(50.dp),
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF0B2C4D)),
-                        border = BorderStroke(1.dp, Color(0xFFD1D5DB))
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
                     ) {
                         Text(
                             text = stringResource(R.string.common_cancel),
@@ -116,20 +119,22 @@ fun DeleteUserScreen(
                             .weight(1f)
                             .height(50.dp),
                         shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFDC2626))
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.error,
+                            contentColor = MaterialTheme.colorScheme.onError
+                        )
                     ) {
                         Text(
                             text = stringResource(R.string.delete_user_confirm_short),
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color.White,
                             textAlign = TextAlign.Center
                         )
                     }
                 }
             }
         },
-        containerColor = Color(0xFFF9FAFB)
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         if (user == null) {
             Box(
@@ -138,7 +143,7 @@ fun DeleteUserScreen(
                     .padding(innerPadding),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(color = Color(0xFF0B2C4D))
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
         } else {
             val currentUser = user!!
@@ -158,13 +163,13 @@ fun DeleteUserScreen(
                     Box(
                         modifier = Modifier
                             .size(48.dp)
-                            .background(Color(0xFFFEE2E2), CircleShape),
+                            .background(dangerColors.container, CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.DeleteForever,
                             contentDescription = null,
-                            tint = Color(0xFFDC2626),
+                            tint = dangerColors.content,
                             modifier = Modifier.size(26.dp)
                         )
                     }
@@ -173,12 +178,12 @@ fun DeleteUserScreen(
                             text = stringResource(R.string.delete_user_confirm_final),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF1F2937)
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = stringResource(R.string.delete_user_cannot_undo),
                             fontSize = 13.sp,
-                            color = Color(0xFF6B7280)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -187,7 +192,7 @@ fun DeleteUserScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     elevation = CardDefaults.cardElevation(0.dp)
                 ) {
                     Row(
@@ -209,12 +214,12 @@ fun DeleteUserScreen(
                             Box(
                                 modifier = Modifier
                                     .size(50.dp)
-                                    .background(Color(0xFF0B2C4D), CircleShape),
+                                    .background(MaterialTheme.colorScheme.primary, CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
                                     text = currentUser.initials,
-                                    color = Color.White,
+                                    color = MaterialTheme.colorScheme.onPrimary,
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -226,12 +231,12 @@ fun DeleteUserScreen(
                                 text = currentUser.name,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF1F2937)
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
                                 text = currentUser.phone.ifBlank { currentUser.email },
                                 fontSize = 13.sp,
-                                color = Color(0xFF6B7280)
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Spacer(Modifier.height(4.dp))
                             UserStatusBadge(currentUser.status)
@@ -241,9 +246,9 @@ fun DeleteUserScreen(
 
                 // Tarjeta de Atención: tiene publicaciones asociadas
                 Surface(
-                    color = Color(0xFFFEE2E2).copy(alpha = 0.5f),
+                    color = dangerColors.container,
                     shape = RoundedCornerShape(16.dp),
-                    border = BorderStroke(1.dp, Color(0xFFEF4444))
+                    border = BorderStroke(1.dp, dangerColors.content.copy(alpha = 0.5f))
                 ) {
                     Column(
                         modifier = Modifier
@@ -258,14 +263,14 @@ fun DeleteUserScreen(
                             Icon(
                                 imageVector = Icons.Outlined.Warning,
                                 contentDescription = null,
-                                tint = Color(0xFFDC2626),
+                                tint = dangerColors.content,
                                 modifier = Modifier.size(20.dp)
                             )
                             Text(
                                 text = stringResource(R.string.delete_user_listings_title),
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF991B1B)
+                                color = dangerColors.content
                             )
                         }
 
@@ -273,18 +278,18 @@ fun DeleteUserScreen(
                         Text(
                             text = stringResource(R.string.delete_user_listings_body, firstName, currentUser.activeListingsCount, currentUser.draftsCount),
                             fontSize = 13.sp,
-                            color = Color(0xFF7F1D1D)
+                            color = dangerColors.content.copy(alpha = 0.9f)
                         )
 
                         Surface(
-                            color = Color(0xFFFEF3C7),
+                            color = warningColors.container,
                             shape = RoundedCornerShape(10.dp)
                         ) {
                             Text(
                                 text = stringResource(R.string.delete_user_pending_definition),
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFFB45309),
+                                color = warningColors.content,
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
                             )
                         }
@@ -295,7 +300,7 @@ fun DeleteUserScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     elevation = CardDefaults.cardElevation(0.dp)
                 ) {
                     Column(
@@ -308,7 +313,7 @@ fun DeleteUserScreen(
                             text = stringResource(R.string.delete_user_will_delete),
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF1F2937)
+                            color = MaterialTheme.colorScheme.onSurface
                         )
 
                         val items = listOf(
@@ -325,13 +330,13 @@ fun DeleteUserScreen(
                                 Icon(
                                     imageVector = Icons.Default.Close,
                                     contentDescription = null,
-                                    tint = Color(0xFFDC2626),
+                                    tint = MaterialTheme.colorScheme.error,
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Text(
                                     text = itemText,
                                     fontSize = 13.sp,
-                                    color = Color(0xFF4B5563)
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                         }
@@ -341,7 +346,7 @@ fun DeleteUserScreen(
                 Text(
                     text = stringResource(R.string.delete_user_confirm_note),
                     fontSize = 12.sp,
-                    color = Color(0xFF6B7280),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                     modifier = Modifier
                         .fillMaxWidth()

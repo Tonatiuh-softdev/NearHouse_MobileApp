@@ -19,7 +19,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -30,6 +29,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.domain.model.ReportStatus
 import com.equipo4.nearhome.domain.model.ReportType
+import com.equipo4.nearhome.ui.theme.NoticeTone
+import com.equipo4.nearhome.ui.theme.noticeColors
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -64,12 +65,12 @@ fun ReportDetailScreen(
                             text = stringResource(R.string.report_detail_title),
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF1F2937)
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = subtitleStatus,
                             fontSize = 12.sp,
-                            color = Color(0xFF6B7280)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 },
@@ -78,18 +79,18 @@ fun ReportDetailScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.common_back),
-                            tint = Color(0xFF1F2937)
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
         },
         bottomBar = {
             if (report != null && report!!.status == ReportStatus.PENDIENTE) {
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.surface,
                     shadowElevation = 8.dp
                 ) {
                     Column(
@@ -111,13 +112,15 @@ fun ReportDetailScreen(
                                 .fillMaxWidth()
                                 .height(50.dp),
                             shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0B2C4D))
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary,
+                                contentColor = MaterialTheme.colorScheme.onPrimary
+                            )
                         ) {
                             Text(
                                 text = stringResource(R.string.apply_measure_and_attend),
                                 fontSize = 15.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
+                                fontWeight = FontWeight.Bold
                             )
                         }
 
@@ -133,7 +136,7 @@ fun ReportDetailScreen(
                                 .fillMaxWidth()
                                 .height(50.dp),
                             shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF4B5563))
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurfaceVariant)
                         ) {
                             Text(
                                 text = stringResource(R.string.close_without_measure),
@@ -145,7 +148,7 @@ fun ReportDetailScreen(
                 }
             }
         },
-        containerColor = Color(0xFFF9FAFB)
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         if (report == null) {
             Box(
@@ -154,7 +157,7 @@ fun ReportDetailScreen(
                     .padding(innerPadding),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(color = Color(0xFF0B2C4D))
+                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
             }
         } else {
             val currentReport = report!!
@@ -166,11 +169,10 @@ fun ReportDetailScreen(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Tarjeta de información principal (Tipo, fecha, motivo, descripción)
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     elevation = CardDefaults.cardElevation(0.dp)
                 ) {
                     Column(
@@ -187,7 +189,7 @@ fun ReportDetailScreen(
                             Text(
                                 text = currentReport.date,
                                 fontSize = 12.sp,
-                                color = Color(0xFF6B7280)
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
 
@@ -197,14 +199,14 @@ fun ReportDetailScreen(
                             text = stringResource(R.string.motive_title),
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
-                            color = Color(0xFF6B7280)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(Modifier.height(2.dp))
                         Text(
                             text = currentReport.motive,
                             fontSize = 17.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF1F2937)
+                            color = MaterialTheme.colorScheme.onSurface
                         )
 
                         Spacer(Modifier.height(10.dp))
@@ -212,43 +214,42 @@ fun ReportDetailScreen(
                         Text(
                             text = currentReport.description,
                             fontSize = 14.sp,
-                            color = Color(0xFF4B5563)
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
 
-                // Si ya está atendido, mostrar resultado
                 if (currentReport.status == ReportStatus.ATENDIDO && !currentReport.result.isNullOrEmpty()) {
+                    val statusColors = noticeColors(NoticeTone.SUCCESS)
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFFDCFCE7).copy(alpha = 0.5f))
+                        colors = CardDefaults.cardColors(containerColor = statusColors.container)
                     ) {
                         Column(modifier = Modifier.padding(16.dp)) {
                             Text(
                                 text = stringResource(R.string.report_detail_result_title),
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF15803D)
+                                color = statusColors.content
                             )
                             Spacer(Modifier.height(4.dp))
                             Text(
                                 text = currentReport.result,
                                 fontSize = 14.sp,
                                 fontWeight = FontWeight.SemiBold,
-                                color = Color(0xFF15803D)
+                                color = statusColors.content
                             )
                             Spacer(Modifier.height(2.dp))
                             Text(
                                 text = currentReport.attendedDate ?: "",
                                 fontSize = 12.sp,
-                                color = Color(0xFF6B7280)
+                                color = statusColors.content.copy(alpha = 0.85f)
                             )
                         }
                     }
                 }
 
-                // Evidencias (Fila deslizable / LazyRow)
                 if (currentReport.evidences.isNotEmpty()) {
                     Column(modifier = Modifier.fillMaxWidth()) {
                         Row(
@@ -260,13 +261,13 @@ fun ReportDetailScreen(
                                 text = stringResource(R.string.evidences_title),
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF1F2937)
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             val filesCountText = if (currentReport.evidences.size == 1) stringResource(R.string.report_detail_files_count_one) else stringResource(R.string.report_detail_files_count_other, currentReport.evidences.size)
                             Text(
                                 text = filesCountText,
                                 fontSize = 13.sp,
-                                color = Color(0xFF6B7280)
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                         Spacer(Modifier.height(10.dp))
@@ -275,8 +276,7 @@ fun ReportDetailScreen(
                         ) {
                             items(currentReport.evidences) { imageRes ->
                                 Card(
-                                    modifier = Modifier
-                                        .size(110.dp),
+                                    modifier = Modifier.size(110.dp),
                                     shape = RoundedCornerShape(12.dp),
                                     elevation = CardDefaults.cardElevation(1.dp)
                                 ) {
@@ -292,7 +292,6 @@ fun ReportDetailScreen(
                     }
                 }
 
-                // Elemento reportado (Publicación o Usuario)
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Text(
                         text = if (currentReport.type == ReportType.PUBLICACION)
@@ -301,7 +300,7 @@ fun ReportDetailScreen(
                             stringResource(R.string.reported_user),
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1F2937)
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Spacer(Modifier.height(10.dp))
 
@@ -312,7 +311,7 @@ fun ReportDetailScreen(
                                     .fillMaxWidth()
                                     .clickable { onPropertyClick(targetProperty!!.id) },
                                 shape = RoundedCornerShape(16.dp),
-                                colors = CardDefaults.cardColors(containerColor = Color.White),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                                 elevation = CardDefaults.cardElevation(1.dp)
                             ) {
                                 Row(
@@ -337,39 +336,38 @@ fun ReportDetailScreen(
                                             text = stringResource(R.string.report_rent_price_format, targetProperty!!.price.toInt()),
                                             fontSize = 15.sp,
                                             fontWeight = FontWeight.Bold,
-                                            color = Color(0xFF1F2937)
+                                            color = MaterialTheme.colorScheme.onSurface
                                         )
                                         Spacer(Modifier.height(2.dp))
                                         Text(
                                             text = targetProperty!!.title.lowercase().replaceFirstChar { it.uppercase() },
                                             fontSize = 12.sp,
-                                            color = Color(0xFF6B7280),
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                                             maxLines = 1
                                         )
                                         Spacer(Modifier.height(2.dp))
                                         Text(
                                             text = targetProperty!!.location,
                                             fontSize = 11.sp,
-                                            color = Color(0xFF6B7280),
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                                             maxLines = 1
                                         )
                                     }
                                     Icon(
                                         imageVector = Icons.Default.ChevronRight,
                                         contentDescription = null,
-                                        tint = Color(0xFF9CA3AF)
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                             }
                         } else {
-                            Text(stringResource(R.string.report_publication_unavailable), fontSize = 13.sp, color = Color(0xFF6B7280))
+                            Text(stringResource(R.string.report_publication_unavailable), fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     } else {
-                        // Usuario reportado (Logan Howlett u otro)
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(16.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color.White),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                             elevation = CardDefaults.cardElevation(1.dp)
                         ) {
                             Row(
@@ -381,13 +379,13 @@ fun ReportDetailScreen(
                                 Box(
                                     modifier = Modifier
                                         .size(50.dp)
-                                        .background(Color(0xFFE5E7EB), CircleShape),
+                                        .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
                                         imageVector = Icons.Outlined.Person,
                                         contentDescription = null,
-                                        tint = Color(0xFF4B5563),
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                         modifier = Modifier.size(28.dp)
                                     )
                                 }
@@ -397,19 +395,19 @@ fun ReportDetailScreen(
                                         text = "Logan Howlett",
                                         fontSize = 16.sp,
                                         fontWeight = FontWeight.Bold,
-                                        color = Color(0xFF1F2937)
+                                        color = MaterialTheme.colorScheme.onSurface
                                     )
                                     Spacer(Modifier.height(2.dp))
                                     Text(
                                         text = stringResource(R.string.report_landlord_since),
                                         fontSize = 12.sp,
-                                        color = Color(0xFF6B7280)
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
                                 Icon(
                                     imageVector = Icons.Default.ChevronRight,
                                     contentDescription = null,
-                                    tint = Color(0xFF9CA3AF)
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         }
