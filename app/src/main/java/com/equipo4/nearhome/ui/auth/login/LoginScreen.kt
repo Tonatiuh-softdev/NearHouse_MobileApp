@@ -199,7 +199,6 @@ private fun LoginContent(
                         keyboardType = KeyboardType.Password,
                         imeAction = ImeAction.Done
                     ),
-                    // "Listo" en el teclado envía el formulario, con las mismas reglas del botón
                     keyboardActions = KeyboardActions(
                         onDone = { if (canSubmit) onLoginClick() }
                     ),
@@ -217,9 +216,9 @@ private fun LoginContent(
             Spacer(modifier = Modifier.height(10.dp))
 
             // Muestra mensaje de error devuelto por la API / Red / Google
-            if (uiState.errorMessage != null) {
+            uiState.errorMessage?.let { errorMsg ->
                 Text(
-                    text = uiState.errorMessage!!,
+                    text = errorMsg,
                     color = MaterialTheme.colorScheme.error,
                     fontSize = 13.sp,
                     textAlign = TextAlign.Center,

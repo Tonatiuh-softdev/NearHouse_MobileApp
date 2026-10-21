@@ -1,7 +1,10 @@
 package com.equipo4.nearhome.network
 
+import com.equipo4.nearhome.data.remote.dto.GoogleAuthRequest
 import com.equipo4.nearhome.data.remote.dto.GoogleAuthRequestDto
 import com.equipo4.nearhome.data.remote.dto.GoogleAuthResponseDto
+import com.equipo4.nearhome.data.remote.dto.GoogleRegisterRequest
+import com.google.gson.JsonObject
 import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.Body
@@ -61,11 +64,22 @@ interface AuthApi {
     @POST("api/v1/auth/login")
     suspend fun login(@Body request: LoginRequest): Response<LoginResponse>
 
-    // Endpoint para iniciar sesión / registrar con Google
+    // Endpoint legacy para iniciar sesión / registrar con Google
     @POST("api/v1/auth/google")
     suspend fun loginWithGoogle(
         @Body request: GoogleAuthRequestDto
     ): Response<GoogleAuthResponseDto>
+
+    // Endpoints para autenticación con Google mediante ViewModel
+    @POST("api/v1/auth/google")
+    suspend fun autenticarConGoogle(
+        @Body request: GoogleAuthRequest
+    ): Response<JsonObject>
+
+    @POST("api/v1/auth/google/completar-registro")
+    suspend fun registrarConGoogleFinal(
+        @Body request: GoogleRegisterRequest
+    ): Response<JsonObject>
 
     // 1. Solicitar código de 6 dígitos al correo (Brevo)
     @POST("api/v1/auth/solicitar-codigo-correo")
