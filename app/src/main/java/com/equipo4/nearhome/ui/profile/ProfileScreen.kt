@@ -1,6 +1,5 @@
 package com.equipo4.nearhome.ui.profile
 
-import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -26,9 +25,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -40,7 +37,7 @@ import com.equipo4.nearhome.R
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
 import kotlinx.coroutines.launch
 
-private enum class SettingSheetType { LANGUAGE, DARK_MODE, ROLE }
+private enum class SettingSheetType { LANGUAGE, DARK_MODE }
 
 @Composable
 fun ProfileScreen(
@@ -55,16 +52,13 @@ fun ProfileScreen(
     onBottomTabSelected: (Int) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         viewModel.sessionExpired.collect { onSessionExpired() }
     }
 
-    val isDebuggable = (context.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0
     ProfileContent(
         uiState = uiState,
-        onRoleSelected = if (isDebuggable) viewModel::onRoleSelected else null,
         onLanguageSelected = viewModel::onLanguageSelected,
         onDarkModeSelected = viewModel::onDarkModeSelected,
         onMyListingsClick = onMyListingsClick,
@@ -80,7 +74,6 @@ fun ProfileScreen(
 @Composable
 fun ProfileContent(
     uiState: ProfileUiState,
-    onRoleSelected: ((UserRole) -> Unit)? = null,
     onLanguageSelected: (String) -> Unit = {},
     onDarkModeSelected: (Boolean) -> Unit = {},
     onMyListingsClick: () -> Unit = {},
@@ -104,10 +97,7 @@ fun ProfileContent(
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
         ) {
-            ProfileHeader(
-                uiState = uiState,
-                onRoleClick = onRoleSelected?.let { { openSheet = SettingSheetType.ROLE } }
-            )
+            ProfileHeader(uiState = uiState)
 
             SectionHeader(stringResource(R.string.profile_section_profile))
             if (uiState.showMyListings) {
@@ -176,19 +166,6 @@ fun ProfileContent(
             onSelect = { onDarkModeSelected(it == darkOnLabel) },
             onDismiss = { openSheet = null }
         )
-        SettingSheetType.ROLE -> {
-            val roleLabels = UserRole.entries.associateWith { stringResource(it.labelRes) }
-            SettingSheet(
-                title = stringResource(R.string.profile_role_sheet_title),
-                subtitle = stringResource(R.string.profile_role_sheet_subtitle),
-                options = roleLabels.values.toList(),
-                selected = roleLabels.getValue(uiState.role),
-                onSelect = { label ->
-                    roleLabels.entries.firstOrNull { it.value == label }?.let { onRoleSelected?.invoke(it.key) }
-                },
-                onDismiss = { openSheet = null }
-            )
-        }
         null -> Unit
     }
 
@@ -204,7 +181,7 @@ fun ProfileContent(
 }
 
 @Composable
-private fun ProfileHeader(uiState: ProfileUiState, onRoleClick: (() -> Unit)? = null) {
+private fun ProfileHeader(uiState: ProfileUiState) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -233,10 +210,10 @@ private fun ProfileHeader(uiState: ProfileUiState, onRoleClick: (() -> Unit)? = 
                 color = MaterialTheme.colorScheme.onSurface
             )
             Spacer(Modifier.height(4.dp))
+            // El rol solo se muestra. No es clickable.
             Surface(
                 color = MaterialTheme.colorScheme.primaryContainer,
-                shape = RoundedCornerShape(10.dp),
-                modifier = if (onRoleClick != null) Modifier.clickable(onClick = onRoleClick) else Modifier
+                shape = RoundedCornerShape(10.dp)
             ) {
                 Text(
                     stringResource(uiState.role.labelRes),
