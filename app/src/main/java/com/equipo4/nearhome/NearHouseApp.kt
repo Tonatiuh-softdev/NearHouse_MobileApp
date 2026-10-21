@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -52,14 +53,19 @@ import com.equipo4.nearhome.ui.home.filter.SearchFiltersScreen
 import com.equipo4.nearhome.ui.legal.PoliticaPrivacidadScreen
 import com.equipo4.nearhome.ui.legal.TerminosCondicionesScreen
 import com.equipo4.nearhome.ui.profile.ProfileScreen
+import com.equipo4.nearhome.ui.profile.UserRole
 import com.equipo4.nearhome.ui.profile.seller.EditProfileScreen
 import com.equipo4.nearhome.ui.profile.seller.MyListingsScreen
 import com.equipo4.nearhome.ui.saved.SavedScreen
 import com.equipo4.nearhome.ui.publicacion.detail.DetailPublicacionScreen
 import com.equipo4.nearhome.ui.splash.SplashScreen
 import com.equipo4.nearhome.data.local.SessionManager
+import com.equipo4.nearhome.data.session.CurrentUserStore
+import com.equipo4.nearhome.di.NetworkModule
+import com.equipo4.nearhome.network.AuthApi
 import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.compose.navigation
+import kotlinx.coroutines.launch
 import com.equipo4.nearhome.ui.createlisting.CreateListingStep1Screen
 import com.equipo4.nearhome.ui.createlisting.CreateListingViewModel
 import com.equipo4.nearhome.ui.createlisting.canCreateListings
@@ -141,6 +147,11 @@ fun NearHouseApp() {
     val navController = rememberNavController()
     val context = LocalContext.current
     val sessionManager = remember { SessionManager(context) }
+    val scope = rememberCoroutineScope()
+    val authApi = remember {
+        NetworkModule.provideRetrofit(NetworkModule.provideOkHttpClient(sessionManager))
+            .create(AuthApi::class.java)
+    }
 
     NavHost(
         navController = navController,
@@ -305,16 +316,19 @@ fun NearHouseApp() {
             )
         }
 
-        // Pantalla: Perfil (Vendedor/Arrendador/Admin)
+        // Pantalla: Perfil
         composable(AppRoutes.PROFILE) {
             ProfileScreen(
                 onMyListingsClick = {
-                    val userRole = sessionManager.getUserRole()
-                    // Si es Comprador va al flujo existente/planes; Vendedor, Admin o SuperAdmin van a Mis Anuncios
-                    if (userRole.equals("Comprador", ignoreCase = true)) {
-                        navController.navigate(AppRoutes.CREATE_LISTING_GRAPH)
-                    } else {
-                        navController.navigate(AppRoutes.MY_LISTINGS)
+                    scope.launch {
+                        if (CurrentUserStore.roleOrNull() == null) {
+                            CurrentUserStore.refresh(authApi)
+                        }
+                        when (CurrentUserStore.roleOrNull()) {
+                            UserRole.COMPRADOR -> navController.navigate(AppRoutes.CREATE_LISTING_GRAPH)
+                            null -> Unit // sin datos no se decide, para no mandar a un vendedor a suscripciones
+                            else -> navController.navigate(AppRoutes.MY_LISTINGS)
+                        }
                     }
                 },
                 onAccountClick = {},
@@ -325,11 +339,13 @@ fun NearHouseApp() {
                 onPrivacyClick = { navController.navigate(AppRoutes.PRIVACY_POLICY) },
                 onLogoutClick = {
                     sessionManager.clearSession()
+                    CurrentUserStore.clear()
                     navController.navigate(AppRoutes.LOGIN) {
                         popUpTo(0) { inclusive = true }
                     }
                 },
                 onSessionExpired = {
+                    CurrentUserStore.clear()
                     navController.navigate(AppRoutes.LOGIN) {
                         popUpTo(0) { inclusive = true }
                     }
@@ -377,7 +393,7 @@ fun NearHouseApp() {
             startDestination = AppRoutes.CREATE_LISTING_STEP1
         ) {
             composable(AppRoutes.CREATE_LISTING_STEP1) { entry ->
-                val canCreate = remember { canCreateListings(sessionManager.getUserRole()) }
+                val canCreate = remember { canCreateListings(CurrentUserStore.roleOrNull()) }
                 // Comprador: se cierra el flujo y regresa a Cuenta
                 LaunchedEffect(canCreate) {
                     if (!canCreate) navController.popBackStack(AppRoutes.PROFILE, inclusive = false)
