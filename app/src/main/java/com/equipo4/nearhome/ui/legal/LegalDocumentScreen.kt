@@ -180,11 +180,7 @@ fun LegalDocumentScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            text = document.subtitle,
-                            fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
+                        FormattedLegalContent(content = document.subtitle)
                         Spacer(modifier = Modifier.height(20.dp))
 
                         // Caja de Índice
@@ -238,12 +234,7 @@ fun LegalDocumentScreen(
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = section.content,
-                            fontSize = 14.sp,
-                            lineHeight = 20.sp,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
+                        FormattedLegalContent(content = section.content)
                         Spacer(modifier = Modifier.height(12.dp))
                     }
                 }
@@ -390,3 +381,75 @@ fun LegalDocumentScreen(
         }
     }
 }
+
+@Composable
+private fun FormattedLegalContent(
+    content: String,
+    modifier: Modifier = Modifier
+) {
+    val lines = remember(content) { content.split("\n") }
+
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        lines.forEach { line ->
+            val trimmed = line.trim()
+            if (trimmed.isEmpty()) {
+                Spacer(modifier = Modifier.height(4.dp))
+            } else if (trimmed.startsWith("•") || trimmed.startsWith("-")) {
+                val bulletText = trimmed.substring(1).trim()
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 8.dp, top = 2.dp, bottom = 2.dp),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Text(
+                        text = "• ",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = bulletText,
+                        fontSize = 14.sp,
+                        lineHeight = 20.sp,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            } else if (trimmed.startsWith(".") && trimmed.length > 1 && trimmed[1].isWhitespace()) {
+                val bulletText = trimmed.substring(1).trim()
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 8.dp, top = 2.dp, bottom = 2.dp),
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Text(
+                        text = "• ",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = bulletText,
+                        fontSize = 14.sp,
+                        lineHeight = 20.sp,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            } else {
+                Text(
+                    text = trimmed,
+                    fontSize = 14.sp,
+                    lineHeight = 20.sp,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        }
+    }
+}
+

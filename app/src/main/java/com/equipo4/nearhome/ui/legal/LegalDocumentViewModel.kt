@@ -59,6 +59,31 @@ class LegalDocumentViewModel : ViewModel() {
                         id = 7,
                         title = AppStrings.get(R.string.legal_terms_s7_title),
                         content = AppStrings.get(R.string.legal_terms_s7_content)
+                    ),
+                    LegalSection(
+                        id = 8,
+                        title = AppStrings.get(R.string.legal_terms_s8_title),
+                        content = AppStrings.get(R.string.legal_terms_s8_content)
+                    ),
+                    LegalSection(
+                        id = 9,
+                        title = AppStrings.get(R.string.legal_terms_s9_title),
+                        content = AppStrings.get(R.string.legal_terms_s9_content)
+                    ),
+                    LegalSection(
+                        id = 10,
+                        title = AppStrings.get(R.string.legal_terms_s10_title),
+                        content = AppStrings.get(R.string.legal_terms_s10_content)
+                    ),
+                    LegalSection(
+                        id = 11,
+                        title = AppStrings.get(R.string.legal_terms_s11_title),
+                        content = AppStrings.get(R.string.legal_terms_s11_content)
+                    ),
+                    LegalSection(
+                        id = 12,
+                        title = AppStrings.get(R.string.legal_terms_s12_title),
+                        content = AppStrings.get(R.string.legal_terms_s12_content)
                     )
                 )
             )
@@ -115,6 +140,16 @@ class LegalDocumentViewModel : ViewModel() {
                         id = 7,
                         title = AppStrings.get(R.string.legal_privacy_s7_title),
                         content = AppStrings.get(R.string.legal_privacy_s7_content)
+                    ),
+                    LegalSection(
+                        id = 8,
+                        title = AppStrings.get(R.string.legal_privacy_s8_title),
+                        content = AppStrings.get(R.string.legal_privacy_s8_content)
+                    ),
+                    LegalSection(
+                        id = 9,
+                        title = AppStrings.get(R.string.legal_privacy_s9_title),
+                        content = AppStrings.get(R.string.legal_privacy_s9_content)
                     )
                 )
             )
