@@ -40,6 +40,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -79,15 +80,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.equipo4.nearhome.R
 import kotlinx.coroutines.delay
 
-private val NavyButtonColor = Color(0xFF0B2C4D)
-private val BlueLinkColor = Color(0xFF3897F0)
-private val TextGrayDisclaimer = Color(0xFF8E8E93)
-private val GoogleButtonBg = Color(0xFFEEEEEE)
-private val PrimaryNavy = Color(0xFF0B2C4D)
-private val GrayInputBg = Color(0xFFF5F5F5)
-private val GrayInputBorder = Color(0xFFE0E0E0)
-private val ErrorRed = Color(0xFFE53935)
-
 @Composable
 fun SignUpScreen(
     viewModel: SignUpViewModel = viewModel(),
@@ -99,7 +91,6 @@ fun SignUpScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
 
-    // Entregable 1: Despliega Toast cuando la cuenta de Google queda lista
     LaunchedEffect(uiState.googleSuccessMessage) {
         uiState.googleSuccessMessage?.let { message ->
             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
@@ -153,6 +144,7 @@ private fun SignUpFormContent(
     onNavigateToPrivacy: () -> Unit
 ) {
     val focusManager = LocalFocusManager.current
+    val cs = MaterialTheme.colorScheme
 
     Surface(
         modifier = Modifier
@@ -162,7 +154,7 @@ private fun SignUpFormContent(
                     focusManager.clearFocus()
                 })
             },
-        color = Color.White
+        color = cs.background
     ) {
         Column(
             modifier = Modifier
@@ -178,16 +170,16 @@ private fun SignUpFormContent(
                 text = stringResource(R.string.signup_title),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black
+                color = cs.onSurface
             )
 
             Spacer(modifier = Modifier.height(16.dp))
-            HorizontalDivider(color = Color(0xFFEEEEEE), thickness = 1.dp)
+            HorizontalDivider(color = cs.outlineVariant, thickness = 1.dp)
             Spacer(modifier = Modifier.height(24.dp))
 
             // Campo Correo
             Column(modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.signup_email_label) + ":", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color.Black)
+                Text(stringResource(R.string.signup_email_label) + ":", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = cs.onSurface)
                 Spacer(modifier = Modifier.height(6.dp))
                 CustomOutlinedInput(
                     value = uiState.email,
@@ -200,7 +192,7 @@ private fun SignUpFormContent(
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = uiState.displayEmailError!!,
-                        color = ErrorRed,
+                        color = cs.error,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -211,7 +203,7 @@ private fun SignUpFormContent(
 
             // Campo Contraseña
             Column(modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.signup_password_label) + ":", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color.Black)
+                Text(stringResource(R.string.signup_password_label) + ":", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = cs.onSurface)
                 Spacer(modifier = Modifier.height(6.dp))
                 CustomOutlinedInput(
                     value = uiState.password,
@@ -224,7 +216,7 @@ private fun SignUpFormContent(
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = uiState.passwordErrorMessage!!,
-                        color = ErrorRed,
+                        color = cs.error,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -235,7 +227,7 @@ private fun SignUpFormContent(
 
             // Campo Confirmar contraseña
             Column(modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.signup_confirm_password_label) + ":", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color.Black)
+                Text(stringResource(R.string.signup_confirm_password_label) + ":", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = cs.onSurface)
                 Spacer(modifier = Modifier.height(6.dp))
                 CustomOutlinedInput(
                     value = uiState.confirmPassword,
@@ -248,7 +240,7 @@ private fun SignUpFormContent(
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = stringResource(R.string.signup_password_mismatch),
-                        color = ErrorRed,
+                        color = cs.error,
                         fontSize = 11.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -266,7 +258,7 @@ private fun SignUpFormContent(
                     checked = uiState.isTermsAccepted,
                     onCheckedChange = onTermsAcceptedChange,
                     colors = CheckboxDefaults.colors(
-                        checkedColor = NavyButtonColor
+                        checkedColor = cs.primary
                     )
                 )
 
@@ -276,22 +268,22 @@ private fun SignUpFormContent(
                 val termsPrivacy = stringResource(R.string.signup_terms_privacy)
 
                 val termsAnnotatedString = buildAnnotatedString {
-                    withStyle(style = SpanStyle(color = TextGrayDisclaimer, fontSize = 12.sp)) {
+                    withStyle(style = SpanStyle(color = cs.onSurfaceVariant, fontSize = 12.sp)) {
                         append(termsPrefix)
                     }
 
                     pushStringAnnotation(tag = "TERMS", annotation = "terms")
-                    withStyle(style = SpanStyle(color = BlueLinkColor, fontSize = 12.sp, fontWeight = FontWeight.Normal)) {
+                    withStyle(style = SpanStyle(color = cs.primary, fontSize = 12.sp, fontWeight = FontWeight.Normal)) {
                         append(termsLink)
                     }
                     pop()
 
-                    withStyle(style = SpanStyle(color = TextGrayDisclaimer, fontSize = 12.sp)) {
+                    withStyle(style = SpanStyle(color = cs.onSurfaceVariant, fontSize = 12.sp)) {
                         append(termsMiddle)
                     }
 
                     pushStringAnnotation(tag = "PRIVACY", annotation = "privacy")
-                    withStyle(style = SpanStyle(color = BlueLinkColor, fontSize = 12.sp, fontWeight = FontWeight.Normal)) {
+                    withStyle(style = SpanStyle(color = cs.primary, fontSize = 12.sp, fontWeight = FontWeight.Normal)) {
                         append(termsPrivacy)
                     }
                     pop()
@@ -315,7 +307,7 @@ private fun SignUpFormContent(
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = stringResource(R.string.signup_terms_error),
-                    color = ErrorRed,
+                    color = cs.error,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.fillMaxWidth()
@@ -329,9 +321,9 @@ private fun SignUpFormContent(
                 enabled = uiState.areFieldsValid,
                 shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = NavyButtonColor,
-                    disabledContainerColor = Color(0xFF888888),
-                    contentColor = Color.White
+                    containerColor = cs.primary,
+                    disabledContainerColor = cs.primary.copy(alpha = 0.5f),
+                    contentColor = cs.onPrimary
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -340,7 +332,7 @@ private fun SignUpFormContent(
                 if (uiState.isLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(20.dp),
-                        color = Color.White,
+                        color = cs.onPrimary,
                         strokeWidth = 2.dp
                     )
                 } else {
@@ -354,9 +346,9 @@ private fun SignUpFormContent(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                HorizontalDivider(modifier = Modifier.weight(1f), color = GrayInputBorder)
-                Text(stringResource(R.string.common_or), fontSize = 14.sp, color = Color.Gray, modifier = Modifier.padding(horizontal = 12.dp))
-                HorizontalDivider(modifier = Modifier.weight(1f), color = GrayInputBorder)
+                HorizontalDivider(modifier = Modifier.weight(1f), color = cs.outlineVariant)
+                Text(stringResource(R.string.common_or), fontSize = 14.sp, color = cs.onSurfaceVariant, modifier = Modifier.padding(horizontal = 12.dp))
+                HorizontalDivider(modifier = Modifier.weight(1f), color = cs.outlineVariant)
             }
 
             Spacer(modifier = Modifier.height(18.dp))
@@ -367,8 +359,8 @@ private fun SignUpFormContent(
                 enabled = !uiState.isLoading,
                 shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = GoogleButtonBg,
-                    contentColor = Color.Black
+                    containerColor = cs.surfaceVariant,
+                    contentColor = cs.onSurface
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -381,13 +373,13 @@ private fun SignUpFormContent(
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(stringResource(R.string.signup_continue_google), fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                    Text(stringResource(R.string.signup_continue_google), fontSize = 14.sp, fontWeight = FontWeight.Medium, color = cs.onSurface)
                 }
             }
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            HorizontalDivider(color = Color(0xFFEEEEEE), thickness = 1.dp)
+            HorizontalDivider(color = cs.outlineVariant, thickness = 1.dp)
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -396,8 +388,10 @@ private fun SignUpFormContent(
 
             Text(
                 text = buildAnnotatedString {
-                    append(haveAccountText)
-                    withStyle(style = SpanStyle(color = BlueLinkColor, fontWeight = FontWeight.Bold)) {
+                    withStyle(style = SpanStyle(color = cs.onSurfaceVariant)) {
+                        append(haveAccountText)
+                    }
+                    withStyle(style = SpanStyle(color = cs.primary, fontWeight = FontWeight.Bold)) {
                         append(signinActionText)
                     }
                 },
@@ -421,6 +415,7 @@ private fun OtpVerificationContent(
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
+    val cs = MaterialTheme.colorScheme
 
     var textFieldValue by remember {
         mutableStateOf(
@@ -447,6 +442,7 @@ private fun OtpVerificationContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(cs.background)
             .pointerInput(Unit) {
                 detectTapGestures(onTap = {
                     focusManager.clearFocus()
@@ -463,7 +459,7 @@ private fun OtpVerificationContent(
             text = stringResource(R.string.signup_otp_title),
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
-            color = Color.Black,
+            color = cs.onSurface,
             textAlign = TextAlign.Center
         )
 
@@ -482,13 +478,14 @@ private fun OtpVerificationContent(
 
         Text(
             text = buildAnnotatedString {
-                append(otpSubtitlePrefix)
-                withStyle(style = SpanStyle(color = Color(0xFF888888))) {
+                withStyle(style = SpanStyle(color = cs.onSurface)) {
+                    append(otpSubtitlePrefix)
+                }
+                withStyle(style = SpanStyle(color = cs.onSurfaceVariant)) {
                     append(emailValue)
                 }
             },
             fontSize = 14.sp,
-            color = Color.Black,
             textAlign = TextAlign.Center,
             lineHeight = 20.sp
         )
@@ -499,7 +496,7 @@ private fun OtpVerificationContent(
             text = stringResource(R.string.signup_otp_enter_code),
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
-            color = Color.Black,
+            color = cs.onSurface,
             textAlign = TextAlign.Center
         )
 
@@ -551,14 +548,14 @@ private fun OtpVerificationContent(
                         modifier = Modifier
                             .size(width = 46.dp, height = 56.dp)
                             .background(
-                                color = if (uiState.isOtpError) Color(0xFFFFF0F0) else Color(0xFFEEEEEE),
+                                color = if (uiState.isOtpError) cs.errorContainer else cs.surfaceVariant,
                                 shape = RoundedCornerShape(10.dp)
                             )
                             .border(
                                 width = if (isFocused) 1.5.dp else 0.dp,
                                 color = when {
-                                    uiState.isOtpError -> ErrorRed
-                                    isFocused -> PrimaryNavy
+                                    uiState.isOtpError -> cs.error
+                                    isFocused -> cs.primary
                                     else -> Color.Transparent
                                 },
                                 shape = RoundedCornerShape(10.dp)
@@ -568,7 +565,7 @@ private fun OtpVerificationContent(
                             text = digit,
                             fontSize = 22.sp,
                             fontWeight = FontWeight.Normal,
-                            color = Color.Black,
+                            color = cs.onSurface,
                             textAlign = TextAlign.Center
                         )
                     }
@@ -580,7 +577,7 @@ private fun OtpVerificationContent(
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = uiState.otpErrorMessage ?: stringResource(R.string.signup_otp_error),
-                color = ErrorRed,
+                color = cs.error,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -596,14 +593,15 @@ private fun OtpVerificationContent(
                 .height(44.dp),
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = PrimaryNavy,
-                disabledContainerColor = PrimaryNavy.copy(alpha = 0.6f)
+                containerColor = cs.primary,
+                disabledContainerColor = cs.primary.copy(alpha = 0.6f),
+                contentColor = cs.onPrimary
             )
         ) {
             if (uiState.isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(20.dp),
-                    color = Color.White,
+                    color = cs.onPrimary,
                     strokeWidth = 2.dp
                 )
             } else {
@@ -613,7 +611,7 @@ private fun OtpVerificationContent(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        HorizontalDivider(color = Color(0xFFEEEEEE), thickness = 1.dp)
+        HorizontalDivider(color = cs.outlineVariant, thickness = 1.dp)
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -622,14 +620,14 @@ private fun OtpVerificationContent(
                 text = stringResource(R.string.signup_resend_code),
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
-                color = PrimaryNavy,
+                color = cs.primary,
                 modifier = Modifier.clickable { onResend() }
             )
         } else {
             Text(
                 text = stringResource(R.string.signup_resend_waiting, uiState.resendCountdown),
                 fontSize = 12.sp,
-                color = Color(0xFF888888),
+                color = cs.onSurfaceVariant,
                 textAlign = TextAlign.Center
             )
         }
@@ -640,9 +638,10 @@ private fun OtpVerificationContent(
 
 @Composable
 private fun VerifiedSuccessContent() {
+    val cs = MaterialTheme.colorScheme
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = Color(0xFFF3F9EE)
+        color = cs.background
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -653,7 +652,7 @@ private fun VerifiedSuccessContent() {
                 text = stringResource(R.string.signup_verified_success),
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black
+                color = cs.onSurface
             )
 
             Spacer(modifier = Modifier.height(40.dp))
@@ -684,12 +683,13 @@ private fun CustomOutlinedInput(
     keyboardType: KeyboardType = KeyboardType.Text
 ) {
     var isPasswordVisible by remember { mutableStateOf(false) }
+    val cs = MaterialTheme.colorScheme
 
     BasicTextField(
         value = value,
         onValueChange = onValueChange,
         singleLine = true,
-        textStyle = TextStyle(fontSize = 14.sp, color = Color.Black),
+        textStyle = TextStyle(fontSize = 14.sp, color = cs.onSurface),
         visualTransformation = if (isPassword && !isPasswordVisible) {
             PasswordVisualTransformation()
         } else {
@@ -705,8 +705,8 @@ private fun CustomOutlinedInput(
                     .fillMaxWidth()
                     .height(40.dp),
                 shape = RoundedCornerShape(8.dp),
-                color = GrayInputBg,
-                border = BorderStroke(1.dp, GrayInputBorder)
+                color = cs.surfaceVariant,
+                border = BorderStroke(1.dp, cs.outlineVariant)
             ) {
                 Row(
                     modifier = Modifier
@@ -719,7 +719,7 @@ private fun CustomOutlinedInput(
                         contentAlignment = Alignment.CenterStart
                     ) {
                         if (value.isEmpty()) {
-                            Text(placeholder, color = Color.Gray, fontSize = 14.sp)
+                            Text(placeholder, color = cs.onSurfaceVariant, fontSize = 14.sp)
                         }
                         innerTextField()
                     }
@@ -732,7 +732,7 @@ private fun CustomOutlinedInput(
                             Icon(
                                 imageVector = if (isPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                                 contentDescription = null,
-                                tint = Color.Gray
+                                tint = cs.onSurfaceVariant
                             )
                         }
                     }
