@@ -2,7 +2,6 @@ package com.equipo4.nearhome.network
 
 import com.equipo4.nearhome.data.remote.dto.GoogleAuthRequestDto
 import com.equipo4.nearhome.data.remote.dto.GoogleAuthResponseDto
-import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -24,6 +23,24 @@ data class UsuarioDto(
     val correo: String,
     val nombre: String,
     val rol: String
+)
+
+// --- Datos del usuario logueado (/api/v1/usuarios/me) ---
+data class UsuarioMeDto(
+    val id: Int,
+    val nombre: String,
+    val primerApellido: String,
+    val segundoApellido: String? = null,
+    val correo: String,
+    val telefono: String,
+    val rol: String,
+    val activo: Boolean = true,
+    val correoVerificado: Boolean = false,
+    val telefonoVerificado: Boolean = false,
+    val fechaRegistro: String? = null,
+    // Todavía no los manda la API. Con valor por defecto no rompen nada.
+    val tieneFoto: Boolean = false,
+    val fotoVersion: String? = null
 )
 
 // --- Modelos para Registro y Verificación ---
@@ -83,7 +100,7 @@ interface AuthApi {
     @POST("api/v1/auth/registro")
     suspend fun registrarUsuario(@Body request: RegistroFinalRequest): Response<LoginResponse>
 
-    // 5. Datos del usuario logueado (requiere token). Sirve para detectar sesión expirada (401)
+    // 5. Datos del usuario logueado (requiere token)
     @GET("api/v1/usuarios/me")
-    suspend fun me(): Response<ResponseBody>
+    suspend fun me(): Response<UsuarioMeDto>
 }
