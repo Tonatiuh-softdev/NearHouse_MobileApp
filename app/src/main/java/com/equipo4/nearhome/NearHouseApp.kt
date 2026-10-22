@@ -54,6 +54,8 @@ import com.equipo4.nearhome.ui.legal.PoliticaPrivacidadScreen
 import com.equipo4.nearhome.ui.legal.TerminosCondicionesScreen
 import com.equipo4.nearhome.ui.profile.ProfileScreen
 import com.equipo4.nearhome.ui.profile.UserRole
+import com.equipo4.nearhome.ui.profile.account.AccountAdminRoute
+import com.equipo4.nearhome.ui.profile.account.AccountAdminViewModel
 import com.equipo4.nearhome.ui.profile.seller.EditProfileScreen
 import com.equipo4.nearhome.ui.profile.seller.MyListingsScreen
 import com.equipo4.nearhome.ui.saved.SavedScreen
@@ -86,6 +88,7 @@ object AppRoutes {
     const val SEARCH_FILTERS = "search_filters"
     const val SAVED = "saved"
     const val PROFILE = "profile"
+    const val ACCOUNT_ADMIN = "account_admin"
     const val MY_LISTINGS = "my_listings"
     const val EDIT_PROFILE = "edit_profile"
     const val PUBLICACION_DETAIL = "publicacion_detail"
@@ -331,7 +334,9 @@ fun NearHouseApp() {
                         }
                     }
                 },
-                onAccountClick = {},
+                onAccountClick = {
+                    navController.navigate(AppRoutes.ACCOUNT_ADMIN)
+                },
                 onAdminPanelClick = {
                     navController.navigate(AppRoutes.ADMIN_PANEL)
                 },
@@ -351,6 +356,20 @@ fun NearHouseApp() {
                     }
                 },
                 onBottomTabSelected = onBottomTab
+            )
+        }
+
+        // Pantalla: Administración de la Cuenta
+        composable(AppRoutes.ACCOUNT_ADMIN) {
+            val accountAdminViewModel: AccountAdminViewModel = viewModel()
+            AccountAdminRoute(
+                viewModel = accountAdminViewModel,
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onNavigateToPlans = {
+                    // Ruta a la pantalla de planes/suscripciones cuando corresponda
+                }
             )
         }
 
