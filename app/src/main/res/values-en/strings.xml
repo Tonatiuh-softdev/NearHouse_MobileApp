@@ -854,4 +854,42 @@
     <string name="legal_privacy_s8_content">NearHouse is intended only for people over 18 years old. We do not intentionally collect data from minors. If we detect an account belonging to a minor, we will delete it.</string>
     <string name="legal_privacy_s9_title">Changes to this notice</string>
     <string name="legal_privacy_s9_content">If we change this notice, we will notify you within the app and update the \"Last updated\" date shown above.</string>
+
+    <!-- Account Administration -->
+    <string name="account_admin_title">Account management</string>
+
+    <!-- Access Data -->
+    <string name="section_access_data">Access information</string>
+    <string name="label_email">Email address</string>
+    <string name="label_phone">Phone number</string>
+    <string name="label_password">Password</string>
+    <string name="masked_password">••••••••</string>
+
+    <!-- Membership and Payments -->
+    <string name="section_membership">Membership &amp; payments</string>
+    <string name="label_current_plan">Current plan</string>
+    <string name="buyer_no_plan">No plan</string>
+    <string name="buyer_plan_subtitle">Explore plans to publish your listings</string>
+    <string name="seller_plan_status_format">%1$s (%2$s)</string>
+    <string name="seller_renewal_format">Renews on %1$s</string>
+
+    <!-- Account Management -->
+    <string name="section_account_management">Account management</string>
+    <string name="deactivate_account_title">Temporarily deactivate account</string>
+    <string name="deactivate_account_subtitle">Pause your listings and profile. You can return whenever you want.</string>
+    <string name="delete_account_title">Permanently delete account</string>
+    <string name="delete_account_subtitle">This action is irreversible and will erase all your data.</string>
+
+    <!-- Actions and Dialogs -->
+    <string name="coming_soon">Coming soon</string>
+    <string name="cancel">Cancel</string>
+    <string name="confirm_deactivate">Deactivate</string>
+    <string name="confirm_delete">Delete</string>
+    <string name="delete_keyword_target">DELETE</string>
+
+    <string name="dialog_deactivate_title">Deactivate your account?</string>
+    <string name="dialog_deactivate_text">Your listings and profile will no longer be visible. You can reactivate your account anytime by logging back in.</string>
+    <string name="dialog_delete_title">Delete your account?</string>
+    <string name="dialog_delete_text">Your profile, listings, and all your data will be permanently deleted. This action cannot be undone.</string>
+    <string name="dialog_delete_placeholder">Type DELETE to confirm</string>
 </resources>

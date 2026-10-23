@@ -854,4 +854,42 @@
     <string name="legal_privacy_s8_content">NearHouse es solo para personas mayores de 18 años. No recolectamos datos de menores de edad a propósito. Si detectamos una cuenta de una persona menor de edad, la eliminamos.</string>
     <string name="legal_privacy_s9_title">Cambios a este aviso</string>
     <string name="legal_privacy_s9_content">Si cambiamos este aviso, te avisaremos dentro de la app y actualizaremos la fecha de \"Última actualización\" que aparece arriba.</string>
+
+    <!-- Administración de la cuenta -->
+    <string name="account_admin_title">Administración de la cuenta</string>
+
+    <!-- Datos de acceso -->
+    <string name="section_access_data">Datos de acceso</string>
+    <string name="label_email">Correo electrónico</string>
+    <string name="label_phone">Teléfono</string>
+    <string name="label_password">Contraseña</string>
+    <string name="masked_password">••••••••</string>
+
+    <!-- Membresía y pagos -->
+    <string name="section_membership">Membresía y pagos</string>
+    <string name="label_current_plan">Plan actual</string>
+    <string name="buyer_no_plan">Sin plan</string>
+    <string name="buyer_plan_subtitle">Conoce los planes para publicar tus anuncios</string>
+    <string name="seller_plan_status_format">%1$s (%2$s)</string>
+    <string name="seller_renewal_format">Renueva el %1$s</string>
+
+    <!-- Gestión de la cuenta -->
+    <string name="section_account_management">Gestión de la cuenta</string>
+    <string name="deactivate_account_title">Desactivar cuenta temporalmente</string>
+    <string name="deactivate_account_subtitle">Pausa tus anuncios y perfil. Puedes volver cuando quieras.</string>
+    <string name="delete_account_title">Eliminar cuenta permanentemente</string>
+    <string name="delete_account_subtitle">Esta acción es irreversible y borrará todos tus datos.</string>
+
+    <!-- Acciones y Diálogos -->
+    <string name="coming_soon">Próximamente</string>
+    <string name="cancel">Cancelar</string>
+    <string name="confirm_deactivate">Desactivar</string>
+    <string name="confirm_delete">Eliminar</string>
+    <string name="delete_keyword_target">ELIMINAR</string>
+
+    <string name="dialog_deactivate_title">¿Desactivar tu cuenta?</string>
+    <string name="dialog_deactivate_text">Tus anuncios y tu perfil dejarán de verse. Podrás volver a activarla cuando inicies sesión.</string>
+    <string name="dialog_delete_title">¿Eliminar tu cuenta?</string>
+    <string name="dialog_delete_text">Se borrarán tu perfil, tus anuncios y todos tus datos. Esta acción no se puede deshacer.</string>
+    <string name="dialog_delete_placeholder">Escribe ELIMINAR para confirmar</string>
 </resources>
