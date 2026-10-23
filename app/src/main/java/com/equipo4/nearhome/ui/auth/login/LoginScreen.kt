@@ -36,16 +36,45 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.equipo4.nearhome.R
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.remember
+import kotlinx.coroutines.launch
+import com.equipo4.nearhome.data.remote.GoogleAuthManager
+import com.equipo4.nearhome.ui.auth.GoogleAuthViewModel
+import android.util.Log
+import com.equipo4.nearhome.ui.auth.GoogleAuthState
 
 @Composable
 fun LoginScreen(
     viewModel: LoginViewModel = viewModel(),
+    googleAuthViewModel: GoogleAuthViewModel = viewModel(),
     onNavigateToRegister: () -> Unit = {},
     onNavigateToForgotPassword: () -> Unit = {},
     onLoginSuccess: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val googleAuthState by googleAuthViewModel.uiState.collectAsState() // <-- Observa el estado de Google
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val googleAuthManager = remember { GoogleAuthManager(context) }
+
+    // Manejo de respuestas de Google Auth (Éxito, Error, Registro requerido)
+    LaunchedEffect(googleAuthState) {
+        when (val state = googleAuthState) {
+            is GoogleAuthState.SessionSuccess -> {
+                Toast.makeText(context, "¡Sesión iniciada con Google!", Toast.LENGTH_SHORT).show()
+                onLoginSuccess()
+            }
+            is GoogleAuthState.Error -> {
+                Toast.makeText(context, state.mensaje, Toast.LENGTH_LONG).show()
+            }
+            is GoogleAuthState.RequiresRegistration -> {
+                Toast.makeText(context, "Por favor completa tu perfil", Toast.LENGTH_SHORT).show()
+                // Si tienes ruta para completar perfil, se llama aquí
+            }
+            else -> {}
+        }
+    }
 
     LaunchedEffect(uiState.googleSuccessMessage) {
         uiState.googleSuccessMessage?.let { message ->
@@ -65,7 +94,25 @@ fun LoginScreen(
         onPasswordChange = viewModel::onPasswordChanged,
         onTogglePasswordVisibility = viewModel::togglePasswordVisibility,
         onLoginClick = viewModel::onLoginClicked,
-        onGoogleLoginClick = { viewModel.onGoogleLoginClicked(context) },
+        onGoogleLoginClick = {
+            scope.launch {
+                val result = googleAuthManager.getFirebaseIdToken()
+                result.onSuccess { idToken ->
+                    if (!idToken.isNullOrBlank()) {
+                        Log.d("GoogleAuth", "Token obtenido con éxito: $idToken")
+                        googleAuthViewModel.procesarTokenGoogle(idToken)
+                    } else {
+                        Toast.makeText(context, "No se seleccionó ninguna cuenta", Toast.LENGTH_SHORT).show()
+                    }
+                }.onFailure { error ->
+                    Toast.makeText(
+                        context,
+                        error.message ?: "Error al conectar con Google",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
+        },
         onForgotPasswordClick = onNavigateToForgotPassword,
         onRegisterClick = onNavigateToRegister
     )

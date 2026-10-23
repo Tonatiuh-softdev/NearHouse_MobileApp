@@ -208,6 +208,7 @@ fun NearHouseApp() {
         // Pantalla 1: Login
         composable(AppRoutes.LOGIN) {
             LoginScreen(
+                googleAuthViewModel = googleAuthViewModel, // <-- Pasa la instancia global declarada arriba
                 onNavigateToRegister = {
                     navController.navigate(AppRoutes.SIGN_UP)
                 },
