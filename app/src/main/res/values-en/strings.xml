@@ -613,6 +613,9 @@
     <string name="map_preview_title">Property detail</string>
     <string name="saved_empty_title">You don\'t have saved properties yet</string>
     <string name="saved_empty_subtitle">Save properties you\'re interested in to find them here easier</string>
+    <string name="home_empty_title">No listings available</string>
+    <string name="home_empty_subtitle">Try changing your filters or search to see more properties</string>
+    <string name="home_empty_clear_filters">Clear filters</string>
     <string name="checkout_free_trial_heading">You won\'t be charged during your first month</string>
     <string name="checkout_free_trial_body">A payment method will be requested to activate it automatically at the end of your trial month, unless you cancel before.</string>
     <string name="checkout_plan_format">Plan %s</string>

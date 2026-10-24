@@ -613,6 +613,9 @@
     <string name="map_preview_title">Detalle de la propiedad</string>
     <string name="saved_empty_title">Aún no tienes propiedades guardadas</string>
     <string name="saved_empty_subtitle">Guarda las propiedades que te interesen para encontrarlas aquí más fácil</string>
+    <string name="home_empty_title">No hay publicaciones disponibles</string>
+    <string name="home_empty_subtitle">Intenta cambiar los filtros o tu búsqueda para ver más inmuebles</string>
+    <string name="home_empty_clear_filters">Limpiar filtros</string>
     <string name="checkout_free_trial_heading">No se te cobrará durante tu primer mes</string>
     <string name="checkout_free_trial_body">Se te pedirá un método de pago para activarlo automáticamente al finalizar tu mes de prueba, salvo que canceles antes.</string>
     <string name="checkout_plan_format">Plan %s</string>

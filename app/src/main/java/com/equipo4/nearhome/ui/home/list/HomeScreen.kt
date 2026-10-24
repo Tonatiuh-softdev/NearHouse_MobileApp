@@ -29,6 +29,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
@@ -123,26 +124,30 @@ fun HomeScreen(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                 )
 
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    items(
-                        items = uiState.properties,
-                        key = { it.id }
-                    ) { property ->
-                        Box(
-                            modifier = Modifier.animateItem(
-                                placementSpec = spring(dampingRatio = 1f, stiffness = 400f)
-                            )
-                        ) {
-                            PropertyCard(
-                                property = property,
-                                onToggleSave = { viewModel.toggleSaveProperty(property.id) },
-                                onClick = { onPropertyClick(property.id) }
-                            )
+                if (uiState.properties.isEmpty()) {
+                    EmptyHomeState(onClearFilters = { viewModel.clearFilters() })
+                } else {
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        items(
+                            items = uiState.properties,
+                            key = { it.id }
+                        ) { property ->
+                            Box(
+                                modifier = Modifier.animateItem(
+                                    placementSpec = spring(dampingRatio = 1f, stiffness = 400f)
+                                )
+                            ) {
+                                PropertyCard(
+                                    property = property,
+                                    onToggleSave = { viewModel.toggleSaveProperty(property.id) },
+                                    onClick = { onPropertyClick(property.id) }
+                                )
+                            }
                         }
                     }
                 }
@@ -451,4 +456,50 @@ private fun SortOptionRow(
 private fun formatNumber(number: Int): String {
     val formatter = NumberFormat.getNumberInstance(Locale.US)
     return formatter.format(number)
+}
+
+@Composable
+private fun EmptyHomeState(onClearFilters: () -> Unit) {
+    val emptyCircleColor = MaterialTheme.colorScheme.surfaceVariant
+    val emptyIconColor = MaterialTheme.colorScheme.onSurfaceVariant
+
+    Column(
+        modifier = Modifier.fillMaxSize().padding(horizontal = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Box(
+            modifier = Modifier.size(160.dp).background(emptyCircleColor, CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_nearhouse_logo),
+                contentDescription = null,
+                tint = emptyIconColor.copy(alpha = 0.5f),
+                modifier = Modifier.size(72.dp)
+            )
+        }
+        Spacer(Modifier.height(24.dp))
+        Text(
+            text = stringResource(R.string.home_empty_title),
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Center
+        )
+        Spacer(Modifier.height(8.dp))
+        Text(
+            text = stringResource(R.string.home_empty_subtitle),
+            fontSize = 13.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
+        Spacer(Modifier.height(20.dp))
+        OutlinedButton(
+            onClick = onClearFilters,
+            shape = RoundedCornerShape(10.dp)
+        ) {
+            Text(stringResource(R.string.home_empty_clear_filters))
+        }
+    }
 }
