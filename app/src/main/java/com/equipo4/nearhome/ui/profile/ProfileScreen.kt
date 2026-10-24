@@ -86,16 +86,31 @@ fun ProfileContent(
 ) {
     var openSheet by remember { mutableStateOf<SettingSheetType?>(null) }
     var showLogoutDialog by remember { mutableStateOf(false) }
+    val scrollState = rememberScrollState()
+    val scope = rememberCoroutineScope()
 
     Scaffold(
-        bottomBar = { NearHomeBottomBar(selectedTab = 3, onTabSelected = onBottomTabSelected) },
+        bottomBar = {
+            NearHomeBottomBar(
+                selectedTab = 3,
+                onTabSelected = { index ->
+                    if (index == 3) {
+                        scope.launch {
+                            scrollState.animateScrollTo(0)
+                        }
+                    } else {
+                        onBottomTabSelected(index)
+                    }
+                }
+            )
+        },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scrollState)
         ) {
             ProfileHeader(uiState = uiState)
 

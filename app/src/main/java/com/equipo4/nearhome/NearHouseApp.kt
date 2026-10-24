@@ -279,16 +279,28 @@ fun NearHouseApp() {
         val onBottomTab: (Int) -> Unit = { index ->
             when (index) {
                 0 -> navController.navigate(AppRoutes.HOME) {
-                    popUpTo(AppRoutes.HOME) { inclusive = false }
+                    popUpTo(AppRoutes.HOME) {
+                        inclusive = false
+                        saveState = true
+                    }
                     launchSingleTop = true
+                    restoreState = true
                 }
                 1 -> navController.navigate(AppRoutes.SAVED) {
-                    popUpTo(AppRoutes.HOME) { inclusive = false }
+                    popUpTo(AppRoutes.HOME) {
+                        inclusive = false
+                        saveState = true
+                    }
                     launchSingleTop = true
+                    restoreState = true
                 }
                 3 -> navController.navigate(AppRoutes.PROFILE) {
-                    popUpTo(AppRoutes.HOME) { inclusive = false }
+                    popUpTo(AppRoutes.HOME) {
+                        inclusive = false
+                        saveState = true
+                    }
                     launchSingleTop = true
+                    restoreState = true
                 }
                 else -> Unit // 2 Notificaciones: aún sin pantalla
             }

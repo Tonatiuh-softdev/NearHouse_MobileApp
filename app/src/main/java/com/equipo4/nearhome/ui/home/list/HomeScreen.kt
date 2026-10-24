@@ -56,7 +56,16 @@ fun HomeScreen(
         bottomBar = {
             NearHomeBottomBar(
                 selectedTab = 0, // Inicio
-                onTabSelected = onBottomTabSelected
+                onTabSelected = { index ->
+                    if (index == 0) {
+                        viewModel.onSearchQueryChange("")
+                        coroutineScope.launch {
+                            listState.animateScrollToItem(0)
+                        }
+                    } else {
+                        onBottomTabSelected(index)
+                    }
+                }
             )
         },
         containerColor = MaterialTheme.colorScheme.background
