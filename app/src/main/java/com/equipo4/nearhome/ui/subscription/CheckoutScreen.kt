@@ -57,7 +57,7 @@ fun CheckoutScreen(
                         text = if (plan.isFreeTrial) stringResource(R.string.free_trial_title) else stringResource(R.string.confirm_payment_title),
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1F2937)
+                        color = SubscriptionColors.textPrimary
                     )
                 },
                 navigationIcon = {
@@ -65,14 +65,14 @@ fun CheckoutScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.common_back),
-                            tint = Color(0xFF1F2937)
+                            tint = SubscriptionColors.textPrimary
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = SubscriptionColors.surface)
             )
         },
-        containerColor = Color(0xFFF9FAFB)
+        containerColor = SubscriptionColors.screenBg
     ) { innerPadding ->
         Box(
             modifier = Modifier
@@ -88,7 +88,7 @@ fun CheckoutScreen(
                 // Banner verde de prueba gratuita (con icono Filled.Redeem para caja de regalo sólida)
                 if (plan.isFreeTrial) {
                     Surface(
-                        color = Color(0xFFDCFCE7),
+                        color = SubscriptionColors.successBannerBg,
                         shape = RoundedCornerShape(12.dp),
                         border = BorderStroke(1.dp, Color(0xFF16A34A))
                     ) {
@@ -102,7 +102,7 @@ fun CheckoutScreen(
                             Icon(
                                 imageVector = Icons.Filled.Redeem,
                                 contentDescription = null,
-                                tint = Color(0xFF15803D),
+                                tint = SubscriptionColors.successIcon,
                                 modifier = Modifier.size(32.dp)
                             )
                             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -110,13 +110,13 @@ fun CheckoutScreen(
                                     text = stringResource(R.string.free_trial_banner_title),
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF1F2937),
+                                    color = SubscriptionColors.textPrimary,
                                     lineHeight = 16.sp
                                 )
                                 Text(
                                     text = stringResource(R.string.free_trial_banner),
                                     fontSize = 12.sp,
-                                    color = Color(0xFF4B5563),
+                                    color = SubscriptionColors.textBody,
                                     lineHeight = 16.sp
                                 )
                             }
@@ -138,13 +138,13 @@ fun CheckoutScreen(
                             text = stringResource(R.string.checkout_plan_format, plan.name),
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF0B2C4D)
+                            color = SubscriptionColors.brand
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(
                             text = "${plan.description} · ${plan.visibility}",
                             fontSize = 13.sp,
-                            color = Color(0xFF4B5563)
+                            color = SubscriptionColors.textBody
                         )
                     }
                     Spacer(Modifier.width(8.dp))
@@ -153,14 +153,14 @@ fun CheckoutScreen(
                             text = plan.priceText.substringBefore("/"),
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF0B2C4D),
+                            color = SubscriptionColors.brand,
                             maxLines = 1,
                             softWrap = false
                         )
                         Text(
                             text = "/mes",
                             fontSize = 14.sp,
-                            color = Color(0xFF6B7280),
+                            color = SubscriptionColors.textMuted,
                             modifier = Modifier.padding(bottom = 2.dp),
                             maxLines = 1,
                             softWrap = false
@@ -174,7 +174,7 @@ fun CheckoutScreen(
                     text = stringResource(R.string.payment_method_title),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1F2937),
+                    color = SubscriptionColors.textPrimary,
                     modifier = Modifier.padding(top = 4.dp)
                 )
 
@@ -182,7 +182,7 @@ fun CheckoutScreen(
 
                 // Número de tarjeta
                 Column {
-                    Text(stringResource(R.string.card_number_label), fontSize = 13.sp, fontWeight = FontWeight.Medium, color = Color(0xFF374151))
+                    Text(stringResource(R.string.card_number_label), fontSize = 13.sp, fontWeight = FontWeight.Medium, color = SubscriptionColors.textLabel)
                     Spacer(Modifier.height(4.dp))
                     OutlinedTextField(
                         value = cardNumber,
@@ -192,16 +192,16 @@ fun CheckoutScreen(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         shape = RoundedCornerShape(12.dp),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = if (cardNumberError != null) Color(0xFFEF4444) else Color(0xFF0B2C4D),
-                            unfocusedBorderColor = if (cardNumberError != null) Color(0xFFEF4444) else Color(0xFFD1D5DB),
-                            focusedContainerColor = Color.White,
-                            unfocusedContainerColor = Color.White
+                            focusedBorderColor = if (cardNumberError != null) Color(0xFFEF4444) else SubscriptionColors.brand,
+                            unfocusedBorderColor = if (cardNumberError != null) Color(0xFFEF4444) else SubscriptionColors.inputBorder,
+                            focusedContainerColor = SubscriptionColors.inputBg,
+                            unfocusedContainerColor = SubscriptionColors.inputBg
                         ),
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
                     if (cardNumberError != null) {
-                        Text(cardNumberError!!, fontSize = 12.sp, color = Color(0xFFB91C1C), modifier = Modifier.padding(top = 2.dp))
+                        Text(cardNumberError!!, fontSize = 12.sp, color = SubscriptionColors.errorText, modifier = Modifier.padding(top = 2.dp))
                     }
                 }
 
@@ -209,7 +209,7 @@ fun CheckoutScreen(
 
                 // Nombre del titular
                 Column {
-                    Text(stringResource(R.string.card_holder_label), fontSize = 13.sp, fontWeight = FontWeight.Medium, color = Color(0xFF374151))
+                    Text(stringResource(R.string.card_holder_label), fontSize = 13.sp, fontWeight = FontWeight.Medium, color = SubscriptionColors.textLabel)
                     Spacer(Modifier.height(4.dp))
                     OutlinedTextField(
                         value = cardHolder,
@@ -218,16 +218,16 @@ fun CheckoutScreen(
                         isError = cardHolderError != null,
                         shape = RoundedCornerShape(12.dp),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = if (cardHolderError != null) Color(0xFFEF4444) else Color(0xFF0B2C4D),
-                            unfocusedBorderColor = if (cardHolderError != null) Color(0xFFEF4444) else Color(0xFFD1D5DB),
-                            focusedContainerColor = Color.White,
-                            unfocusedContainerColor = Color.White
+                            focusedBorderColor = if (cardHolderError != null) Color(0xFFEF4444) else SubscriptionColors.brand,
+                            unfocusedBorderColor = if (cardHolderError != null) Color(0xFFEF4444) else SubscriptionColors.inputBorder,
+                            focusedContainerColor = SubscriptionColors.inputBg,
+                            unfocusedContainerColor = SubscriptionColors.inputBg
                         ),
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
                     if (cardHolderError != null) {
-                        Text(cardHolderError!!, fontSize = 12.sp, color = Color(0xFFB91C1C), modifier = Modifier.padding(top = 2.dp))
+                        Text(cardHolderError!!, fontSize = 12.sp, color = SubscriptionColors.errorText, modifier = Modifier.padding(top = 2.dp))
                     }
                 }
 
@@ -239,7 +239,7 @@ fun CheckoutScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(stringResource(R.string.card_expiry_label), fontSize = 13.sp, fontWeight = FontWeight.Medium, color = Color(0xFF374151))
+                        Text(stringResource(R.string.card_expiry_label), fontSize = 13.sp, fontWeight = FontWeight.Medium, color = SubscriptionColors.textLabel)
                         Spacer(Modifier.height(4.dp))
                         OutlinedTextField(
                             value = expiryDate,
@@ -249,21 +249,21 @@ fun CheckoutScreen(
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             shape = RoundedCornerShape(12.dp),
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = if (expiryError != null) Color(0xFFEF4444) else Color(0xFF0B2C4D),
-                                unfocusedBorderColor = if (expiryError != null) Color(0xFFEF4444) else Color(0xFFD1D5DB),
-                                focusedContainerColor = Color.White,
-                                unfocusedContainerColor = Color.White
+                                focusedBorderColor = if (expiryError != null) Color(0xFFEF4444) else SubscriptionColors.brand,
+                                unfocusedBorderColor = if (expiryError != null) Color(0xFFEF4444) else SubscriptionColors.inputBorder,
+                                focusedContainerColor = SubscriptionColors.inputBg,
+                                unfocusedContainerColor = SubscriptionColors.inputBg
                             ),
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth()
                         )
                         if (expiryError != null) {
-                            Text(expiryError!!, fontSize = 12.sp, color = Color(0xFFB91C1C), modifier = Modifier.padding(top = 2.dp))
+                            Text(expiryError!!, fontSize = 12.sp, color = SubscriptionColors.errorText, modifier = Modifier.padding(top = 2.dp))
                         }
                     }
 
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(stringResource(R.string.card_cvv_label), fontSize = 13.sp, fontWeight = FontWeight.Medium, color = Color(0xFF374151))
+                        Text(stringResource(R.string.card_cvv_label), fontSize = 13.sp, fontWeight = FontWeight.Medium, color = SubscriptionColors.textLabel)
                         Spacer(Modifier.height(4.dp))
                         OutlinedTextField(
                             value = cvv,
@@ -273,16 +273,16 @@ fun CheckoutScreen(
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             shape = RoundedCornerShape(12.dp),
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = if (cvvError != null) Color(0xFFEF4444) else Color(0xFF0B2C4D),
-                                unfocusedBorderColor = if (cvvError != null) Color(0xFFEF4444) else Color(0xFFD1D5DB),
-                                focusedContainerColor = Color.White,
-                                unfocusedContainerColor = Color.White
+                                focusedBorderColor = if (cvvError != null) Color(0xFFEF4444) else SubscriptionColors.brand,
+                                unfocusedBorderColor = if (cvvError != null) Color(0xFFEF4444) else SubscriptionColors.inputBorder,
+                                focusedContainerColor = SubscriptionColors.inputBg,
+                                unfocusedContainerColor = SubscriptionColors.inputBg
                             ),
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth()
                         )
                         if (cvvError != null) {
-                            Text(cvvError!!, fontSize = 12.sp, color = Color(0xFFB91C1C), modifier = Modifier.padding(top = 2.dp))
+                            Text(cvvError!!, fontSize = 12.sp, color = SubscriptionColors.errorText, modifier = Modifier.padding(top = 2.dp))
                         }
                     }
                 }
@@ -299,13 +299,13 @@ fun CheckoutScreen(
                     Checkbox(
                         checked = saveCard,
                         onCheckedChange = { viewModel.saveCard.value = it },
-                        colors = CheckboxDefaults.colors(checkedColor = Color(0xFF0B2C4D))
+                        colors = CheckboxDefaults.colors(checkedColor = SubscriptionColors.brand)
                     )
                     Spacer(Modifier.width(8.dp))
                     Text(
                         text = stringResource(R.string.save_card_checkbox),
                         fontSize = 13.sp,
-                        color = Color(0xFF4B5563)
+                        color = SubscriptionColors.textBody
                     )
                 }
 
@@ -320,8 +320,8 @@ fun CheckoutScreen(
                         .height(50.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF0B2C4D),
-                        disabledContainerColor = Color(0xFF0B2C4D).copy(alpha = 0.6f)
+                        containerColor = SubscriptionColors.brand,
+                        disabledContainerColor = SubscriptionColors.brand.copy(alpha = 0.6f)
                     )
                 ) {
                     if (isLoading) {
@@ -349,14 +349,14 @@ fun CheckoutScreen(
                         Icon(
                             imageVector = Icons.Outlined.Error,
                             contentDescription = null,
-                            tint = Color(0xFFDC2626),
+                            tint = SubscriptionColors.errorStrong,
                             modifier = Modifier.size(16.dp)
                         )
                         Text(
                             text = stringResource(R.string.error_fill_mandatory_dot),
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Medium,
-                            color = Color(0xFFDC2626)
+                            color = SubscriptionColors.errorStrong
                         )
                     }
                 }
@@ -371,7 +371,7 @@ fun CheckoutScreen(
                         stringResource(R.string.confirm_payment_footer)
                     },
                     fontSize = 12.sp,
-                    color = Color(0xFF6B7280),
+                    color = SubscriptionColors.textMuted,
                     textAlign = TextAlign.Center,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -396,7 +396,7 @@ fun CheckoutScreen(
                                 .fillMaxWidth(0.85f)
                                 .padding(24.dp),
                             shape = RoundedCornerShape(16.dp),
-                            colors = CardDefaults.cardColors(containerColor = Color.White)
+                            colors = CardDefaults.cardColors(containerColor = SubscriptionColors.surface)
                         ) {
                             Column(
                                 modifier = Modifier
@@ -414,7 +414,7 @@ fun CheckoutScreen(
                                     text = successMessage!!,
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF1F2937),
+                                    color = SubscriptionColors.textPrimary,
                                     textAlign = TextAlign.Center
                                 )
                             }
