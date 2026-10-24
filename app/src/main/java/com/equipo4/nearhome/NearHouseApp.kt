@@ -58,6 +58,8 @@ import com.equipo4.nearhome.ui.profile.account.AccountAdminRoute
 import com.equipo4.nearhome.ui.profile.account.AccountAdminViewModel
 import com.equipo4.nearhome.ui.profile.seller.EditProfileScreen
 import com.equipo4.nearhome.ui.profile.seller.MyListingsScreen
+import com.equipo4.nearhome.ui.subscription.CheckoutScreen
+import com.equipo4.nearhome.ui.subscription.ChoosePlanScreen
 import com.equipo4.nearhome.ui.saved.SavedScreen
 import com.equipo4.nearhome.ui.publicacion.detail.DetailPublicacionScreen
 import com.equipo4.nearhome.ui.splash.SplashScreen
@@ -90,6 +92,8 @@ object AppRoutes {
     const val PROFILE = "profile"
     const val ACCOUNT_ADMIN = "account_admin"
     const val MY_LISTINGS = "my_listings"
+    const val CHOOSE_PLAN = "choose_plan"
+    const val CHECKOUT = "checkout"
     const val EDIT_PROFILE = "edit_profile"
     const val PUBLICACION_DETAIL = "publicacion_detail"
     const val TERMS_AND_CONDITIONS = "terms_and_conditions"
@@ -340,7 +344,7 @@ fun NearHouseApp() {
                             CurrentUserStore.refresh(authApi)
                         }
                         when (CurrentUserStore.roleOrNull()) {
-                            UserRole.COMPRADOR -> navController.navigate(AppRoutes.CREATE_LISTING_GRAPH)
+                            UserRole.COMPRADOR -> navController.navigate(AppRoutes.CHOOSE_PLAN)
                             null -> Unit // sin datos no se decide, para no mandar a un vendedor a suscripciones
                             else -> navController.navigate(AppRoutes.MY_LISTINGS)
                         }
@@ -380,7 +384,32 @@ fun NearHouseApp() {
                     navController.popBackStack()
                 },
                 onNavigateToPlans = {
-                    // Ruta a la pantalla de planes/suscripciones cuando corresponda
+                    navController.navigate(AppRoutes.CHOOSE_PLAN)
+                }
+            )
+        }
+
+        // Pantalla: Elegir plan (Comprador)
+        composable(AppRoutes.CHOOSE_PLAN) {
+            ChoosePlanScreen(
+                onBackClick = { navController.popBackStack() },
+                onPlanSelected = { planId ->
+                    navController.navigate("${AppRoutes.CHECKOUT}/$planId")
+                }
+            )
+        }
+
+        // Pantalla: Pago (mes gratis o pago normal, según el plan)
+        composable(
+            route = "${AppRoutes.CHECKOUT}/{planId}",
+            arguments = listOf(navArgument("planId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val planId = backStackEntry.arguments?.getString("planId") ?: ""
+            CheckoutScreen(
+                planId = planId,
+                onBackClick = { navController.popBackStack() },
+                onSuccessFinished = {
+                    navController.popBackStack(AppRoutes.PROFILE, inclusive = false)
                 }
             )
         }
