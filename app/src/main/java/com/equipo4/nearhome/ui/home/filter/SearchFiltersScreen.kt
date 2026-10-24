@@ -137,55 +137,71 @@ fun SearchFiltersScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // 1. Segmented Buttons: Comprar / Rentar
+            // 1. Operation Buttons: Comprar / Rentar (Single-select, default none)
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(stringResource(R.string.search_filters_operation), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(MaterialTheme.nearHouseColors.searchBarBg)
-                        .padding(4.dp),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     val isComprar = state.listingType == ListingType.VENTA
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(if (isComprar) primaryColor else Color.Transparent)
-                            .clickable { viewModel.updateFilter { it.copy(listingType = ListingType.VENTA) } },
-                        contentAlignment = Alignment.Center
+                    val isRentar = state.listingType == ListingType.RENTA
+
+                    OutlinedButton(
+                        onClick = {
+                            viewModel.updateFilter { s ->
+                                s.copy(listingType = if (s.listingType == ListingType.VENTA) null else ListingType.VENTA)
+                            }
+                        },
+                        shape = RoundedCornerShape(10.dp),
+                        border = BorderStroke(
+                            width = if (isComprar) 1.5.dp else 1.dp,
+                            color = if (isComprar) primaryColor else MaterialTheme.colorScheme.outline
+                        ),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = if (isComprar) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
+                            contentColor = if (isComprar) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface
+                        ),
+                        modifier = Modifier.weight(1f).height(44.dp),
+                        contentPadding = PaddingValues(horizontal = 4.dp)
                     ) {
                         Text(
                             stringResource(R.string.search_filters_buy),
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = if (isComprar) onAdminAccent() else MaterialTheme.colorScheme.onSurfaceVariant
+                            fontSize = 12.sp,
+                            fontWeight = if (isComprar) FontWeight.Bold else FontWeight.Medium,
+                            maxLines = 1
                         )
                     }
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(if (!isComprar) primaryColor else Color.Transparent)
-                            .clickable { viewModel.updateFilter { it.copy(listingType = ListingType.RENTA) } },
-                        contentAlignment = Alignment.Center
+
+                    OutlinedButton(
+                        onClick = {
+                            viewModel.updateFilter { s ->
+                                s.copy(listingType = if (s.listingType == ListingType.RENTA) null else ListingType.RENTA)
+                            }
+                        },
+                        shape = RoundedCornerShape(10.dp),
+                        border = BorderStroke(
+                            width = if (isRentar) 1.5.dp else 1.dp,
+                            color = if (isRentar) primaryColor else MaterialTheme.colorScheme.outline
+                        ),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = if (isRentar) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
+                            contentColor = if (isRentar) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface
+                        ),
+                        modifier = Modifier.weight(1f).height(44.dp),
+                        contentPadding = PaddingValues(horizontal = 4.dp)
                     ) {
                         Text(
                             stringResource(R.string.search_filters_rent),
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = if (!isComprar) onAdminAccent() else MaterialTheme.colorScheme.onSurfaceVariant
+                            fontSize = 12.sp,
+                            fontWeight = if (isRentar) FontWeight.Bold else FontWeight.Medium,
+                            maxLines = 1
                         )
                     }
                 }
             }
 
-            // 2. Property Type Buttons
+            // 2. Property Type Buttons (Multi-select)
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(stringResource(R.string.search_filters_property_type), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                 Row(
@@ -198,10 +214,13 @@ fun SearchFiltersScreen(
                         PropertyType.TERRENO to stringResource(R.string.search_filters_type_land)
                     )
                     types.forEach { (type, label) ->
-                        val selected = state.propertyType == type
+                        val selected = type in state.propertyTypes
                         OutlinedButton(
                             onClick = {
-                                viewModel.updateFilter { it.copy(propertyType = if (selected) null else type) }
+                                viewModel.updateFilter { s ->
+                                    val next = if (selected) s.propertyTypes - type else s.propertyTypes + type
+                                    s.copy(propertyTypes = next)
+                                }
                             },
                             shape = RoundedCornerShape(10.dp),
                             border = BorderStroke(
@@ -375,20 +394,20 @@ fun SearchFiltersScreen(
                 }
             }
 
-            // 5. Characteristics sections
-            when (state.propertyType) {
-                PropertyType.CASA -> {
-                    CasaCharacteristicsSection(state, viewModel, primaryColor)
-                }
-                PropertyType.DEPARTAMENTO -> {
-                    DeptoCharacteristicsSection(state, viewModel, primaryColor)
-                }
-                PropertyType.TERRENO -> {
-                    TerrenoCharacteristicsSection(state, viewModel, minSupStr, { minSupStr = it }, maxSupStr, { maxSupStr = it }, primaryColor)
-                }
-                null -> {
-                    CasaCharacteristicsSection(state, viewModel, primaryColor)
-                }
+            // 5. Characteristics sections (Multi-select support)
+            val showAllTypes = state.propertyTypes.isEmpty()
+            val showCasa = showAllTypes || PropertyType.CASA in state.propertyTypes
+            val showDepto = showAllTypes || PropertyType.DEPARTAMENTO in state.propertyTypes
+            val showTerreno = showAllTypes || PropertyType.TERRENO in state.propertyTypes
+
+            if (showCasa) {
+                CasaCharacteristicsSection(state, viewModel, primaryColor)
+            }
+            if (showDepto) {
+                DeptoCharacteristicsSection(state, viewModel, primaryColor)
+            }
+            if (showTerreno) {
+                TerrenoCharacteristicsSection(state, viewModel, minSupStr, { minSupStr = it }, maxSupStr, { maxSupStr = it }, primaryColor)
             }
         }
     }
@@ -620,7 +639,7 @@ private fun CasaCharacteristicsSection(state: PropertyFilterState, viewModel: Se
             iconOnRight = true
         )
 
-        if (state.listingType == ListingType.RENTA) {
+        if (state.listingType == ListingType.RENTA || state.listingType == null) {
             FlatCheckItem(
                 text = stringResource(R.string.search_filters_pets),
                 checked = state.mascotasPermitidas,
@@ -694,7 +713,7 @@ private fun DeptoCharacteristicsSection(state: PropertyFilterState, viewModel: S
             iconOnRight = true
         )
 
-        if (state.listingType == ListingType.RENTA) {
+        if (state.listingType == ListingType.RENTA || state.listingType == null) {
             FlatCheckItem(
                 text = stringResource(R.string.search_filters_pets),
                 checked = state.mascotasPermitidas,

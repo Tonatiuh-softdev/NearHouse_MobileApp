@@ -1,5 +1,6 @@
 package com.equipo4.nearhome.ui.home.list
 
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -13,18 +14,23 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.FilterList
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -51,6 +57,10 @@ fun HomeScreen(
     val filterState by PropertyFilterManager.filterState.collectAsState()
     val activeCount = filterState.getSelectedCount()
     val hasFilters = activeCount > 0
+
+    LaunchedEffect(uiState.sortOption) {
+        listState.scrollToItem(0)
+    }
 
     Scaffold(
         bottomBar = {
@@ -92,7 +102,9 @@ fun HomeScreen(
             FilterAndSortRow(
                 onFilterClick = onFilterClick,
                 hasFilters = hasFilters,
-                activeCount = activeCount
+                activeCount = activeCount,
+                sortOption = uiState.sortOption,
+                onSortOptionSelected = viewModel::setSortOption
             )
 
             Spacer(modifier = Modifier.height(4.dp))
@@ -121,11 +133,17 @@ fun HomeScreen(
                         items = uiState.properties,
                         key = { it.id }
                     ) { property ->
-                        PropertyCard(
-                            property = property,
-                            onToggleSave = { viewModel.toggleSaveProperty(property.id) },
-                            onClick = { onPropertyClick(property.id) }
-                        )
+                        Box(
+                            modifier = Modifier.animateItem(
+                                placementSpec = spring(dampingRatio = 1f, stiffness = 400f)
+                            )
+                        ) {
+                            PropertyCard(
+                                property = property,
+                                onToggleSave = { viewModel.toggleSaveProperty(property.id) },
+                                onClick = { onPropertyClick(property.id) }
+                            )
+                        }
                     }
                 }
             }
@@ -140,6 +158,8 @@ private fun HomeHeader(
     onToggleToMap: () -> Unit,
     onHomeClick: () -> Unit = {}
 ) {
+    var lastToggleTime by remember { mutableStateOf(0L) }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -209,7 +229,13 @@ private fun HomeHeader(
                 tint = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier
                     .size(18.dp)
-                    .clickable { onToggleToMap() }
+                    .clickable {
+                        val now = System.currentTimeMillis()
+                        if (now - lastToggleTime > 400) {
+                            lastToggleTime = now
+                            onToggleToMap()
+                        }
+                    }
             )
         }
     }
@@ -220,7 +246,9 @@ private fun HomeHeader(
 private fun FilterAndSortRow(
     onFilterClick: () -> Unit,
     hasFilters: Boolean,
-    activeCount: Int
+    activeCount: Int,
+    sortOption: SortOption,
+    onSortOptionSelected: (SortOption) -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -231,6 +259,7 @@ private fun FilterAndSortRow(
         FilterChip(
             selected = hasFilters,
             onClick = onFilterClick,
+            modifier = Modifier.height(36.dp),
             label = {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -255,7 +284,7 @@ private fun FilterAndSortRow(
                     }
                 }
             },
-            shape = RoundedCornerShape(10.dp),
+            shape = RoundedCornerShape(8.dp),
             colors = FilterChipDefaults.filterChipColors(
                 containerColor = MaterialTheme.nearHouseColors.filterChipBg,
                 selectedContainerColor = MaterialTheme.nearHouseColors.filterChipSelectedBg,
@@ -270,22 +299,152 @@ private fun FilterAndSortRow(
             )
         )
 
+        SortDropdownButton(
+            sortOption = sortOption,
+            onSortOptionSelected = onSortOptionSelected
+        )
+    }
+}
+
+@Composable
+private fun SortDropdownButton(
+    sortOption: SortOption,
+    onSortOptionSelected: (SortOption) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    var chipHeight by remember { mutableStateOf(0.dp) }
+    val density = LocalDensity.current
+
+    val labelText = when (sortOption) {
+        SortOption.DEFAULT -> stringResource(R.string.home_sort)
+        SortOption.PRICE_LOW_TO_HIGH -> stringResource(R.string.sort_price_low_high)
+        SortOption.PRICE_HIGH_TO_LOW -> stringResource(R.string.sort_price_high_low)
+    }
+
+    Box(modifier = Modifier.onSizeChanged { chipHeight = with(density) { it.height.toDp() } }) {
         OutlinedButton(
-            onClick = { },
+            onClick = { expanded = true },
+            modifier = Modifier.height(36.dp),
             shape = RoundedCornerShape(8.dp),
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface),
-            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+            colors = ButtonDefaults.outlinedButtonColors(
+                containerColor = MaterialTheme.nearHouseColors.filterChipBg,
+                contentColor = MaterialTheme.colorScheme.onSurface
+            ),
+            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_ordenar),
-                contentDescription = stringResource(R.string.home_sort),
+                contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.size(14.dp)
             )
             Spacer(modifier = Modifier.width(6.dp))
-            Text(text = stringResource(R.string.home_sort), fontSize = 13.sp, fontWeight = FontWeight.Medium)
+            Text(
+                text = labelText,
+                fontSize = 13.sp,
+                fontWeight = FontWeight.Medium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Icon(
+                imageVector = Icons.Default.KeyboardArrowDown,
+                contentDescription = null,
+                modifier = Modifier.size(16.dp)
+            )
         }
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            offset = DpOffset(0.dp, -chipHeight),
+            shape = RoundedCornerShape(12.dp),
+            containerColor = MaterialTheme.colorScheme.surface,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+            modifier = Modifier.width(230.dp)
+        ) {
+            SortOptionRow(
+                label = stringResource(R.string.home_sort),
+                checked = sortOption == SortOption.DEFAULT,
+                trailing = {
+                    Icon(
+                        Icons.Default.KeyboardArrowDown,
+                        contentDescription = stringResource(R.string.common_close),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(22.dp).clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) { expanded = false }
+                    )
+                }
+            ) {
+                onSortOptionSelected(SortOption.DEFAULT)
+                expanded = false
+            }
+
+            SortOptionRow(
+                label = stringResource(R.string.sort_price_low_high),
+                checked = sortOption == SortOption.PRICE_LOW_TO_HIGH
+            ) {
+                onSortOptionSelected(SortOption.PRICE_LOW_TO_HIGH)
+                expanded = false
+            }
+
+            SortOptionRow(
+                label = stringResource(R.string.sort_price_high_low),
+                checked = sortOption == SortOption.PRICE_HIGH_TO_LOW
+            ) {
+                onSortOptionSelected(SortOption.PRICE_HIGH_TO_LOW)
+                expanded = false
+            }
+        }
+    }
+}
+
+@Composable
+private fun SortOptionRow(
+    label: String,
+    checked: Boolean,
+    trailing: (@Composable () -> Unit)? = null,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onClick
+            )
+            .padding(horizontal = 16.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(22.dp)
+                .clip(RoundedCornerShape(6.dp))
+                .background(if (checked) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant),
+            contentAlignment = Alignment.Center
+        ) {
+            if (checked) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+        }
+        Spacer(modifier = Modifier.width(12.dp))
+        Text(
+            text = label,
+            fontSize = 14.sp,
+            fontWeight = if (checked) FontWeight.Bold else FontWeight.Normal,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.weight(1f)
+        )
+        trailing?.invoke()
     }
 }
 

@@ -605,6 +605,9 @@
     <string name="home_properties_count">%s properties</string>
     <string name="home_search_location">Search by location</string>
     <string name="home_sort">Sort</string>
+    <string name="sort_default">Default</string>
+    <string name="sort_price_low_high">Price: Low to High</string>
+    <string name="sort_price_high_low">Price: High to Low</string>
     <string name="map_type_todo">All</string>
     <string name="map_type_types">%d types</string>
     <string name="map_preview_title">Property detail</string>

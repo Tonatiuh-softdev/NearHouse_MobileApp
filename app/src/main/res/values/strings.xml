@@ -605,6 +605,9 @@
     <string name="home_properties_count">%s inmuebles</string>
     <string name="home_search_location">Busca por ubicación</string>
     <string name="home_sort">Ordenar</string>
+    <string name="sort_default">Por defecto</string>
+    <string name="sort_price_low_high">Menor a mayor costo</string>
+    <string name="sort_price_high_low">Mayor a menor costo</string>
     <string name="map_type_todo">Todo</string>
     <string name="map_type_types">%d tipos</string>
     <string name="map_preview_title">Detalle de la propiedad</string>

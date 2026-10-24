@@ -21,7 +21,13 @@ class MapViewModel(
     private val repository: PropiedadRepository = Repositories.propiedades
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(MapUiState())
+    private val _uiState = MutableStateFlow(
+        MapUiState(
+            isLoading = false,
+            filterState = PropertyFilterManager.filterState.value,
+            selectedTypes = PropertyFilterManager.filterState.value.propertyTypes
+        )
+    )
     val uiState: StateFlow<MapUiState> = _uiState.asStateFlow()
 
     private var loadJob: Job? = null
@@ -30,7 +36,7 @@ class MapViewModel(
         loadProperties()
         viewModelScope.launch {
             PropertyFilterManager.filterState.collect { filter ->
-                _uiState.update { it.copy(filterState = filter) }
+                _uiState.update { it.copy(filterState = filter, selectedTypes = filter.propertyTypes) }
             }
         }
     }
@@ -38,7 +44,6 @@ class MapViewModel(
     fun loadProperties() {
         loadJob?.cancel()
         loadJob = viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             repository.observeAll()
                 .catch {
                     _uiState.update { s ->
@@ -54,11 +59,14 @@ class MapViewModel(
     fun onSearchQueryChange(query: String) = _uiState.update { it.copy(searchQuery = query) }
 
     fun onTypeToggled(type: PropertyType?) {
-        _uiState.update { state ->
-            if (type == null) return@update state.copy(selectedTypes = emptySet())
-            val next = if (type in state.selectedTypes) state.selectedTypes - type else state.selectedTypes + type
-            state.copy(selectedTypes = if (next.size == PropertyType.entries.size) emptySet() else next)
+        val currentFilter = PropertyFilterManager.filterState.value
+        val nextTypes = if (type == null) {
+            emptySet()
+        } else {
+            if (type in currentFilter.propertyTypes) currentFilter.propertyTypes - type else currentFilter.propertyTypes + type
         }
+        PropertyFilterManager.updateFilters(currentFilter.copy(propertyTypes = nextTypes))
+        _uiState.update { it.copy(selectedTypes = nextTypes) }
     }
 
     fun onSortSelected(sort: SortOption) = _uiState.update { it.copy(sort = sort) }

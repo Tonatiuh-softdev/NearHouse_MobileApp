@@ -15,8 +15,7 @@ class SearchFiltersViewModel : ViewModel() {
     }
 
     fun clearFilters() {
-        val currentListingType = _filterState.value.listingType
-        _filterState.value = PropertyFilterState(listingType = currentListingType)
+        _filterState.value = PropertyFilterState()
     }
 
     fun applyFilters() {
