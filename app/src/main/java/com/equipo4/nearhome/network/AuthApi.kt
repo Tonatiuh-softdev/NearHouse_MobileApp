@@ -6,6 +6,12 @@ import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.PATCH
+import okhttp3.MultipartBody
+import retrofit2.http.DELETE
+import retrofit2.http.Multipart
+import retrofit2.http.Part
+import retrofit2.http.PUT
 
 // --- Modelos para Login ---
 data class LoginRequest(
@@ -72,6 +78,12 @@ data class RegistroFinalRequest(
     val tokenFirebase: String
 )
 
+data class UpdateMeRequest(
+    val nombre: String,
+    val primerApellido: String,
+    val segundoApellido: String? = null
+)
+
 // --- Interfaz API ---
 interface AuthApi {
 
@@ -103,4 +115,16 @@ interface AuthApi {
     // 5. Datos del usuario logueado (requiere token)
     @GET("api/v1/usuarios/me")
     suspend fun me(): Response<UsuarioMeDto>
+
+    @PATCH("api/v1/usuarios/me")
+    suspend fun updateMe(@Body request: UpdateMeRequest): Response<UsuarioMeDto>
+
+    // Sube la foto de perfil (campo "foto")
+    @Multipart
+    @PUT("api/v1/usuarios/me/foto")
+    suspend fun subirFoto(@Part foto: MultipartBody.Part): Response<UsuarioMeDto>
+
+    // Borra la foto de perfil
+    @DELETE("api/v1/usuarios/me/foto")
+    suspend fun borrarFoto(): Response<UsuarioMeDto>
 }
