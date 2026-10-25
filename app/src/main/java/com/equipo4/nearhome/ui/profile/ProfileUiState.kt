@@ -25,6 +25,7 @@ val LanguageOptions = listOf("Español", "English")
 
 data class ProfileUiState(
     val userName: String = "",
+    val userPhotoUrl: String? = null,
     val role: UserRole = UserRole.COMPRADOR,
     val language: String = "Español",
     val darkModeEnabled: Boolean = false

@@ -36,6 +36,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
 import kotlinx.coroutines.launch
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 
 private enum class SettingSheetType { LANGUAGE, DARK_MODE }
 
@@ -207,15 +210,25 @@ private fun ProfileHeader(uiState: ProfileUiState) {
         Box(
             modifier = Modifier
                 .size(60.dp)
-                .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape),
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.surfaceVariant),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                Icons.Outlined.Person,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(34.dp)
-            )
+            if (uiState.userPhotoUrl != null) {
+                AsyncImage(
+                    model = uiState.userPhotoUrl,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                Icon(
+                    Icons.Outlined.Person,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(34.dp)
+                )
+            }
         }
         Spacer(Modifier.width(16.dp))
         Column {
