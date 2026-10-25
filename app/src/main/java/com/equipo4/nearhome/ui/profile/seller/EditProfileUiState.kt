@@ -27,6 +27,7 @@ data class EditProfileUiState(
     val showDiscardDialog: Boolean = false,
     val showCameraPermissionRationale: Boolean = false,
     val isSaving: Boolean = false,
+    val saveError: String? = null,
     val isSaveSuccess: Boolean = false
 ) {
     val hasChanges: Boolean
