@@ -898,4 +898,24 @@
     <string name="dialog_delete_title">¿Eliminar tu cuenta?</string>
     <string name="dialog_delete_text">Se borrarán tu perfil, tus anuncios y todos tus datos. Esta acción no se puede deshacer.</string>
     <string name="dialog_delete_placeholder">Escribe ELIMINAR para confirmar</string>
+
+    <!-- Planes (API) -->
+    <string name="plan_price_amount">$%1$d</string>
+    <string name="plan_limit_single">Hasta 1 publicación activa</string>
+    <string name="plan_limit_multi_format">Hasta %1$d publicaciones activas</string>
+    <string name="plan_limit_unlimited">Publicaciones activas ilimitadas</string>
+    <string name="plan_vis_1">Visibilidad estándar</string>
+    <string name="plan_vis_2">Visibilidad destacada</string>
+    <string name="plan_vis_3">Visibilidad máxima</string>
+    <string name="plan_full_name_format">Plan %1$s</string>
+    <string name="plan_status_active">Activo</string>
+    <string name="plan_status_expired">Vencido</string>
+    <string name="plan_expires_format">Vence el %1$s</string>
+    <string name="plan_expired_format">Venció el %1$s</string>
+    <string name="plan_current_btn">Plan actual</string>
+    <string name="plan_free_trial_dialog_text">Activa tu mes gratis del plan %1$s. Después de %2$d días tu plan vence y puedes contratarlo por %3$s</string>
+    <string name="free_trial_activate_btn">Activar</string>
+    <string name="plans_load_error">No se pudieron cargar los planes</string>
+    <string name="plans_retry">Reintentar</string>
+    <string name="network_error_connection">No se pudo conectar con el servidor. Revisa tu conexión a internet e inténtalo de nuevo</string>
 </resources>

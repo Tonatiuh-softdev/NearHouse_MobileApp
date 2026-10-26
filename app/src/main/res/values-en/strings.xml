@@ -898,4 +898,24 @@
     <string name="dialog_delete_title">Delete your account?</string>
     <string name="dialog_delete_text">Your profile, listings, and all your data will be permanently deleted. This action cannot be undone.</string>
     <string name="dialog_delete_placeholder">Type DELETE to confirm</string>
+
+    <!-- Plans (API) -->
+    <string name="plan_price_amount">$%1$d</string>
+    <string name="plan_limit_single">Up to 1 active listing</string>
+    <string name="plan_limit_multi_format">Up to %1$d active listings</string>
+    <string name="plan_limit_unlimited">Unlimited active listings</string>
+    <string name="plan_vis_1">Standard visibility</string>
+    <string name="plan_vis_2">Featured visibility</string>
+    <string name="plan_vis_3">Maximum visibility</string>
+    <string name="plan_full_name_format">Plan %1$s</string>
+    <string name="plan_status_active">Active</string>
+    <string name="plan_status_expired">Expired</string>
+    <string name="plan_expires_format">Expires on %1$s</string>
+    <string name="plan_expired_format">Expired on %1$s</string>
+    <string name="plan_current_btn">Current plan</string>
+    <string name="plan_free_trial_dialog_text">Activate your free month of the %1$s plan. After %2$d days your plan expires and you can subscribe to it for %3$s</string>
+    <string name="free_trial_activate_btn">Activate</string>
+    <string name="plans_load_error">Could not load the plans</string>
+    <string name="plans_retry">Retry</string>
+    <string name="network_error_connection">Could not connect to the server. Check your internet connection and try again</string>
 </resources>
