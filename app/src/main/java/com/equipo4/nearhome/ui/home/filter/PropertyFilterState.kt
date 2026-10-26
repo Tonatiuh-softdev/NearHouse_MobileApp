@@ -141,7 +141,7 @@ fun PropertyFilterState.buildSummaryText(): String {
     val modeStr = when (listingType) {
         ListingType.VENTA -> AppStrings.get(R.string.filter_summary_for_sale)
         ListingType.RENTA -> AppStrings.get(R.string.filter_summary_for_rent)
-        null -> AppStrings.get(R.string.filter_summary_properties)
+        null -> ""
     }
     val typeStr = when {
         propertyTypes.size == 1 -> when (propertyTypes.first()) {
@@ -152,7 +152,7 @@ fun PropertyFilterState.buildSummaryText(): String {
         propertyTypes.size > 1 -> "${propertyTypes.size} tipos"
         else -> AppStrings.get(R.string.filter_summary_properties)
     }
-    val typeForm = "$typeStr $modeStr"
+    val typeForm = "$typeStr $modeStr".trim()
 
     val details = mutableListOf<String>()
     if (selectedColonias.isNotEmpty()) {
