@@ -41,6 +41,7 @@ fun SearchFiltersScreen(
     onApplySuccess: () -> Unit = {}
 ) {
     val state by viewModel.filterState.collectAsState()
+    val coloniasState by viewModel.coloniasState.collectAsState()
     val primaryColor = adminAccent()
 
     var minPriceStr by remember(state.minPrice) { mutableStateOf(state.minPrice?.let { if (it > 0) it.toInt().toString() else "" } ?: "") }
@@ -366,26 +367,77 @@ fun SearchFiltersScreen(
                                 iconOnRight = false
                             )
 
-                            FlowRow(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                verticalArrangement = Arrangement.spacedBy(2.dp)
-                            ) {
-                                ALL_COLONIAS.forEach { colonia ->
-                                    val isSelected = colonia in state.selectedColonias
-                                    Box(modifier = Modifier.fillMaxWidth(0.48f)) {
-                                        FlatCheckItem(
-                                            text = colonia,
-                                            checked = isSelected,
-                                            onCheckedChange = { checked ->
-                                                viewModel.updateFilter { s ->
-                                                    val next = if (checked) s.selectedColonias + colonia else s.selectedColonias - colonia
-                                                    s.copy(selectedColonias = next)
-                                                }
-                                            },
-                                            primaryColor = primaryColor,
-                                            iconOnRight = false
+                            // El catálogo sale del API: solo colonias con anuncios publicados
+                            when {
+                                coloniasState.loading -> Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(18.dp),
+                                        strokeWidth = 2.dp,
+                                        color = primaryColor
+                                    )
+                                    Text(
+                                        stringResource(R.string.search_filters_colonias_loading),
+                                        fontSize = 13.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+
+                                coloniasState.error -> Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 12.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        stringResource(R.string.search_filters_colonias_error),
+                                        fontSize = 13.sp,
+                                        color = MaterialTheme.colorScheme.error,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    TextButton(onClick = { viewModel.reintentarColonias() }) {
+                                        Text(
+                                            stringResource(R.string.search_filters_colonias_retry),
+                                            color = primaryColor,
+                                            fontWeight = FontWeight.SemiBold
                                         )
+                                    }
+                                }
+
+                                coloniasState.items.isEmpty() -> Text(
+                                    stringResource(R.string.search_filters_colonias_empty),
+                                    fontSize = 13.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)
+                                )
+
+                                else -> FlowRow(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                                ) {
+                                    coloniasState.items.forEach { colonia ->
+                                        val isSelected = colonia in state.selectedColonias
+                                        Box(modifier = Modifier.fillMaxWidth(0.48f)) {
+                                            FlatCheckItem(
+                                                text = colonia,
+                                                checked = isSelected,
+                                                onCheckedChange = { checked ->
+                                                    viewModel.updateFilter { s ->
+                                                        val next = if (checked) s.selectedColonias + colonia else s.selectedColonias - colonia
+                                                        s.copy(selectedColonias = next)
+                                                    }
+                                                },
+                                                primaryColor = primaryColor,
+                                                iconOnRight = false
+                                            )
+                                        }
                                     }
                                 }
                             }

@@ -918,4 +918,9 @@
     <string name="plans_load_error">No se pudieron cargar los planes</string>
     <string name="plans_retry">Reintentar</string>
     <string name="network_error_connection">No se pudo conectar con el servidor. Revisa tu conexión a internet e inténtalo de nuevo</string>
+
+    <string name="search_filters_colonias_loading">Cargando colonias…</string>
+    <string name="search_filters_colonias_error">No se pudieron cargar las colonias</string>
+    <string name="search_filters_colonias_empty">Aún no hay colonias con anuncios</string>
+    <string name="search_filters_colonias_retry">Reintentar</string>
 </resources>

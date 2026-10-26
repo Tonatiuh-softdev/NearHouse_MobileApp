@@ -918,4 +918,9 @@
     <string name="plans_load_error">Could not load the plans</string>
     <string name="plans_retry">Retry</string>
     <string name="network_error_connection">Could not connect to the server. Check your internet connection and try again</string>
+
+    <string name="search_filters_colonias_loading">Loading neighborhoods…</string>
+    <string name="search_filters_colonias_error">Could not load neighborhoods</string>
+    <string name="search_filters_colonias_empty">There are no neighborhoods with listings yet</string>
+    <string name="search_filters_colonias_retry">Retry</string>
 </resources>
