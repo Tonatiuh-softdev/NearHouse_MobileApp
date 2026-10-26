@@ -15,24 +15,31 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-import androidx.compose.ui.res.stringResource
 import com.equipo4.nearhome.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CheckoutScreen(
-    planId: String,
+    planId: Int,
     onBackClick: () -> Unit = {},
     onSuccessFinished: () -> Unit = {}
 ) {
-    val plan = remember(planId) { SubscriptionPlan.getById(planId) }
-    val viewModel: CheckoutViewModel = remember(plan) { CheckoutViewModel(plan) }
+    val context = LocalContext.current
+    val plan = remember(planId) { SubscriptionPlanCache.find(planId) }
+    if (plan == null) {
+        LaunchedEffect(Unit) { onBackClick() }
+        return
+    }
+    val viewModel: CheckoutViewModel = remember(plan) {
+        CheckoutViewModel(plan, SubscriptionRepository(context))
+    }
 
     val cardNumber by viewModel.cardNumber.collectAsState()
     val cardHolder by viewModel.cardHolder.collectAsState()
@@ -48,6 +55,7 @@ fun CheckoutScreen(
     val showGeneralError by viewModel.showGeneralError.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val successMessage by viewModel.successMessage.collectAsState()
+    val apiError by viewModel.apiError.collectAsState()
 
     Scaffold(
         topBar = {
@@ -85,7 +93,7 @@ fun CheckoutScreen(
                     .verticalScroll(rememberScrollState())
                     .padding(20.dp)
             ) {
-                // Banner verde de prueba gratuita (con icono Filled.Redeem para caja de regalo sólida)
+                // Banner de prueba gratuita
                 if (plan.isFreeTrial) {
                     Surface(
                         color = SubscriptionColors.successBannerBg,
@@ -125,7 +133,7 @@ fun CheckoutScreen(
                     Spacer(Modifier.height(16.dp))
                 }
 
-                // Resumen del plan (limpio sobre el fondo)
+                // Resumen del plan
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -150,7 +158,7 @@ fun CheckoutScreen(
                     Spacer(Modifier.width(8.dp))
                     Row(verticalAlignment = Alignment.Bottom) {
                         Text(
-                            text = plan.priceText.substringBefore("/"),
+                            text = plan.priceText,
                             fontSize = 24.sp,
                             fontWeight = FontWeight.Bold,
                             color = SubscriptionColors.brand,
@@ -158,7 +166,7 @@ fun CheckoutScreen(
                             softWrap = false
                         )
                         Text(
-                            text = "/mes",
+                            text = stringResource(R.string.price_per_month),
                             fontSize = 14.sp,
                             color = SubscriptionColors.textMuted,
                             modifier = Modifier.padding(bottom = 2.dp),
@@ -187,7 +195,7 @@ fun CheckoutScreen(
                     OutlinedTextField(
                         value = cardNumber,
                         onValueChange = viewModel::onCardNumberChanged,
-                        placeholder = { Text("1234 1234 1234 1234") },
+                        placeholder = { Text(stringResource(R.string.checkout_card_number_hint)) },
                         isError = cardNumberError != null,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         shape = RoundedCornerShape(12.dp),
@@ -200,8 +208,8 @@ fun CheckoutScreen(
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
-                    if (cardNumberError != null) {
-                        Text(cardNumberError!!, fontSize = 12.sp, color = SubscriptionColors.errorText, modifier = Modifier.padding(top = 2.dp))
+                    cardNumberError?.let {
+                        Text(it, fontSize = 12.sp, color = SubscriptionColors.errorText, modifier = Modifier.padding(top = 2.dp))
                     }
                 }
 
@@ -226,8 +234,8 @@ fun CheckoutScreen(
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
-                    if (cardHolderError != null) {
-                        Text(cardHolderError!!, fontSize = 12.sp, color = SubscriptionColors.errorText, modifier = Modifier.padding(top = 2.dp))
+                    cardHolderError?.let {
+                        Text(it, fontSize = 12.sp, color = SubscriptionColors.errorText, modifier = Modifier.padding(top = 2.dp))
                     }
                 }
 
@@ -244,7 +252,7 @@ fun CheckoutScreen(
                         OutlinedTextField(
                             value = expiryDate,
                             onValueChange = viewModel::onExpiryChanged,
-                            placeholder = { Text("MM / AA") },
+                            placeholder = { Text(stringResource(R.string.checkout_expiry_hint)) },
                             isError = expiryError != null,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             shape = RoundedCornerShape(12.dp),
@@ -257,8 +265,8 @@ fun CheckoutScreen(
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth()
                         )
-                        if (expiryError != null) {
-                            Text(expiryError!!, fontSize = 12.sp, color = SubscriptionColors.errorText, modifier = Modifier.padding(top = 2.dp))
+                        expiryError?.let {
+                            Text(it, fontSize = 12.sp, color = SubscriptionColors.errorText, modifier = Modifier.padding(top = 2.dp))
                         }
                     }
 
@@ -268,7 +276,7 @@ fun CheckoutScreen(
                         OutlinedTextField(
                             value = cvv,
                             onValueChange = viewModel::onCvvChanged,
-                            placeholder = { Text("123") },
+                            placeholder = { Text(stringResource(R.string.checkout_cvv_hint)) },
                             isError = cvvError != null,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             shape = RoundedCornerShape(12.dp),
@@ -281,8 +289,8 @@ fun CheckoutScreen(
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth()
                         )
-                        if (cvvError != null) {
-                            Text(cvvError!!, fontSize = 12.sp, color = SubscriptionColors.errorText, modifier = Modifier.padding(top = 2.dp))
+                        cvvError?.let {
+                            Text(it, fontSize = 12.sp, color = SubscriptionColors.errorText, modifier = Modifier.padding(top = 2.dp))
                         }
                     }
                 }
@@ -336,7 +344,7 @@ fun CheckoutScreen(
                     }
                 }
 
-                // Mensaje de error general debajo del botón con icono de advertencia
+                // Error de validación del formulario
                 if (showGeneralError) {
                     Spacer(Modifier.height(6.dp))
                     Row(
@@ -359,6 +367,12 @@ fun CheckoutScreen(
                             color = SubscriptionColors.errorStrong
                         )
                     }
+                }
+
+                // Error de la API (sin internet, plan duplicado, etc.)
+                apiError?.let {
+                    Spacer(Modifier.height(6.dp))
+                    Text(it, fontSize = 13.sp, color = SubscriptionColors.errorStrong)
                 }
 
                 Spacer(Modifier.height(16.dp))

@@ -24,4 +24,8 @@ object CurrentUserStore {
     fun clear() {
         _user.value = null
     }
+
+    fun set(user: UsuarioMeDto) {
+        _user.value = user
+    }
 }

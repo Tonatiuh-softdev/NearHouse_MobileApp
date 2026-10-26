@@ -10,7 +10,10 @@ import java.util.Calendar
 import com.equipo4.nearhome.util.AppStrings
 import com.equipo4.nearhome.R
 
-class CheckoutViewModel(val plan: SubscriptionPlan) : ViewModel() {
+class CheckoutViewModel(
+    val plan: SubscriptionPlan,
+    private val repo: SubscriptionRepository
+) : ViewModel() {
 
     val cardNumber = MutableStateFlow("")
     val cardHolder = MutableStateFlow("")
@@ -26,6 +29,7 @@ class CheckoutViewModel(val plan: SubscriptionPlan) : ViewModel() {
     val showGeneralError = MutableStateFlow(false)
     val isLoading = MutableStateFlow(false)
     val successMessage = MutableStateFlow<String?>(null)
+    val apiError = MutableStateFlow<String?>(null)
 
     fun onCardNumberChanged(input: String) {
         val digitsOnly = input.filter { it.isDigit() }.take(16)
@@ -140,18 +144,27 @@ class CheckoutViewModel(val plan: SubscriptionPlan) : ViewModel() {
         }
 
         showGeneralError.value = false
+        apiError.value = null
         isLoading.value = true
 
         viewModelScope.launch {
-            delay(2000) // Simular cobro 2 segundos
-            isLoading.value = false
-            successMessage.value = if (plan.isFreeTrial) {
-                AppStrings.get(R.string.success_trial_msg)
-            } else {
-                AppStrings.get(R.string.success_paid_msg, plan.name)
+            // Los datos de la tarjeta NO se mandan a la API: solo el id del plan
+            when (val r = repo.contratar(plan.id)) {
+                is Resultado.Ok -> {
+                    isLoading.value = false
+                    successMessage.value = if (plan.isFreeTrial) {
+                        AppStrings.get(R.string.success_trial_msg)
+                    } else {
+                        AppStrings.get(R.string.success_paid_msg, plan.name)
+                    }
+                    delay(1500)
+                    onSuccessNavigation()
+                }
+                is Resultado.Error -> {
+                    isLoading.value = false
+                    apiError.value = r.mensaje
+                }
             }
-            delay(1500) // Mostrar mensaje de éxito 1.5s
-            onSuccessNavigation()
         }
     }
 }

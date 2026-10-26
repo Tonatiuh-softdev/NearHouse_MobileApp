@@ -138,35 +138,29 @@ fun AccountAdminScreen(
                 if (userData.role == UserRole.VENDEDOR || userData.role == UserRole.COMPRADOR) {
                     SectionHeader(title = stringResource(id = R.string.section_membership))
 
-                    if (userData.role == UserRole.VENDEDOR) {
-                        val statusText = stringResource(
-                            id = R.string.seller_plan_status_format,
-                            userData.planName ?: "",
-                            userData.planStatus ?: ""
-                        )
-                        val renewalText = stringResource(
-                            id = R.string.seller_renewal_format,
-                            userData.renewalDate ?: ""
-                        )
-
-                        OptionRowItem(
-                            icon = Icons.Outlined.PublishedWithChanges,
-                            title = stringResource(id = R.string.label_current_plan),
-                            subtitle = "$statusText\n$renewalText",
-                            iconBackgroundColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                            iconTintColor = MaterialTheme.colorScheme.onSurface,
-                            onClick = onNavigateToPlans
-                        )
-                    } else if (userData.role == UserRole.COMPRADOR) {
-                        OptionRowItem(
-                            icon = Icons.Outlined.CardMembership,
-                            title = stringResource(id = R.string.label_current_plan),
-                            subtitle = "${stringResource(id = R.string.buyer_no_plan)}\n${stringResource(id = R.string.buyer_plan_subtitle)}",
-                            iconBackgroundColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                            iconTintColor = MaterialTheme.colorScheme.onSurface,
-                            onClick = onNavigateToPlans
-                        )
-                    }
+                    val planName = userData.planName
+                    OptionRowItem(
+                        icon = Icons.Outlined.PublishedWithChanges,
+                        title = stringResource(id = R.string.label_current_plan),
+                        subtitle = if (planName != null) {
+                            stringResource(id = R.string.seller_plan_status_format, planName, userData.planStatus.orEmpty())
+                        } else {
+                            stringResource(id = R.string.buyer_no_plan)
+                        },
+                        secondLine = when {
+                            planName == null -> stringResource(id = R.string.buyer_plan_subtitle)
+                            userData.planExpired -> stringResource(id = R.string.plan_expired_format, userData.renewalDate.orEmpty())
+                            else -> stringResource(id = R.string.plan_expires_format, userData.renewalDate.orEmpty())
+                        },
+                        secondLineColor = if (userData.planExpired) {
+                            MaterialTheme.colorScheme.error
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        },
+                        iconBackgroundColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        iconTintColor = MaterialTheme.colorScheme.onSurface,
+                        onClick = onNavigateToPlans
+                    )
                 }
 
                 // ==================== GESTIÓN DE LA CUENTA ====================
@@ -284,6 +278,8 @@ private fun OptionRowItem(
     icon: ImageVector,
     title: String,
     subtitle: String,
+    secondLine: String? = null,
+    secondLineColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     titleColor: Color = MaterialTheme.colorScheme.onSurface,
     iconBackgroundColor: Color = Color.Transparent,
     iconTintColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -297,36 +293,21 @@ private fun OptionRowItem(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
-            modifier = Modifier
-                .size(36.dp)
-                .background(color = iconBackgroundColor, shape = CircleShape),
+            modifier = Modifier.size(36.dp).background(color = iconBackgroundColor, shape = CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = iconTintColor,
-                modifier = Modifier.size(18.dp)
-            )
+            Icon(imageVector = icon, contentDescription = null, tint = iconTintColor, modifier = Modifier.size(18.dp))
         }
 
         Spacer(modifier = Modifier.width(14.dp))
 
         Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = titleColor,
-                maxLines = 1
-            )
+            Text(text = title, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = titleColor, maxLines = 1)
             Spacer(modifier = Modifier.height(2.dp))
-            Text(
-                text = subtitle,
-                fontSize = 12.sp,
-                lineHeight = 16.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Text(text = subtitle, fontSize = 12.sp, lineHeight = 16.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (secondLine != null) {
+                Text(text = secondLine, fontSize = 12.sp, lineHeight = 16.sp, color = secondLineColor)
+            }
         }
 
         Spacer(modifier = Modifier.width(8.dp))
