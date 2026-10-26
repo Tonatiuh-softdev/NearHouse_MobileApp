@@ -16,27 +16,19 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
 import com.equipo4.nearhome.ui.profile.UserRole
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
-import coil.compose.AsyncImage
-
-// Si tu componente de tarjeta en 'home' tiene otro nombre, cambia este import:
-// import com.equipo4.nearhome.ui.home.NOMBRE_DE_TU_TARJETA
-
-private val TextDark = Color(0xFF1F2937)
-private val SubtitleGray = Color(0xFF6B7280)
-private val AvatarBg = Color(0xFFE0F2FE)
-private val PrimaryButtonBg = Color(0xFF6C8DAE)
 
 @Composable
 fun MyListingsScreen(
@@ -58,7 +50,7 @@ fun MyListingsScreen(
 
     Scaffold(
         bottomBar = { NearHomeBottomBar(selectedTab = 3, onTabSelected = onBottomTabSelected) },
-        containerColor = Color.White
+        containerColor = MaterialTheme.colorScheme.background // Adaptable a modo oscuro/claro
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
@@ -85,29 +77,31 @@ fun MyListingsScreen(
                 items(
                     items = uiState.listings,
                     key = { it.property.id }
-                ) { item ->        Box(
-                    modifier = Modifier
-                        .size(90.dp)
-                        .clip(CircleShape)
-                        .background(AvatarBg),
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (uiState.userPhotoUrl != null) {
-                        AsyncImage(
-                            model = uiState.userPhotoUrl,
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    } else {
-                        Icon(
-                            imageVector = Icons.Outlined.Person,
-                            contentDescription = null,
-                            tint = Color(0xFF0284C7),
-                            modifier = Modifier.size(50.dp)
-                        )
+                ) { item ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp, vertical = 8.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant
+                        ),
+                        onClick = { onPropertyClick(item.property.id) }
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = item.property.id,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            StatusChip(status = item.status)
+                        }
                     }
-                }
                 }
             }
         }
@@ -137,15 +131,15 @@ private fun HeaderSection(
             IconButton(onClick = onBackClick) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Regresar",
-                    tint = TextDark
+                    contentDescription = stringResource(R.string.cd_back),
+                    tint = MaterialTheme.colorScheme.onBackground
                 )
             }
             IconButton(onClick = onEditProfileClick) {
                 Icon(
                     imageVector = Icons.Outlined.Edit,
-                    contentDescription = "Editar perfil",
-                    tint = TextDark
+                    contentDescription = stringResource(R.string.cd_edit_profile),
+                    tint = MaterialTheme.colorScheme.onBackground
                 )
             }
         }
@@ -157,7 +151,7 @@ private fun HeaderSection(
             modifier = Modifier
                 .size(90.dp)
                 .clip(CircleShape)
-                .background(AvatarBg),
+                .background(MaterialTheme.colorScheme.primaryContainer),
             contentAlignment = Alignment.Center
         ) {
             if (uiState.userPhotoUrl != null) {
@@ -171,7 +165,7 @@ private fun HeaderSection(
                 Icon(
                     imageVector = Icons.Outlined.Person,
                     contentDescription = null,
-                    tint = Color(0xFF0284C7),
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
                     modifier = Modifier.size(50.dp)
                 )
             }
@@ -184,7 +178,7 @@ private fun HeaderSection(
             text = uiState.userName.ifBlank { stringResource(R.string.profile_default_name) },
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
-            color = TextDark
+            color = MaterialTheme.colorScheme.onBackground
         )
 
         Spacer(Modifier.height(6.dp))
@@ -194,14 +188,14 @@ private fun HeaderSection(
             Icon(
                 imageVector = Icons.Outlined.Email,
                 contentDescription = null,
-                tint = SubtitleGray,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(16.dp)
             )
             Spacer(Modifier.width(6.dp))
             Text(
                 text = uiState.userEmail,
                 fontSize = 13.sp,
-                color = SubtitleGray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
@@ -212,14 +206,14 @@ private fun HeaderSection(
             Icon(
                 imageVector = Icons.Outlined.Phone,
                 contentDescription = null,
-                tint = SubtitleGray,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(16.dp)
             )
             Spacer(Modifier.width(6.dp))
             Text(
                 text = uiState.userPhone,
                 fontSize = 13.sp,
-                color = SubtitleGray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
@@ -230,15 +224,15 @@ private fun HeaderSection(
             onClick = onCreateListingClick,
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = PrimaryButtonBg,
-                contentColor = Color.White
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
             ),
             modifier = Modifier
                 .width(180.dp)
                 .height(42.dp)
         ) {
             Text(
-                text = "Crear anuncio +",
+                text = stringResource(R.string.action_create_listing),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Medium
             )
@@ -256,7 +250,7 @@ private fun StatusChip(status: ListingStatus, modifier: Modifier = Modifier) {
         modifier = modifier
     ) {
         Text(
-            text = status.label,
+            text = stringResource(id = status.labelRes),
             color = Color.White,
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
@@ -274,9 +268,9 @@ private fun EmptyListingsMessage() {
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = "Aún no tienes anuncios. Crea tu primer anuncio para que los compradores lo vean.",
+            text = stringResource(R.string.empty_listings_message),
             fontSize = 14.sp,
-            color = SubtitleGray,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
             lineHeight = 20.sp
         )

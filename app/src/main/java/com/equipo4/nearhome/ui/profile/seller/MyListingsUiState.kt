@@ -1,12 +1,14 @@
 package com.equipo4.nearhome.ui.profile.seller
 
+import androidx.annotation.StringRes
+import com.equipo4.nearhome.R
 import com.equipo4.nearhome.domain.model.Property
 import com.equipo4.nearhome.ui.profile.UserRole
 
-enum class ListingStatus(val label: String, val colorHex: Long) {
-    IN_REVIEW("En revisión", 0xFFF97316), // Naranja
-    PUBLISHED("Publicado", 0xFF22C55E),   // Verde
-    REJECTED("Rechazado", 0xFFEF4444)     // Rojo
+enum class ListingStatus(@StringRes val labelRes: Int, val colorHex: Long) {
+    IN_REVIEW(R.string.status_in_review, 0xFFF97316), // Naranja
+    PUBLISHED(R.string.status_published, 0xFF22C55E),   // Verde
+    REJECTED(R.string.status_rejected, 0xFFEF4444)     // Rojo
 }
 
 data class MyListingItem(

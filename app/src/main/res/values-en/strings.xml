@@ -982,6 +982,19 @@
     <string name="report_common_discard">Discard</string>
     <string name="report_common_cancel">Cancel</string>
 
+    <!-- Profile & Navigation -->
+    <string name="cd_back">Back</string>
+    <string name="cd_edit_profile">Edit profile</string>
+
+    <!-- Listing Actions -->
+    <string name="action_create_listing">Create listing +</string>
+    <string name="empty_listings_message">You don\'t have any listings yet. Create your first listing so buyers can see it.</string>
+
+    <!-- Listing Statuses -->
+    <string name="status_in_review">Under review</string>
+    <string name="status_published">Published</string>
+    <string name="status_rejected">Rejected</string>
+
     <string name="create_listing_error_description_min">Enter at least 30 characters</string>
     <string name="create_listing_description_area_hint">Include the property area (m²)</string>
     <string name="create_listing_redetect">Detect again</string>
