@@ -9,6 +9,7 @@ data class UserAccountData(
     val role: UserRole,
     val planName: String? = null,
     val planStatus: String? = null,
+    val planExpired: Boolean = false,
     val renewalDate: String? = null
 )
 
