@@ -10,12 +10,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -34,6 +36,7 @@ fun CreateListingPreviewScreen(
     onFinished: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
+    val context = LocalContext.current
     val cs = MaterialTheme.colorScheme
     val opLabel = stringResource(if (state.isRent) R.string.create_listing_op_rent else R.string.create_listing_op_buy)
     val typeLabel = stringResource(propertyTypeRes(state.propertyType))
@@ -93,7 +96,7 @@ fun CreateListingPreviewScreen(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Button(
-                    onClick = { viewModel.submit() },
+                    onClick = { viewModel.submit(context) },
                     enabled = !state.submitting && !state.submitted,
                     shape = RoundedCornerShape(10.dp),
                     modifier = Modifier.fillMaxWidth().height(48.dp)
@@ -207,6 +210,21 @@ fun CreateListingPreviewScreen(
                             )
                         }
                     }
+                }
+            }
+
+            // Si el API rechazó el anuncio o falló la red, el mensaje sale aquí y se puede reintentar
+            state.submitError?.let { message ->
+                Row(
+                    Modifier.fillMaxWidth()
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(cs.errorContainer)
+                        .padding(12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(Icons.Default.Warning, null, tint = cs.error, modifier = Modifier.size(18.dp))
+                    Text(message, style = MaterialTheme.typography.bodySmall, color = cs.onErrorContainer)
                 }
             }
 

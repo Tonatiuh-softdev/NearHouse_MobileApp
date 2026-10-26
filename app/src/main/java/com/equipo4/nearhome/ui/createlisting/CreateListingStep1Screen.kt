@@ -21,7 +21,6 @@ import com.equipo4.nearhome.R
 import com.equipo4.nearhome.domain.model.ListingType
 import com.equipo4.nearhome.domain.model.PropertyType
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
-import com.equipo4.nearhome.ui.home.filter.ALL_COLONIAS
 
 @Composable
 fun CreateListingStep1Screen(
@@ -165,7 +164,6 @@ private fun FieldsCard(state: CreateListingState, vm: CreateListingViewModel) {
     val cs = MaterialTheme.colorScheme
     val isRent = state.listingType == ListingType.RENTA
     val required = stringResource(R.string.create_listing_error_required)
-    val placeholder = stringResource(R.string.create_listing_select)
 
     val opLabel = stringResource(if (isRent) R.string.create_listing_op_rent else R.string.create_listing_op_buy)
     val typeLabel = stringResource(
@@ -176,7 +174,7 @@ private fun FieldsCard(state: CreateListingState, vm: CreateListingViewModel) {
         }
     )
 
-    // Un solo panel abierto a la vez ("colonia", "bedrooms", ...)
+    // Un solo panel abierto a la vez ("bedrooms", "bathrooms", ...)
     var openKey by remember(state.propertyType) { mutableStateOf<String?>(null) }
     val toggle: (String) -> Unit = { key ->
         if (openKey == key) { vm.touch(key); openKey = null } else openKey = key
@@ -223,25 +221,7 @@ private fun FieldsCard(state: CreateListingState, vm: CreateListingViewModel) {
             PriceField(state, vm, isRent, required)
         }
 
-        // Ubicación (colonia): panel desplegable como en Filtros
-        LabeledField(
-            stringResource(R.string.create_listing_location),
-            if (state.isInvalid("colonia")) required else null
-        ) {
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                DropdownHeader(
-                    text = state.colonia, placeholder = placeholder,
-                    expanded = openKey == "colonia", isError = state.isInvalid("colonia"),
-                    onClick = { toggle("colonia") }
-                )
-                if (openKey == "colonia") {
-                    SingleChoicePanel(ALL_COLONIAS, state.colonia) { c ->
-                        vm.update("colonia") { it.copy(colonia = c) }
-                        openKey = null
-                    }
-                }
-            }
-        }
+        // La colonia ya no se elige aquí: se detecta con la ubicación de la foto (Paso 2)
 
         when (state.propertyType) {
             PropertyType.DEPARTAMENTO -> {

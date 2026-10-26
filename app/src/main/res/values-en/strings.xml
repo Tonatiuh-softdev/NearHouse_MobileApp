@@ -981,4 +981,14 @@
     <string name="report_common_remove">Remove</string>
     <string name="report_common_discard">Discard</string>
     <string name="report_common_cancel">Cancel</string>
+
+    <string name="create_listing_error_description_min">Enter at least 30 characters</string>
+    <string name="create_listing_description_area_hint">Include the property area (m²)</string>
+    <string name="create_listing_redetect">Detect again</string>
+    <string name="create_listing_hint_colonia_undetected">Detect the neighborhood to continue</string>
+    <string name="create_listing_error_network">No internet connection. Check your connection and try again.</string>
+    <string name="create_listing_error_session">Your session has expired. Please log in again.</string>
+    <string name="create_listing_colonia_undetected">We couldnt detect the neighborhood at this location. Try detecting the location again.</string>
+    <string name="create_listing_error_generic">Couldnt submit the listing. Please try again.</string>
+    <string name="create_listing_error_forbidden">Your account isnt allowed to publish listings.</string>
 </resources>
