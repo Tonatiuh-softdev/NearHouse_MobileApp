@@ -42,7 +42,8 @@ fun LoginScreen(
     viewModel: LoginViewModel = viewModel(),
     onNavigateToRegister: () -> Unit = {},
     onNavigateToForgotPassword: () -> Unit = {},
-    onLoginSuccess: () -> Unit = {}
+    onLoginSuccess: () -> Unit = {},
+    onGoogleAuthTokenReceived: (String) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
@@ -65,7 +66,11 @@ fun LoginScreen(
         onPasswordChange = viewModel::onPasswordChanged,
         onTogglePasswordVisibility = viewModel::togglePasswordVisibility,
         onLoginClick = viewModel::onLoginClicked,
-        onGoogleLoginClick = { viewModel.onGoogleLoginClicked(context) },
+        onGoogleLoginClick = {
+            viewModel.onGoogleLoginClicked(context) { token ->
+                onGoogleAuthTokenReceived(token)
+            }
+        },
         onForgotPasswordClick = onNavigateToForgotPassword,
         onRegisterClick = onNavigateToRegister
     )

@@ -1,6 +1,7 @@
 package com.equipo4.nearhome
 
 import android.graphics.Color
+import android.widget.Toast
 import com.equipo4.nearhome.ui.theme.NearHomeTheme
 import androidx.compose.foundation.isSystemInDarkTheme
 import com.equipo4.nearhome.data.local.SettingsManager
@@ -191,6 +192,10 @@ fun NearHouseApp() {
             is GoogleAuthState.RequiresRegistration -> {
                 navController.navigate(AppRoutes.COMPLETAR_PERFIL_GOOGLE)
             }
+            is GoogleAuthState.Error -> {
+                Toast.makeText(context, (googleAuthState as GoogleAuthState.Error).mensaje, Toast.LENGTH_LONG).show()
+                googleAuthViewModel.reiniciarEstado()
+            }
             else -> {}
         }
     }
@@ -230,6 +235,9 @@ fun NearHouseApp() {
                     navController.navigate(AppRoutes.HOME) {
                         popUpTo(AppRoutes.LOGIN) { inclusive = true }
                     }
+                },
+                onGoogleAuthTokenReceived = { token ->
+                    googleAuthViewModel.procesarTokenGoogle(token)
                 }
             )
         }
@@ -250,6 +258,9 @@ fun NearHouseApp() {
                 },
                 onNavigateToPrivacy = {
                     navController.navigate(AppRoutes.PRIVACY_POLICY)
+                },
+                onGoogleAuthTokenReceived = { token ->
+                    googleAuthViewModel.procesarTokenGoogle(token)
                 }
             )
         }

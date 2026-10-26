@@ -149,7 +149,7 @@ class LoginViewModel(
         }
     }
 
-    fun onGoogleLoginClicked(context: Context) {
+    fun onGoogleLoginClicked(context: Context, onTokenReceived: (String) -> Unit) {
         viewModelScope.launch {
             _uiState.update {
                 it.copy(
@@ -166,8 +166,7 @@ class LoginViewModel(
                 onSuccess = { firebaseToken ->
                     _uiState.update { it.copy(isLoading = false) }
                     if (firebaseToken != null) {
-                        // Requisito Entregable 1: Mensaje temporal
-                        _uiState.update { it.copy(googleSuccessMessage = "Cuenta de Google lista") }
+                        onTokenReceived(firebaseToken)
                     }
                 },
                 onFailure = { error ->

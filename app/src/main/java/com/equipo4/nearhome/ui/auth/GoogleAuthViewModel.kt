@@ -52,7 +52,7 @@ class GoogleAuthViewModel(
                         _uiState.value = GoogleAuthState.RequiresRegistration(proofResponse)
                     } else {
                         // Casos A y B: Usuario existente o correo vinculado -> Inicia sesión
-                        sessionManager.setLoggedIn(true)
+                        guardarSesionDesdeJson(json)
                         _uiState.value = GoogleAuthState.SessionSuccess
                     }
                 } else {
@@ -89,7 +89,8 @@ class GoogleAuthViewModel(
                 )
                 val response = apiService.registrarConGoogleFinal(req)
                 if (response.isSuccessful && response.body() != null) {
-                    sessionManager.setLoggedIn(true)
+                    val json: JsonObject = response.body()!!
+                    guardarSesionDesdeJson(json)
                     _uiState.value = GoogleAuthState.SessionSuccess
                 } else {
                     val mensajeError = extraerMensajeError(response.errorBody()?.string())
@@ -103,11 +104,40 @@ class GoogleAuthViewModel(
         }
     }
 
+    private fun guardarSesionDesdeJson(json: JsonObject) {
+        val token = if (json.has("token")) json.get("token").asString else ""
+        if (json.has("usuario") && !json.get("usuario").isJsonNull) {
+            val usuarioObj = json.getAsJsonObject("usuario")
+            val id = if (usuarioObj.has("id")) usuarioObj.get("id").asInt else 0
+            val nombre = if (usuarioObj.has("nombre")) usuarioObj.get("nombre").asString else ""
+            val primerApellido = if (usuarioObj.has("primerApellido") && !usuarioObj.get("primerApellido").isJsonNull) usuarioObj.get("primerApellido").asString else ""
+            val nombreCompleto = if (primerApellido.isNotBlank()) "$nombre $primerApellido" else nombre
+            val rol = if (usuarioObj.has("rol")) usuarioObj.get("rol").asString else "Comprador"
+            val correo = if (usuarioObj.has("correo") && !usuarioObj.get("correo").isJsonNull) usuarioObj.get("correo").asString else null
+            val telefono = if (usuarioObj.has("telefono") && !usuarioObj.get("telefono").isJsonNull) usuarioObj.get("telefono").asString else null
+
+            sessionManager.saveSession(
+                token = token,
+                userId = id,
+                nombre = nombreCompleto,
+                rol = rol,
+                correo = correo,
+                telefono = telefono
+            )
+        } else {
+            sessionManager.saveToken(token)
+            sessionManager.setLoggedIn(true)
+        }
+    }
+
     private fun extraerMensajeError(errorJson: String?): String {
         if (errorJson.isNullOrBlank()) return "Error al procesar la solicitud"
         return try {
             val json = gson.fromJson(errorJson, JsonObject::class.java)
-            json.get("error")?.asString ?: "Error al procesar la solicitud"
+            json.get("error")?.asString
+                ?: json.get("mensaje")?.asString
+                ?: json.get("message")?.asString
+                ?: "Error al procesar la solicitud"
         } catch (_: Exception) {
             "Error al procesar la solicitud"
         }

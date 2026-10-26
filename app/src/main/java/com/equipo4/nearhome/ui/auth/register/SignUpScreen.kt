@@ -86,7 +86,8 @@ fun SignUpScreen(
     onNavigateToLogin: () -> Unit = {},
     onSignUpSuccess: () -> Unit = {},
     onNavigateToTerms: () -> Unit = {},
-    onNavigateToPrivacy: () -> Unit = {}
+    onNavigateToPrivacy: () -> Unit = {},
+    onGoogleAuthTokenReceived: (String) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
@@ -109,7 +110,11 @@ fun SignUpScreen(
             onConfirmPasswordChange = viewModel::onConfirmPasswordChanged,
             onTermsAcceptedChange = viewModel::onTermsAcceptedChanged,
             onSubmit = viewModel::onSubmitForm,
-            onGoogleLoginClick = { viewModel.onGoogleLoginClicked(context) },
+            onGoogleLoginClick = {
+                viewModel.onGoogleLoginClicked(context) { token ->
+                    onGoogleAuthTokenReceived(token)
+                }
+            },
             onNavigateToLogin = onNavigateToLogin,
             onNavigateToTerms = onNavigateToTerms,
             onNavigateToPrivacy = onNavigateToPrivacy
