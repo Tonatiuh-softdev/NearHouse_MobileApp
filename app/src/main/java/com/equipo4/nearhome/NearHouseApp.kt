@@ -119,6 +119,7 @@ object AppRoutes {
     const val CREATE_LISTING_STEP3 = "create_listing_step3"
     const val CREATE_LISTING_STEP4 = "create_listing_step4"
     const val CREATE_LISTING_PREVIEW = "create_listing_preview"
+    const val SUBSCRIPTION = "subscription"
 }
 
 class MainActivity : AppCompatActivity() {
@@ -344,15 +345,13 @@ fun NearHouseApp() {
                             CurrentUserStore.refresh(authApi)
                         }
                         when (CurrentUserStore.roleOrNull()) {
-                            UserRole.COMPRADOR -> navController.navigate(AppRoutes.CHOOSE_PLAN)
+                            UserRole.COMPRADOR -> navController.navigate(AppRoutes.SUBSCRIPTION)
                             null -> Unit // sin datos no se decide, para no mandar a un vendedor a suscripciones
                             else -> navController.navigate(AppRoutes.MY_LISTINGS)
                         }
                     }
                 },
-                onAccountClick = {
-                    navController.navigate(AppRoutes.ACCOUNT_ADMIN)
-                },
+                onAccountClick = { navController.navigate(AppRoutes.ACCOUNT_ADMIN) },
                 onAdminPanelClick = {
                     navController.navigate(AppRoutes.ADMIN_PANEL)
                 },
@@ -372,45 +371,6 @@ fun NearHouseApp() {
                     }
                 },
                 onBottomTabSelected = onBottomTab
-            )
-        }
-
-        // Pantalla: Administración de la Cuenta
-        composable(AppRoutes.ACCOUNT_ADMIN) {
-            val accountAdminViewModel: AccountAdminViewModel = viewModel()
-            AccountAdminRoute(
-                viewModel = accountAdminViewModel,
-                onNavigateBack = {
-                    navController.popBackStack()
-                },
-                onNavigateToPlans = {
-                    navController.navigate(AppRoutes.CHOOSE_PLAN)
-                }
-            )
-        }
-
-        // Pantalla: Elegir plan (Comprador)
-        composable(AppRoutes.CHOOSE_PLAN) {
-            ChoosePlanScreen(
-                onBackClick = { navController.popBackStack() },
-                onPlanSelected = { planId ->
-                    navController.navigate("${AppRoutes.CHECKOUT}/$planId")
-                }
-            )
-        }
-
-        // Pantalla: Pago (mes gratis o pago normal, según el plan)
-        composable(
-            route = "${AppRoutes.CHECKOUT}/{planId}",
-            arguments = listOf(navArgument("planId") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val planId = backStackEntry.arguments?.getString("planId") ?: ""
-            CheckoutScreen(
-                planId = planId,
-                onBackClick = { navController.popBackStack() },
-                onSuccessFinished = {
-                    navController.popBackStack(AppRoutes.PROFILE, inclusive = false)
-                }
             )
         }
 
@@ -786,6 +746,38 @@ fun NearHouseApp() {
                 onReportClick = {
                 },
                 onEditClick = {
+                }
+            )
+        }
+
+        composable(AppRoutes.ACCOUNT_ADMIN) {
+            AccountAdminRoute(
+                viewModel = viewModel(),
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToPlans = { navController.navigate(AppRoutes.SUBSCRIPTION) },
+                onBottomTabSelected = onBottomTab
+            )
+        }
+
+        composable(AppRoutes.SUBSCRIPTION) {
+            ChoosePlanScreen(
+                onBackClick = { navController.popBackStack() },
+                onPlanSelected = { plan -> navController.navigate("${AppRoutes.CHECKOUT}/${plan.id}") },
+                onFreeTrialActivated = {
+                    navController.popBackStack(AppRoutes.ACCOUNT_ADMIN, inclusive = false)
+                }
+            )
+        }
+
+        composable(
+            route = "${AppRoutes.CHECKOUT}/{planId}",
+            arguments = listOf(navArgument("planId") { type = NavType.IntType })
+        ) { entry ->
+            CheckoutScreen(
+                planId = entry.arguments?.getInt("planId") ?: 0,
+                onBackClick = { navController.popBackStack() },
+                onSuccessFinished = {
+                    navController.popBackStack(AppRoutes.ACCOUNT_ADMIN, inclusive = false)
                 }
             )
         }

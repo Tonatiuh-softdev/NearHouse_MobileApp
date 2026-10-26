@@ -46,7 +46,9 @@ data class UsuarioMeDto(
     val fechaRegistro: String? = null,
     // Todavía no los manda la API. Con valor por defecto no rompen nada.
     val tieneFoto: Boolean = false,
-    val fotoVersion: String? = null
+    val fotoVersion: String? = null,
+    val plan: PlanUsuarioDto? = null,
+    val pruebaDisponible: Boolean = false
 )
 
 // --- Modelos para Registro y Verificación ---
@@ -82,6 +84,32 @@ data class UpdateMeRequest(
     val nombre: String,
     val primerApellido: String,
     val segundoApellido: String? = null
+)
+
+data class PlanDto(
+    val id: Int,
+    val nombre: String,
+    val precio: Int,
+    val duracionDias: Int,
+    val limiteAnuncios: Int? = null,
+    val nivelVisibilidad: Int,
+    val diasPrueba: Int,
+    val destacado: Boolean
+)
+
+data class PlanUsuarioDto(
+    val id: Int,
+    val nombre: String,
+    val fechaInicio: String,
+    val fechaVencimiento: String,
+    val vigente: Boolean
+)
+
+data class ContratarPlanRequest(val planId: Int)
+
+data class ContratarPlanResponse(
+    val token: String,
+    val usuario: UsuarioMeDto
 )
 
 // --- Interfaz API ---
@@ -127,4 +155,10 @@ interface AuthApi {
     // Borra la foto de perfil
     @DELETE("api/v1/usuarios/me/foto")
     suspend fun borrarFoto(): Response<UsuarioMeDto>
+
+    @GET("api/v1/planes")
+    suspend fun getPlanes(): Response<List<PlanDto>>
+
+    @POST("api/v1/usuarios/me/plan")
+    suspend fun contratarPlan(@Body request: ContratarPlanRequest): Response<ContratarPlanResponse>
 }
