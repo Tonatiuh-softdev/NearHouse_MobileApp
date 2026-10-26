@@ -16,6 +16,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.equipo4.nearhome.R
+import com.equipo4.nearhome.domain.model.PropertyType
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
 
 @Composable
@@ -29,6 +30,7 @@ fun CreateListingStep3Screen(
     val context = LocalContext.current
     val cs = MaterialTheme.colorScheme
     val required = stringResource(R.string.create_listing_error_required)
+    val descriptionTooShort = stringResource(R.string.create_listing_error_description_min)
     val rulesNoPets = stringResource(R.string.create_listing_rules_pets_no)
     val rulesPets = stringResource(R.string.create_listing_rules_pets_yes)
     var pendingTab by remember { mutableStateOf<Int?>(null) }
@@ -99,10 +101,12 @@ fun CreateListingStep3Screen(
                 )
             }
 
-            // Descripción
+            // Descripción (mínimo 30 caracteres). En casa y departamento aquí va la superficie (m²)
             LabeledField(
                 stringResource(R.string.create_listing_ad_description),
-                if (state.isInvalid("description")) required else null
+                if (state.isInvalid("description")) {
+                    if (state.description.isBlank()) required else descriptionTooShort
+                } else null
             ) {
                 OutlinedTextField(
                     value = state.description,
@@ -111,7 +115,14 @@ fun CreateListingStep3Screen(
                     },
                     minLines = 4, maxLines = 8,
                     isError = state.isInvalid("description"),
-                    supportingText = { Text("${state.description.length}/$MAX_DESCRIPTION") },
+                    supportingText = {
+                        Column {
+                            if (state.propertyType != PropertyType.TERRENO) {
+                                Text(stringResource(R.string.create_listing_description_area_hint))
+                            }
+                            Text("${state.description.length}/$MAX_DESCRIPTION")
+                        }
+                    },
                     shape = RoundedCornerShape(10.dp),
                     modifier = Modifier.fillMaxWidth()
                 )
