@@ -52,6 +52,8 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                         userName = user?.let { u ->
                             listOfNotNull(u.nombre, u.primerApellido, u.segundoApellido).joinToString(" ")
                         }.orEmpty(),
+                        userPhotoUrl = user?.takeIf { it.tieneFoto && it.fotoVersion != null }
+                            ?.let { NetworkModule.fotoPerfilUrl(it.fotoVersion!!) },
                         role = UserRole.fromDb(user?.rol)
                     )
                 }

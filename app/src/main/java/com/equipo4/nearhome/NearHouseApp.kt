@@ -54,10 +54,17 @@ import com.equipo4.nearhome.ui.legal.PoliticaPrivacidadScreen
 import com.equipo4.nearhome.ui.legal.TerminosCondicionesScreen
 import com.equipo4.nearhome.ui.profile.ProfileScreen
 import com.equipo4.nearhome.ui.profile.UserRole
+import com.equipo4.nearhome.ui.profile.account.AccountAdminRoute
+import com.equipo4.nearhome.ui.profile.account.AccountAdminViewModel
 import com.equipo4.nearhome.ui.profile.seller.EditProfileScreen
 import com.equipo4.nearhome.ui.profile.seller.MyListingsScreen
+import com.equipo4.nearhome.ui.subscription.CheckoutScreen
+import com.equipo4.nearhome.ui.subscription.ChoosePlanScreen
 import com.equipo4.nearhome.ui.saved.SavedScreen
 import com.equipo4.nearhome.ui.publicacion.detail.DetailPublicacionScreen
+import com.equipo4.nearhome.ui.publicacion.report.ReportCategoryScreen
+import com.equipo4.nearhome.ui.publicacion.report.ReportReasonScreen
+import com.equipo4.nearhome.ui.publicacion.report.ReportViewModel
 import com.equipo4.nearhome.ui.splash.SplashScreen
 import com.equipo4.nearhome.data.local.SessionManager
 import com.equipo4.nearhome.data.session.CurrentUserStore
@@ -91,9 +98,15 @@ object AppRoutes {
     const val SEARCH_FILTERS = "search_filters"
     const val SAVED = "saved"
     const val PROFILE = "profile"
+    const val ACCOUNT_ADMIN = "account_admin"
     const val MY_LISTINGS = "my_listings"
+    const val CHOOSE_PLAN = "choose_plan"
+    const val CHECKOUT = "checkout"
     const val EDIT_PROFILE = "edit_profile"
     const val PUBLICACION_DETAIL = "publicacion_detail"
+    const val REPORT_GRAPH = "report_graph"
+    const val REPORT_CATEGORY = "report_category"
+    const val REPORT_REASON = "report_reason"
     const val TERMS_AND_CONDITIONS = "terms_and_conditions"
     const val PRIVACY_POLICY = "privacy_policy"
     const val ADMIN_PANEL = "admin_panel"
@@ -117,6 +130,7 @@ object AppRoutes {
     const val CREATE_LISTING_STEP3 = "create_listing_step3"
     const val CREATE_LISTING_STEP4 = "create_listing_step4"
     const val CREATE_LISTING_PREVIEW = "create_listing_preview"
+    const val SUBSCRIPTION = "subscription"
 }
 
 class MainActivity : AppCompatActivity() {
@@ -325,16 +339,28 @@ fun NearHouseApp() {
         val onBottomTab: (Int) -> Unit = { index ->
             when (index) {
                 0 -> navController.navigate(AppRoutes.HOME) {
-                    popUpTo(AppRoutes.HOME) { inclusive = false }
+                    popUpTo(AppRoutes.HOME) {
+                        inclusive = false
+                        saveState = true
+                    }
                     launchSingleTop = true
+                    restoreState = true
                 }
                 1 -> navController.navigate(AppRoutes.SAVED) {
-                    popUpTo(AppRoutes.HOME) { inclusive = false }
+                    popUpTo(AppRoutes.HOME) {
+                        inclusive = false
+                        saveState = true
+                    }
                     launchSingleTop = true
+                    restoreState = true
                 }
                 3 -> navController.navigate(AppRoutes.PROFILE) {
-                    popUpTo(AppRoutes.HOME) { inclusive = false }
+                    popUpTo(AppRoutes.HOME) {
+                        inclusive = false
+                        saveState = true
+                    }
                     launchSingleTop = true
+                    restoreState = true
                 }
                 else -> Unit // 2 Notificaciones: aún sin pantalla
             }
@@ -374,13 +400,13 @@ fun NearHouseApp() {
                             CurrentUserStore.refresh(authApi)
                         }
                         when (CurrentUserStore.roleOrNull()) {
-                            UserRole.COMPRADOR -> navController.navigate(AppRoutes.CREATE_LISTING_GRAPH)
+                            UserRole.COMPRADOR -> navController.navigate(AppRoutes.SUBSCRIPTION)
                             null -> Unit // sin datos no se decide, para no mandar a un vendedor a suscripciones
                             else -> navController.navigate(AppRoutes.MY_LISTINGS)
                         }
                     }
                 },
-                onAccountClick = {},
+                onAccountClick = { navController.navigate(AppRoutes.ACCOUNT_ADMIN) },
                 onAdminPanelClick = {
                     navController.navigate(AppRoutes.ADMIN_PANEL)
                 },
@@ -773,8 +799,86 @@ fun NearHouseApp() {
                     navController.popBackStack()
                 },
                 onReportClick = {
+                    navController.navigate("${AppRoutes.REPORT_GRAPH}/$publicacionId")
                 },
                 onEditClick = {
+                }
+            )
+        }
+
+        // Flujo: Reportar Publicación (Sub-gráfico de navegación con ViewModel compartido)
+        navigation(
+            route = "${AppRoutes.REPORT_GRAPH}/{publicacionId}",
+            startDestination = AppRoutes.REPORT_CATEGORY,
+            arguments = listOf(navArgument("publicacionId") { type = NavType.StringType })
+        ) {
+            composable(AppRoutes.REPORT_CATEGORY) { entry ->
+                val publicacionId = entry.arguments?.getString("publicacionId") ?: ""
+                val parentEntry = remember(entry) {
+                    navController.getBackStackEntry("${AppRoutes.REPORT_GRAPH}/{publicacionId}")
+                }
+                val reportViewModel: ReportViewModel = viewModel(parentEntry)
+
+                LaunchedEffect(publicacionId) {
+                    reportViewModel.initPublicacion(publicacionId)
+                }
+
+                ReportCategoryScreen(
+                    viewModel = reportViewModel,
+                    onBackClick = { navController.popBackStack() },
+                    onCategorySelected = {
+                        navController.navigate(AppRoutes.REPORT_REASON)
+                    }
+                )
+            }
+
+            composable(AppRoutes.REPORT_REASON) { entry ->
+                val parentEntry = remember(entry) {
+                    navController.getBackStackEntry("${AppRoutes.REPORT_GRAPH}/{publicacionId}")
+                }
+                val reportViewModel: ReportViewModel = viewModel(parentEntry)
+
+                ReportReasonScreen(
+                    viewModel = reportViewModel,
+                    onBackClick = { navController.popBackStack() },
+                    onReportSubmitted = {
+                        navController.popBackStack(
+                            route = AppRoutes.REPORT_CATEGORY,
+                            inclusive = true
+                        )
+                    }
+                )
+            }
+        }
+
+        composable(AppRoutes.ACCOUNT_ADMIN) {
+            AccountAdminRoute(
+                viewModel = viewModel(),
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToPlans = { navController.navigate(AppRoutes.SUBSCRIPTION) },
+                onBottomTabSelected = onBottomTab
+            )
+        }
+
+        composable(AppRoutes.SUBSCRIPTION) {
+            ChoosePlanScreen(
+                onBackClick = { navController.popBackStack() },
+                onPlanSelected = { plan -> navController.navigate("${AppRoutes.CHECKOUT}/${plan.id}") },
+                onFreeTrialActivated = {
+                    navController.popBackStack(AppRoutes.ACCOUNT_ADMIN, inclusive = false)
+                }
+            )
+        }
+
+        composable(
+            route = "${AppRoutes.CHECKOUT}/{planId}",
+            arguments = listOf(navArgument("planId") { type = NavType.IntType })
+        ) { entry ->
+            CheckoutScreen(
+                planId = entry.arguments?.getInt("planId") ?: 0,
+                onBackClick = { navController.popBackStack() },
+                onSuccessFinished = {
+                    navController.popBackStack(AppRoutes.ACCOUNT_ADMIN, inclusive = false)
                 }
             )
         }

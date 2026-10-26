@@ -5,7 +5,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
@@ -19,6 +19,8 @@ fun NearHomeBottomBar(
     selectedTab: Int,
     onTabSelected: (Int) -> Unit
 ) {
+    var lastClickTime by remember { mutableStateOf(0L) }
+
     Surface(
         color = MaterialTheme.colorScheme.surface,
         shadowElevation = 8.dp,
@@ -38,7 +40,15 @@ fun NearHomeBottomBar(
                 )
                 navIcons.forEachIndexed { index, (unselected, selected, scaleFactor) ->
                     val isSelected = selectedTab == index
-                    IconButton(onClick = { onTabSelected(index) }) {
+                    IconButton(
+                        onClick = {
+                            val now = System.currentTimeMillis()
+                            if (now - lastClickTime > 400) {
+                                lastClickTime = now
+                                onTabSelected(index)
+                            }
+                        }
+                    ) {
                         Icon(
                             painter = painterResource(if (isSelected) selected else unselected),
                             contentDescription = null,

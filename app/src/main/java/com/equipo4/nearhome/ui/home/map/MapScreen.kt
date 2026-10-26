@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FormatListBulleted
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -305,6 +306,8 @@ private fun MapHeader(
     onQueryChange: (String) -> Unit,
     onToggleToList: () -> Unit
 ) {
+    var lastToggleTime by remember { mutableStateOf(0L) }
+
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -343,7 +346,13 @@ private fun MapHeader(
                 imageVector = Icons.Default.FormatListBulleted,
                 contentDescription = stringResource(R.string.map_view_list),
                 tint = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.size(20.dp).noRippleClickable { onToggleToList() }
+                modifier = Modifier.size(20.dp).noRippleClickable {
+                    val now = System.currentTimeMillis()
+                    if (now - lastToggleTime > 400) {
+                        lastToggleTime = now
+                        onToggleToList()
+                    }
+                }
             )
         }
     }
@@ -364,34 +373,18 @@ private fun FilterRow(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 2.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        val typeLabelText = when (uiState.selectedTypes.size) {
-            0 -> stringResource(R.string.map_type_todo)
-            1 -> typeLabel(uiState.selectedTypes.first())
-            else -> stringResource(R.string.map_type_types, uiState.selectedTypes.size)
-        }
-        TypeFilterChip(
-            label = typeLabelText,
-            selectedTypes = uiState.selectedTypes,
-            onTypeToggled = onTypeToggled
-        )
-
         FilterChip(
             selected = hasFilters,
             onClick = onFilterClick,
+            modifier = Modifier.height(36.dp),
             label = {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_filtrar),
-                        contentDescription = stringResource(R.string.home_filter_btn),
-                        modifier = Modifier.size(14.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = stringResource(R.string.home_filter_btn), fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                    Icon(Icons.Outlined.FilterList, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Text(stringResource(R.string.home_filter_btn))
                     if (hasFilters) {
-                        Spacer(modifier = Modifier.width(4.dp))
                         Box(
                             modifier = Modifier
                                 .size(18.dp)
@@ -406,12 +399,6 @@ private fun FilterRow(
                             )
                         }
                     }
-                    Spacer(modifier = Modifier.width(2.dp))
-                    Icon(
-                        imageVector = Icons.Default.KeyboardArrowDown,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp)
-                    )
                 }
             },
             shape = RoundedCornerShape(8.dp),
@@ -427,6 +414,17 @@ private fun FilterRow(
                 borderColor = MaterialTheme.colorScheme.outline,
                 selectedBorderColor = MaterialTheme.colorScheme.primary
             )
+        )
+
+        val typeLabelText = when (uiState.selectedTypes.size) {
+            0 -> stringResource(R.string.map_type_todo)
+            1 -> typeLabel(uiState.selectedTypes.first())
+            else -> stringResource(R.string.map_type_types, uiState.selectedTypes.size)
+        }
+        TypeFilterChip(
+            label = typeLabelText,
+            selectedTypes = uiState.selectedTypes,
+            onTypeToggled = onTypeToggled
         )
     }
 }
@@ -444,14 +442,14 @@ private fun TypeFilterChip(
     Box(modifier = Modifier.onSizeChanged { chipHeight = with(density) { it.height.toDp() } }) {
         OutlinedButton(
             onClick = { expanded = true },
-            modifier = Modifier.width(120.dp),
+            modifier = Modifier.height(36.dp),
             shape = RoundedCornerShape(8.dp),
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
             colors = ButtonDefaults.outlinedButtonColors(
                 containerColor = MaterialTheme.nearHouseColors.filterChipBg,
                 contentColor = MaterialTheme.colorScheme.onSurface
             ),
-            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
         ) {
             Text(
                 label,

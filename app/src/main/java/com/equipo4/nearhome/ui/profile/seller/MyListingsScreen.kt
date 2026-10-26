@@ -26,6 +26,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
 import com.equipo4.nearhome.ui.profile.UserRole
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 
 // Si tu componente de tarjeta en 'home' tiene otro nombre, cambia este import:
 // import com.equipo4.nearhome.ui.home.NOMBRE_DE_TU_TARJETA
@@ -82,23 +85,29 @@ fun MyListingsScreen(
                 items(
                     items = uiState.listings,
                     key = { it.property.id }
-                ) { item ->
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
-                    ) {
-                        // AQUÍ: Llama al composable de tarjeta que tengas en ui/home
-                        // Ejemplo:
-                        // HomePropertyCard(property = item.property, onClick = { onPropertyClick(item.property.id) })
-
-                        StatusChip(
-                            status = item.status,
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .padding(top = 12.dp, end = 12.dp)
+                ) { item ->        Box(
+                    modifier = Modifier
+                        .size(90.dp)
+                        .clip(CircleShape)
+                        .background(AvatarBg),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (uiState.userPhotoUrl != null) {
+                        AsyncImage(
+                            model = uiState.userPhotoUrl,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Outlined.Person,
+                            contentDescription = null,
+                            tint = Color(0xFF0284C7),
+                            modifier = Modifier.size(50.dp)
                         )
                     }
+                }
                 }
             }
         }
@@ -143,19 +152,29 @@ private fun HeaderSection(
 
         Spacer(Modifier.height(8.dp))
 
-        // Avatar de foto de perfil (por defecto si no hay foto)
+        // Avatar: foto de perfil o ícono por defecto
         Box(
             modifier = Modifier
                 .size(90.dp)
-                .background(AvatarBg, CircleShape),
+                .clip(CircleShape)
+                .background(AvatarBg),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = Icons.Outlined.Person,
-                contentDescription = null,
-                tint = Color(0xFF0284C7),
-                modifier = Modifier.size(50.dp)
-            )
+            if (uiState.userPhotoUrl != null) {
+                AsyncImage(
+                    model = uiState.userPhotoUrl,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Outlined.Person,
+                    contentDescription = null,
+                    tint = Color(0xFF0284C7),
+                    modifier = Modifier.size(50.dp)
+                )
+            }
         }
 
         Spacer(Modifier.height(12.dp))

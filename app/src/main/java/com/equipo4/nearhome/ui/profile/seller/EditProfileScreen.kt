@@ -266,6 +266,9 @@ fun EditProfileScreen(
                         )
                     }
                 }
+                uiState.saveError?.let {
+                    Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 8.dp))
+                }
 
                 Spacer(modifier = Modifier.height(24.dp))
             }

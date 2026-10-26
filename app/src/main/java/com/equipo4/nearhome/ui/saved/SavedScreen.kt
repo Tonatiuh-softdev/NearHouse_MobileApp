@@ -9,6 +9,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -41,10 +42,24 @@ fun SavedScreen(
     val uiState by viewModel.uiState.collectAsState()
     val scope = rememberCoroutineScope()
     var removing by remember { mutableStateOf(setOf<String>()) }
+    val listState = rememberLazyListState()
 
     Scaffold(
         topBar = { SavedTopBar() },
-        bottomBar = { NearHomeBottomBar(selectedTab = 1, onTabSelected = onBottomTabSelected) },
+        bottomBar = {
+            NearHomeBottomBar(
+                selectedTab = 1,
+                onTabSelected = { index ->
+                    if (index == 1) {
+                        scope.launch {
+                            listState.animateScrollToItem(0)
+                        }
+                    } else {
+                        onBottomTabSelected(index)
+                    }
+                }
+            )
+        },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
@@ -65,6 +80,7 @@ fun SavedScreen(
                 uiState.properties.isEmpty() -> EmptySavedState()
 
                 else -> LazyColumn(
+                    state = listState,
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp)
                 ) {
