@@ -981,4 +981,19 @@
     <string name="report_common_remove">Eliminar</string>
     <string name="report_common_discard">Descartar</string>
     <string name="report_common_cancel">Cancelar</string>
+
+    <!-- Mis Publicaciones -->
+
+    <!-- Perfil y Navegación -->
+    <string name="cd_back">Regresar</string>
+    <string name="cd_edit_profile">Editar perfil</string>
+
+    <!-- Acciones de Publicación -->
+    <string name="action_create_listing">Crear anuncio +</string>
+    <string name="empty_listings_message">Aún no tienes anuncios. Crea tu primer anuncio para que los compradores lo vean.</string>
+
+    <!-- Estados de Publicación -->
+    <string name="status_in_review">En revisión</string>
+    <string name="status_published">Publicado</string>
+    <string name="status_rejected">Rechazado</string>
 </resources>
