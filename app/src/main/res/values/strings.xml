@@ -923,4 +923,62 @@
     <string name="search_filters_colonias_error">No se pudieron cargar las colonias</string>
     <string name="search_filters_colonias_empty">Aún no hay colonias con anuncios</string>
     <string name="search_filters_colonias_retry">Reintentar</string>
+
+    <!-- Reportar Publicación -->
+    <string name="report_title">Reportar publicación</string>
+    <string name="report_category_question">¿Por qué quieres reportar esta publicación?</string>
+    <string name="report_reason_question">Por favor dinos el motivo de la denuncia.</string>
+    <string name="report_anonymous_notice">Tu reporte es anónimo para los demás y revisaremos todos los reportes según nuestras normas</string>
+
+    <!-- Categorías -->
+    <string name="report_category_false_info">Información falsa</string>
+    <string name="report_category_false_info_desc">Datos equivocados o que ya no están al día</string>
+    <string name="report_category_offensive">Contenido ofensivo</string>
+    <string name="report_category_offensive_desc">Textos o imágenes inapropiados</string>
+    <string name="report_category_fraud">Posible fraude</string>
+    <string name="report_category_fraud_desc">Alguien intenta engañar o cobrar sin derecho</string>
+
+    <!-- Motivos: Información falsa -->
+    <string name="report_reason_photos_mismatch">Fotos que no corresponden a la propiedad</string>
+    <string name="report_reason_wrong_price">Precio falso o engañoso</string>
+    <string name="report_reason_wrong_data">Datos incorrectos</string>
+    <string name="report_reason_wrong_location">Ubicación incorrecta</string>
+    <string name="report_reason_not_available">La propiedad ya no está disponible</string>
+
+    <!-- Motivos: Contenido ofensivo -->
+    <string name="report_reason_offensive_language">Lenguaje ofensivo o insultos</string>
+    <string name="report_reason_discriminatory">Contenido discriminatorio</string>
+    <string name="report_reason_sexual">Contenido sexual</string>
+    <string name="report_reason_violent">Contenido violento</string>
+
+    <!-- Motivos: Posible fraude -->
+    <string name="report_reason_suspicious_price">Precio sospechosamente bajo</string>
+    <string name="report_reason_not_exist">La propiedad no existe</string>
+    <string name="report_reason_multiple_publishers">Propiedad publicada por más de una persona</string>
+    <string name="report_reason_advance_payment">Piden un pago antes de ver la propiedad</string>
+    <string name="report_reason_other">Otro</string>
+
+    <!-- Formulario de descripción y evidencia -->
+    <string name="report_description_title">Por favor complete el motivo de la denuncia</string>
+    <string name="report_description_placeholder">Proporcione una descripción detallada de su problema para que podamos ayudarlo a resolver el problema de la mejor manera</string>
+    <string name="report_evidence_title">Sube una imagen o un video como evidencia</string>
+    <string name="report_add_evidence_cd">Agregar evidencia</string>
+    <string name="report_send">Enviar</string>
+
+    <!-- Confirmaciones y errores -->
+    <string name="report_success_title">Gracias por tu reporte</string>
+    <string name="report_success_message">Lo revisaremos y, si no cumple con nuestras normas, tomaremos las medidas necesarias</string>
+    <string name="report_success_button">Entendido</string>
+    <string name="report_discard_title">¿Descartar reporte?</string>
+    <string name="report_discard_message">Si sales ahora se perderán los cambios que no hayas enviado.</string>
+    <string name="report_error_title">Archivo no permitido</string>
+    <string name="report_error_image_size">La imagen no debe superar los 5 MB.</string>
+    <string name="report_error_video_size">El video no debe superar los 20 MB.</string>
+    <string name="report_error_video_duration">El video no debe durar más de 30 segundos.</string>
+
+    <!-- Comunes para Reportes -->
+    <string name="report_common_ok">Aceptar</string>
+    <string name="report_common_remove">Eliminar</string>
+    <string name="report_common_discard">Descartar</string>
+    <string name="report_common_cancel">Cancelar</string>
 </resources>
