@@ -923,4 +923,62 @@
     <string name="search_filters_colonias_error">Could not load neighborhoods</string>
     <string name="search_filters_colonias_empty">There are no neighborhoods with listings yet</string>
     <string name="search_filters_colonias_retry">Retry</string>
+
+    <!-- Report Listing -->
+    <string name="report_title">Report listing</string>
+    <string name="report_category_question">Why do you want to report this listing?</string>
+    <string name="report_reason_question">Please tell us the reason for the report.</string>
+    <string name="report_anonymous_notice">Your report is anonymous to others, and we will review all reports according to our community guidelines</string>
+
+    <!-- Categories -->
+    <string name="report_category_false_info">False information</string>
+    <string name="report_category_false_info_desc">Incorrect or outdated details</string>
+    <string name="report_category_offensive">Offensive content</string>
+    <string name="report_category_offensive_desc">Inappropriate text or images</string>
+    <string name="report_category_fraud">Potential fraud</string>
+    <string name="report_category_fraud_desc">Someone is attempting to scam or charge without authorization</string>
+
+    <!-- Reasons: False Information -->
+    <string name="report_reason_photos_mismatch">Photos do not match the property</string>
+    <string name="report_reason_wrong_price">False or misleading price</string>
+    <string name="report_reason_wrong_data">Incorrect details</string>
+    <string name="report_reason_wrong_location">Incorrect location</string>
+    <string name="report_reason_not_available">The property is no longer available</string>
+
+    <!-- Reasons: Offensive Content -->
+    <string name="report_reason_offensive_language">Offensive language or insults</string>
+    <string name="report_reason_discriminatory">Discriminatory content</string>
+    <string name="report_reason_sexual">Sexual content</string>
+    <string name="report_reason_violent">Violent content</string>
+
+    <!-- Reasons: Potential Fraud -->
+    <string name="report_reason_suspicious_price">Suspiciously low price</string>
+    <string name="report_reason_not_exist">The property does not exist</string>
+    <string name="report_reason_multiple_publishers">Property posted by multiple people</string>
+    <string name="report_reason_advance_payment">Requesting payment before viewing the property</string>
+    <string name="report_reason_other">Other</string>
+
+    <!-- Description & Evidence Form -->
+    <string name="report_description_title">Please complete the reason for the report</string>
+    <string name="report_description_placeholder">Provide a detailed description of your issue so we can better help you resolve it</string>
+    <string name="report_evidence_title">Upload an image or video as evidence</string>
+    <string name="report_add_evidence_cd">Add evidence</string>
+    <string name="report_send">Send</string>
+
+    <!-- Confirmations & Errors -->
+    <string name="report_success_title">Thank you for your report</string>
+    <string name="report_success_message">We will review it and, if it violates our guidelines, we will take the necessary action</string>
+    <string name="report_success_button">Got it</string>
+    <string name="report_discard_title">Discard report?</string>
+    <string name="report_discard_message">If you exit now, any unsubmitted changes will be lost.</string>
+    <string name="report_error_title">File not allowed</string>
+    <string name="report_error_image_size">Images must not exceed 5 MB.</string>
+    <string name="report_error_video_size">Videos must not exceed 20 MB.</string>
+    <string name="report_error_video_duration">Videos must not exceed 30 seconds.</string>
+
+    <!-- Common for Reports -->
+    <string name="report_common_ok">OK</string>
+    <string name="report_common_remove">Remove</string>
+    <string name="report_common_discard">Discard</string>
+    <string name="report_common_cancel">Cancel</string>
 </resources>

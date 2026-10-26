@@ -62,6 +62,9 @@ import com.equipo4.nearhome.ui.subscription.CheckoutScreen
 import com.equipo4.nearhome.ui.subscription.ChoosePlanScreen
 import com.equipo4.nearhome.ui.saved.SavedScreen
 import com.equipo4.nearhome.ui.publicacion.detail.DetailPublicacionScreen
+import com.equipo4.nearhome.ui.publicacion.report.ReportCategoryScreen
+import com.equipo4.nearhome.ui.publicacion.report.ReportReasonScreen
+import com.equipo4.nearhome.ui.publicacion.report.ReportViewModel
 import com.equipo4.nearhome.ui.splash.SplashScreen
 import com.equipo4.nearhome.data.local.SessionManager
 import com.equipo4.nearhome.data.session.CurrentUserStore
@@ -96,6 +99,9 @@ object AppRoutes {
     const val CHECKOUT = "checkout"
     const val EDIT_PROFILE = "edit_profile"
     const val PUBLICACION_DETAIL = "publicacion_detail"
+    const val REPORT_GRAPH = "report_graph"
+    const val REPORT_CATEGORY = "report_category"
+    const val REPORT_REASON = "report_reason"
     const val TERMS_AND_CONDITIONS = "terms_and_conditions"
     const val PRIVACY_POLICY = "privacy_policy"
     const val ADMIN_PANEL = "admin_panel"
@@ -744,10 +750,56 @@ fun NearHouseApp() {
                     navController.popBackStack()
                 },
                 onReportClick = {
+                    navController.navigate("${AppRoutes.REPORT_GRAPH}/$publicacionId")
                 },
                 onEditClick = {
                 }
             )
+        }
+
+        // Flujo: Reportar Publicación (Sub-gráfico de navegación con ViewModel compartido)
+        navigation(
+            route = "${AppRoutes.REPORT_GRAPH}/{publicacionId}",
+            startDestination = AppRoutes.REPORT_CATEGORY,
+            arguments = listOf(navArgument("publicacionId") { type = NavType.StringType })
+        ) {
+            composable(AppRoutes.REPORT_CATEGORY) { entry ->
+                val publicacionId = entry.arguments?.getString("publicacionId") ?: ""
+                val parentEntry = remember(entry) {
+                    navController.getBackStackEntry("${AppRoutes.REPORT_GRAPH}/{publicacionId}")
+                }
+                val reportViewModel: ReportViewModel = viewModel(parentEntry)
+
+                LaunchedEffect(publicacionId) {
+                    reportViewModel.initPublicacion(publicacionId)
+                }
+
+                ReportCategoryScreen(
+                    viewModel = reportViewModel,
+                    onBackClick = { navController.popBackStack() },
+                    onCategorySelected = {
+                        navController.navigate(AppRoutes.REPORT_REASON)
+                    }
+                )
+            }
+
+            composable(AppRoutes.REPORT_REASON) { entry ->
+                val parentEntry = remember(entry) {
+                    navController.getBackStackEntry("${AppRoutes.REPORT_GRAPH}/{publicacionId}")
+                }
+                val reportViewModel: ReportViewModel = viewModel(parentEntry)
+
+                ReportReasonScreen(
+                    viewModel = reportViewModel,
+                    onBackClick = { navController.popBackStack() },
+                    onReportSubmitted = {
+                        navController.popBackStack(
+                            route = AppRoutes.REPORT_CATEGORY,
+                            inclusive = true
+                        )
+                    }
+                )
+            }
         }
 
         composable(AppRoutes.ACCOUNT_ADMIN) {
