@@ -23,6 +23,12 @@ class DetailPublicacionViewModel(
     val uiState: StateFlow<DetailPublicacionUiState> = _uiState.asStateFlow()
 
     fun cargarPublicacion(id: String) {
+        // Si ya tenemos cargada esta misma publicación, no reiniciamos a Loading
+        val currentState = _uiState.value
+        if (currentState is DetailPublicacionUiState.Success && currentState.publicacion.id == id) {
+            return
+        }
+
         viewModelScope.launch {
             _uiState.value = DetailPublicacionUiState.Loading
             try {

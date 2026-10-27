@@ -50,13 +50,21 @@ fun DetailPublicacionScreen(
 
     val uiState by viewModel.uiState.collectAsState()
     var showBottomSheet by remember { mutableStateOf(false) }
+    var isNavigatingBack by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
+                    IconButton(
+                        onClick = {
+                            if (!isNavigatingBack) {
+                                isNavigatingBack = true
+                                onBackClick()
+                            }
+                        }
+                    ) {
                         Icon(
                             Icons.Default.ArrowBack,
                             contentDescription = stringResource(R.string.common_back),
