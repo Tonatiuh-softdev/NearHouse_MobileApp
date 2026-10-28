@@ -15,6 +15,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -296,9 +298,15 @@ fun NearHouseApp() {
         // Pantalla 3b: Completar Perfil con Google (Caso C - Usuario nuevo)
         composable(AppRoutes.COMPLETAR_PERFIL_GOOGLE) {
             val state = googleAuthState
+            var proofDataSaved by remember { mutableStateOf<com.equipo4.nearhome.data.remote.dto.GoogleProofResponse?>(null) }
+
             if (state is GoogleAuthState.RequiresRegistration) {
+                proofDataSaved = state.proofData
+            }
+
+            proofDataSaved?.let { proofData ->
                 CompletarPerfilGoogleScreen(
-                    proofData = state.proofData,
+                    proofData = proofData,
                     viewModel = googleAuthViewModel,
                     onRegistroExitoso = {
                         sessionManager.setLoggedIn(true)
