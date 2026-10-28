@@ -21,7 +21,7 @@ data class SignUpUiState(
     val otpCode: List<String> = List(6) { "" },
     val isOtpError: Boolean = false,
     val otpErrorMessage: String? = null,
-    val resendCountdown: Int = 30,
+    val resendCountdown: Int = 60,
     val canResendCode: Boolean = false,
     val isLoading: Boolean = false,
     val googleSuccessMessage: String? = null

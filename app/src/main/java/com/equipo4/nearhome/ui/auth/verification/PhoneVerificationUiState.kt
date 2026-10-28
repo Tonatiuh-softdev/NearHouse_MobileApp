@@ -7,6 +7,7 @@ data class PhoneVerificationUiState(
     val errorMessage: String? = null,
     val isVerified: Boolean = false,
     val isLoading: Boolean = false,
-    val timerSeconds: Int = 30,
+    val isSending: Boolean = false, // mandando el SMS con Firebase
+    val timerSeconds: Int = 60,
     val canResend: Boolean = false
 )

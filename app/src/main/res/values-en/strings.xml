@@ -1004,4 +1004,15 @@
     <string name="create_listing_colonia_undetected">We couldnt detect the neighborhood at this location. Try detecting the location again.</string>
     <string name="create_listing_error_generic">Couldnt submit the listing. Please try again.</string>
     <string name="create_listing_error_forbidden">Your account isnt allowed to publish listings.</string>
+
+    <!-- Phone verification by SMS (Firebase) -->
+    <string name="phone_sms_wait_for_sms">Wait for the SMS or request a new one</string>
+    <string name="phone_sms_enter_6">Enter the 6 digits of the code</string>
+    <string name="phone_sms_error_invalid_number">The phone number is not valid</string>
+    <string name="phone_sms_error_too_many">Too many attempts. Wait a few minutes and try again</string>
+    <string name="phone_sms_error_network">No connection. Check your internet and try again</string>
+    <string name="phone_sms_error_send">The SMS could not be sent. Try again</string>
+    <string name="phone_sms_error_expired">The code has expired. Request a new one</string>
+    <string name="phone_sms_error_verify">The code could not be verified. Try again</string>
+    <string name="phone_sms_error_restart">The sign-up data was lost. Please start again</string>
 </resources>

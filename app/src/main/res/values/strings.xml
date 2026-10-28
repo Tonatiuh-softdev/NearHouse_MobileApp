@@ -1006,4 +1006,15 @@
     <string name="create_listing_error_generic">No se pudo enviar el anuncio. Inténtalo de nuevo.</string>
     <string name="create_listing_error_session">Tu sesión expiró. Inicia sesión de nuevo.</string>
     <string name="create_listing_error_forbidden">Tu cuenta no puede publicar anuncios.</string>
+
+    <!-- Verificación del teléfono por SMS (Firebase) -->
+    <string name="phone_sms_wait_for_sms">Espera a que llegue el SMS o pide uno nuevo</string>
+    <string name="phone_sms_enter_6">Escribe los 6 dígitos del código</string>
+    <string name="phone_sms_error_invalid_number">El número de teléfono no es válido</string>
+    <string name="phone_sms_error_too_many">Demasiados intentos. Espera unos minutos e intenta de nuevo</string>
+    <string name="phone_sms_error_network">Sin conexión. Revisa tu internet e intenta de nuevo</string>
+    <string name="phone_sms_error_send">No se pudo enviar el SMS. Intenta de nuevo</string>
+    <string name="phone_sms_error_expired">El código ya expiró. Pide uno nuevo</string>
+    <string name="phone_sms_error_verify">No se pudo verificar el código. Intenta de nuevo</string>
+    <string name="phone_sms_error_restart">Se perdieron los datos del registro. Vuelve a empezar</string>
 </resources>
