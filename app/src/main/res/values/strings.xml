@@ -1006,4 +1006,7 @@
     <string name="create_listing_error_generic">No se pudo enviar el anuncio. Inténtalo de nuevo.</string>
     <string name="create_listing_error_session">Tu sesión expiró. Inicia sesión de nuevo.</string>
     <string name="create_listing_error_forbidden">Tu cuenta no puede publicar anuncios.</string>
+
+    <string name="listings_load_error">No se pudieron cargar los anuncios. Revisa tu conexión e inténtalo de nuevo.</string>
+    <string name="listings_retry">Reintentar</string>
 </resources>
