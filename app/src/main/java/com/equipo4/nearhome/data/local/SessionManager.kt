@@ -51,6 +51,10 @@ class SessionManager(context: Context) {
 
     fun getToken(): String? = prefs.getString(KEY_TOKEN, null)
 
+    fun saveToken(token: String) {
+        prefs.edit().putString(KEY_TOKEN, token).apply()
+    }
+
     // --- Métodos requeridos por ProfileViewModel ---
     fun getUserName(): String? = prefs.getString(KEY_NOMBRE, null)
 

@@ -1,10 +1,17 @@
 package com.equipo4.nearhome.network
 
-import okhttp3.ResponseBody
+import com.equipo4.nearhome.data.remote.dto.GoogleAuthRequestDto
+import com.equipo4.nearhome.data.remote.dto.GoogleAuthResponseDto
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.PATCH
+import okhttp3.MultipartBody
+import retrofit2.http.DELETE
+import retrofit2.http.Multipart
+import retrofit2.http.Part
+import retrofit2.http.PUT
 
 // --- Modelos para Login ---
 data class LoginRequest(
@@ -22,6 +29,26 @@ data class UsuarioDto(
     val correo: String,
     val nombre: String,
     val rol: String
+)
+
+// --- Datos del usuario logueado (/api/v1/usuarios/me) ---
+data class UsuarioMeDto(
+    val id: Int,
+    val nombre: String,
+    val primerApellido: String,
+    val segundoApellido: String? = null,
+    val correo: String,
+    val telefono: String,
+    val rol: String,
+    val activo: Boolean = true,
+    val correoVerificado: Boolean = false,
+    val telefonoVerificado: Boolean = false,
+    val fechaRegistro: String? = null,
+    // Todavía no los manda la API. Con valor por defecto no rompen nada.
+    val tieneFoto: Boolean = false,
+    val fotoVersion: String? = null,
+    val plan: PlanUsuarioDto? = null,
+    val pruebaDisponible: Boolean = false
 )
 
 // --- Modelos para Registro y Verificación ---
@@ -53,11 +80,49 @@ data class RegistroFinalRequest(
     val tokenFirebase: String
 )
 
+data class UpdateMeRequest(
+    val nombre: String,
+    val primerApellido: String,
+    val segundoApellido: String? = null
+)
+
+data class PlanDto(
+    val id: Int,
+    val nombre: String,
+    val precio: Int,
+    val duracionDias: Int,
+    val limiteAnuncios: Int? = null,
+    val nivelVisibilidad: Int,
+    val diasPrueba: Int,
+    val destacado: Boolean
+)
+
+data class PlanUsuarioDto(
+    val id: Int,
+    val nombre: String,
+    val fechaInicio: String,
+    val fechaVencimiento: String,
+    val vigente: Boolean
+)
+
+data class ContratarPlanRequest(val planId: Int)
+
+data class ContratarPlanResponse(
+    val token: String,
+    val usuario: UsuarioMeDto
+)
+
 // --- Interfaz API ---
 interface AuthApi {
 
     @POST("api/v1/auth/login")
     suspend fun login(@Body request: LoginRequest): Response<LoginResponse>
+
+    // Endpoint para iniciar sesión / registrar con Google
+    @POST("api/v1/auth/google")
+    suspend fun loginWithGoogle(
+        @Body request: GoogleAuthRequestDto
+    ): Response<GoogleAuthResponseDto>
 
     // 1. Solicitar código de 6 dígitos al correo (Brevo)
     @POST("api/v1/auth/solicitar-codigo-correo")
@@ -75,7 +140,25 @@ interface AuthApi {
     @POST("api/v1/auth/registro")
     suspend fun registrarUsuario(@Body request: RegistroFinalRequest): Response<LoginResponse>
 
-    // 5. Datos del usuario logueado (requiere token). Sirve para detectar sesión expirada (401)
+    // 5. Datos del usuario logueado (requiere token)
     @GET("api/v1/usuarios/me")
-    suspend fun me(): Response<ResponseBody>
+    suspend fun me(): Response<UsuarioMeDto>
+
+    @PATCH("api/v1/usuarios/me")
+    suspend fun updateMe(@Body request: UpdateMeRequest): Response<UsuarioMeDto>
+
+    // Sube la foto de perfil (campo "foto")
+    @Multipart
+    @PUT("api/v1/usuarios/me/foto")
+    suspend fun subirFoto(@Part foto: MultipartBody.Part): Response<UsuarioMeDto>
+
+    // Borra la foto de perfil
+    @DELETE("api/v1/usuarios/me/foto")
+    suspend fun borrarFoto(): Response<UsuarioMeDto>
+
+    @GET("api/v1/planes")
+    suspend fun getPlanes(): Response<List<PlanDto>>
+
+    @POST("api/v1/usuarios/me/plan")
+    suspend fun contratarPlan(@Body request: ContratarPlanRequest): Response<ContratarPlanResponse>
 }

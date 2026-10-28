@@ -12,7 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -21,16 +21,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-import androidx.compose.ui.res.stringResource
 import com.equipo4.nearhome.R
-
-private val PrimaryDarkBlue = Color(0xFF0A2B42)
-private val LinkBlue = Color(0xFF64B5F6)
-private val FieldBackground = Color(0xFFF8FAFC)
-private val BorderColor = Color(0xFFE2E8F0)
-private val TextDark = Color(0xFF1E293B)
-private val TextMuted = Color(0xFF94A3B8)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,6 +33,7 @@ fun ForgotPasswordScreen(
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val scrollState = rememberScrollState()
+    val cs = MaterialTheme.colorScheme
 
     LaunchedEffect(uiState.successMessage, uiState.errorMessage) {
         uiState.successMessage?.let {
@@ -56,7 +48,7 @@ fun ForgotPasswordScreen(
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = Color.White
+        containerColor = cs.background
     ) { paddingValues ->
         BoxWithConstraints(
             modifier = Modifier
@@ -85,7 +77,7 @@ fun ForgotPasswordScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = stringResource(R.string.forgot_back),
-                            tint = TextDark
+                            tint = cs.onSurface
                         )
                     }
                 }
@@ -101,7 +93,7 @@ fun ForgotPasswordScreen(
                         text = stringResource(R.string.forgot_title),
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
-                        color = TextDark,
+                        color = cs.onSurface,
                         textAlign = TextAlign.Center
                     )
 
@@ -116,12 +108,12 @@ fun ForgotPasswordScreen(
                             text = stringResource(R.string.forgot_email_label),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
-                            color = TextDark
+                            color = cs.onSurface
                         )
                         Text(
                             text = stringResource(R.string.forgot_back),
                             fontSize = 13.sp,
-                            color = LinkBlue,
+                            color = cs.primary,
                             modifier = Modifier.clickable { onNavigateToLogin() }
                         )
                     }
@@ -134,7 +126,7 @@ fun ForgotPasswordScreen(
                         placeholder = {
                             Text(
                                 text = "email@gmail.com",
-                                color = TextMuted,
+                                color = cs.onSurfaceVariant,
                                 fontSize = 14.sp
                             )
                         },
@@ -142,12 +134,12 @@ fun ForgotPasswordScreen(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                         shape = RoundedCornerShape(10.dp),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = FieldBackground,
-                            unfocusedContainerColor = FieldBackground,
-                            focusedBorderColor = PrimaryDarkBlue,
-                            unfocusedBorderColor = BorderColor,
-                            focusedTextColor = TextDark,
-                            unfocusedTextColor = TextDark
+                            focusedContainerColor = cs.surfaceVariant,
+                            unfocusedContainerColor = cs.surfaceVariant,
+                            focusedBorderColor = cs.primary,
+                            unfocusedBorderColor = cs.outlineVariant,
+                            focusedTextColor = cs.onSurface,
+                            unfocusedTextColor = cs.onSurface
                         ),
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -158,17 +150,21 @@ fun ForgotPasswordScreen(
                     val helperAction = stringResource(R.string.forgot_reset_button)
                     val helperSuffix = stringResource(R.string.forgot_helper_suffix)
                     val helperText = buildAnnotatedString {
-                        append(helperPrefix)
-                        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = TextDark)) {
+                        withStyle(style = SpanStyle(color = cs.onSurfaceVariant)) {
+                            append(helperPrefix)
+                        }
+                        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold, color = cs.onSurface)) {
                             append(helperAction)
                         }
-                        append(helperSuffix)
+                        withStyle(style = SpanStyle(color = cs.onSurfaceVariant)) {
+                            append(helperSuffix)
+                        }
                     }
 
                     Text(
                         text = helperText,
                         fontSize = 12.sp,
-                        color = TextMuted,
+                        color = cs.onSurfaceVariant,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.padding(horizontal = 12.dp)
                     )
@@ -180,8 +176,10 @@ fun ForgotPasswordScreen(
                         enabled = uiState.isEmailValid && !uiState.isLoading,
                         shape = RoundedCornerShape(10.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = PrimaryDarkBlue,
-                            disabledContainerColor = PrimaryDarkBlue.copy(alpha = 0.5f)
+                            containerColor = cs.primary,
+                            disabledContainerColor = cs.primary.copy(alpha = 0.5f),
+                            contentColor = cs.onPrimary,
+                            disabledContentColor = cs.onPrimary
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
@@ -189,14 +187,14 @@ fun ForgotPasswordScreen(
                     ) {
                         if (uiState.isLoading) {
                             CircularProgressIndicator(
-                                color = Color.White,
+                                color = cs.onPrimary,
                                 modifier = Modifier.size(22.dp),
                                 strokeWidth = 2.dp
                             )
                         } else {
                             Text(
                                 text = stringResource(R.string.forgot_reset_button),
-                                color = Color.White,
+                                color = cs.onPrimary,
                                 fontSize = 15.sp,
                                 fontWeight = FontWeight.Medium
                             )
@@ -212,7 +210,7 @@ fun ForgotPasswordScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     HorizontalDivider(
-                        color = BorderColor,
+                        color = cs.outlineVariant,
                         thickness = 1.dp,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -222,10 +220,10 @@ fun ForgotPasswordScreen(
                     val noAccountText = stringResource(R.string.forgot_no_account)
                     val registerText = stringResource(R.string.forgot_register)
                     val signUpAnnotatedText = buildAnnotatedString {
-                        withStyle(style = SpanStyle(color = TextMuted)) {
+                        withStyle(style = SpanStyle(color = cs.onSurfaceVariant)) {
                             append(noAccountText)
                         }
-                        withStyle(style = SpanStyle(color = LinkBlue, fontWeight = FontWeight.Medium)) {
+                        withStyle(style = SpanStyle(color = cs.primary, fontWeight = FontWeight.Medium)) {
                             append(registerText)
                         }
                     }

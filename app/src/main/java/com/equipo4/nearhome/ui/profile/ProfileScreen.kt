@@ -1,6 +1,5 @@
 package com.equipo4.nearhome.ui.profile
 
-import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -26,11 +25,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -40,20 +36,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
 import kotlinx.coroutines.launch
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 
-private val SectionBg = Color(0xFFF2F2F2)
-private val SectionText = Color(0xFF4B4B4B)
-private val DividerColor = Color(0xFFE5E7EB)
-private val TextDark = Color(0xFF1F2937)
-private val ArrowGray = Color(0xFF9CA3AF)
-private val ChipBg = Color(0xFFE6F2EA)
-private val ChipText = Color(0xFF2E7D4F)
-private val AvatarBg = Color(0xFFE5E7EB)
-private val NavyColor = Color(0xFF0B2C4D)
-private val SelectedRowBg = Color(0xFFEDEDED)
-private val SubtitleGray = Color(0xFF6B7280)
-
-private enum class SettingSheetType { LANGUAGE, DARK_MODE, ROLE }
+private enum class SettingSheetType { LANGUAGE, DARK_MODE }
 
 @Composable
 fun ProfileScreen(
@@ -68,18 +55,13 @@ fun ProfileScreen(
     onBottomTabSelected: (Int) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val context = LocalContext.current
 
-    // Cuando la API responde 401 a la petición con token, volvemos al login.
     LaunchedEffect(Unit) {
         viewModel.sessionExpired.collect { onSessionExpired() }
     }
 
-    // El cambio de rol solo existe en builds de prueba (debug); en producción el rol viene de la sesión.
-    val isDebuggable = (context.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE) != 0
     ProfileContent(
         uiState = uiState,
-        onRoleSelected = if (isDebuggable) viewModel::onRoleSelected else null,
         onLanguageSelected = viewModel::onLanguageSelected,
         onDarkModeSelected = viewModel::onDarkModeSelected,
         onMyListingsClick = onMyListingsClick,
@@ -95,7 +77,6 @@ fun ProfileScreen(
 @Composable
 fun ProfileContent(
     uiState: ProfileUiState,
-    onRoleSelected: ((UserRole) -> Unit)? = null,
     onLanguageSelected: (String) -> Unit = {},
     onDarkModeSelected: (Boolean) -> Unit = {},
     onMyListingsClick: () -> Unit = {},
@@ -108,21 +89,33 @@ fun ProfileContent(
 ) {
     var openSheet by remember { mutableStateOf<SettingSheetType?>(null) }
     var showLogoutDialog by remember { mutableStateOf(false) }
+    val scrollState = rememberScrollState()
+    val scope = rememberCoroutineScope()
 
     Scaffold(
-        bottomBar = { NearHomeBottomBar(selectedTab = 3, onTabSelected = onBottomTabSelected) },
-        containerColor = Color.White
+        bottomBar = {
+            NearHomeBottomBar(
+                selectedTab = 3,
+                onTabSelected = { index ->
+                    if (index == 3) {
+                        scope.launch {
+                            scrollState.animateScrollTo(0)
+                        }
+                    } else {
+                        onBottomTabSelected(index)
+                    }
+                }
+            )
+        },
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
+                .verticalScroll(scrollState)
         ) {
-            ProfileHeader(
-                uiState = uiState,
-                onRoleClick = onRoleSelected?.let { { openSheet = SettingSheetType.ROLE } }
-            )
+            ProfileHeader(uiState = uiState)
 
             SectionHeader(stringResource(R.string.profile_section_profile))
             if (uiState.showMyListings) {
@@ -191,19 +184,6 @@ fun ProfileContent(
             onSelect = { onDarkModeSelected(it == darkOnLabel) },
             onDismiss = { openSheet = null }
         )
-        SettingSheetType.ROLE -> {
-            val roleLabels = UserRole.entries.associateWith { stringResource(it.labelRes) }
-            SettingSheet(
-                title = stringResource(R.string.profile_role_sheet_title),
-                subtitle = stringResource(R.string.profile_role_sheet_subtitle),
-                options = roleLabels.values.toList(),
-                selected = roleLabels.getValue(uiState.role),
-                onSelect = { label ->
-                    roleLabels.entries.firstOrNull { it.value == label }?.let { onRoleSelected?.invoke(it.key) }
-                },
-                onDismiss = { openSheet = null }
-            )
-        }
         null -> Unit
     }
 
@@ -219,7 +199,7 @@ fun ProfileContent(
 }
 
 @Composable
-private fun ProfileHeader(uiState: ProfileUiState, onRoleClick: (() -> Unit)? = null) {
+private fun ProfileHeader(uiState: ProfileUiState) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -228,23 +208,44 @@ private fun ProfileHeader(uiState: ProfileUiState, onRoleClick: (() -> Unit)? = 
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
-            modifier = Modifier.size(60.dp).background(AvatarBg, CircleShape),
+            modifier = Modifier
+                .size(60.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.surfaceVariant),
             contentAlignment = Alignment.Center
         ) {
-            Icon(Icons.Outlined.Person, contentDescription = null, tint = Color(0xFF6B7280), modifier = Modifier.size(34.dp))
+            if (uiState.userPhotoUrl != null) {
+                AsyncImage(
+                    model = uiState.userPhotoUrl,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                Icon(
+                    Icons.Outlined.Person,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(34.dp)
+                )
+            }
         }
         Spacer(Modifier.width(16.dp))
         Column {
-            Text(uiState.userName.ifBlank { stringResource(R.string.profile_default_name) }, fontSize = 16.sp, color = TextDark)
+            Text(
+                uiState.userName.ifBlank { stringResource(R.string.profile_default_name) },
+                fontSize = 16.sp,
+                color = MaterialTheme.colorScheme.onSurface
+            )
             Spacer(Modifier.height(4.dp))
+            // El rol solo se muestra. No es clickable.
             Surface(
-                color = ChipBg,
-                shape = RoundedCornerShape(10.dp),
-                modifier = if (onRoleClick != null) Modifier.clickable(onClick = onRoleClick) else Modifier
+                color = MaterialTheme.colorScheme.primaryContainer,
+                shape = RoundedCornerShape(10.dp)
             ) {
                 Text(
                     stringResource(uiState.role.labelRes),
-                    color = ChipText,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Medium,
                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
@@ -260,10 +261,10 @@ private fun SectionHeader(title: String) {
         text = title,
         fontSize = 15.sp,
         fontWeight = FontWeight.Bold,
-        color = SectionText,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier
             .fillMaxWidth()
-            .background(SectionBg)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(horizontal = 16.dp, vertical = 10.dp)
     )
 }
@@ -276,7 +277,7 @@ private fun ProfileRow(
     trailing: (@Composable () -> Unit)? = null,
     onClick: () -> Unit
 ) {
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column(modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface)) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -285,13 +286,13 @@ private fun ProfileRow(
                 .padding(horizontal = 20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(icon, contentDescription = null, tint = TextDark, modifier = Modifier.size(20.dp))
+            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(20.dp))
             Spacer(Modifier.width(14.dp))
-            Text(label, fontSize = 14.sp, color = TextDark, modifier = Modifier.weight(1f))
+            Text(label, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
             trailing?.invoke()
         }
         if (showDivider) {
-            HorizontalDivider(modifier = Modifier.padding(horizontal = 20.dp), color = DividerColor)
+            HorizontalDivider(modifier = Modifier.padding(horizontal = 20.dp), color = MaterialTheme.colorScheme.outline)
         }
     }
 }
@@ -311,8 +312,8 @@ private fun SettingRow(
         onClick = onClick,
         trailing = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(value, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = TextDark)
-                Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = ArrowGray)
+                Text(value, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     )
@@ -341,7 +342,8 @@ private fun SettingSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = Color.White,
+        containerColor = MaterialTheme.colorScheme.surface,
+        contentColor = MaterialTheme.colorScheme.onSurface,
         dragHandle = null,
         shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
     ) {
@@ -351,13 +353,13 @@ private fun SettingSheet(
                     title,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    color = TextDark,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.align(Alignment.Center)
                 )
                 Icon(
                     Icons.Default.Close,
                     contentDescription = stringResource(R.string.common_close),
-                    tint = TextDark,
+                    tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.align(Alignment.CenterEnd).size(22.dp).noRippleClickable { close() }
                 )
             }
@@ -365,7 +367,7 @@ private fun SettingSheet(
             Text(
                 subtitle,
                 fontSize = 12.sp,
-                color = SubtitleGray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
             )
@@ -375,15 +377,15 @@ private fun SettingSheet(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(if (isSelected) SelectedRowBg else Color.White)
+                        .background(if (isSelected) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surface)
                         .noRippleClickable { close { onSelect(option) } }
                         .height(52.dp)
                         .padding(horizontal = 24.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(option, fontSize = 14.sp, color = TextDark, modifier = Modifier.weight(1f))
+                    Text(option, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
                     if (isSelected) {
-                        Icon(Icons.Default.Check, contentDescription = null, tint = TextDark, modifier = Modifier.size(20.dp))
+                        Icon(Icons.Default.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                     }
                 }
             }
@@ -394,12 +396,16 @@ private fun SettingSheet(
 @Composable
 private fun LogoutDialog(onCancel: () -> Unit, onConfirm: () -> Unit) {
     Dialog(onDismissRequest = onCancel) {
-        Surface(shape = RoundedCornerShape(12.dp), color = Color.White) {
+        Surface(
+            shape = RoundedCornerShape(12.dp),
+            color = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface
+        ) {
             Column(modifier = Modifier.padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     stringResource(R.string.logout_confirm_message),
                     fontSize = 14.sp,
-                    color = TextDark,
+                    color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center
                 )
                 Spacer(Modifier.height(16.dp))
@@ -408,14 +414,20 @@ private fun LogoutDialog(onCancel: () -> Unit, onConfirm: () -> Unit) {
                         onClick = onCancel,
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(6.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB0B5BC), contentColor = Color.White)
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     ) { Text(stringResource(R.string.logout_cancel), fontSize = 13.sp) }
                     Button(
                         onClick = onConfirm,
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(6.dp),
                         contentPadding = PaddingValues(horizontal = 8.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = NavyColor, contentColor = Color.White)
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = MaterialTheme.colorScheme.onPrimary
+                        )
                     ) { Text(stringResource(R.string.profile_logout), fontSize = 13.sp, maxLines = 1) }
                 }
             }

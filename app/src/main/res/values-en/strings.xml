@@ -60,6 +60,33 @@
     <string name="profile_section_profile">Profile</string>
     <string name="profile_my_listings">My listings</string>
 
+    <!-- Edit Profile -->
+    <string name="edit_profile_back">Back</string>
+    <string name="edit_profile_close">Close</string>
+    <string name="edit_profile_cancel">Cancel</string>
+    <string name="edit_profile_save">Save</string>
+    <string name="edit_profile_picture_title">Profile picture</string>
+    <string name="edit_profile_first_name">First name(s)</string>
+    <string name="edit_profile_first_last_name">First last name</string>
+    <string name="edit_profile_second_last_name">Second last name</string>
+    <string name="edit_profile_optional_hint">(optional)</string>
+
+    <string name="edit_profile_option_camera">Camera</string>
+    <string name="edit_profile_option_gallery">Gallery</string>
+    <string name="edit_profile_option_delete_photo">Delete photo</string>
+
+    <string name="edit_profile_error_required">This field is required</string>
+    <string name="edit_profile_error_only_letters">Only letters and spaces allowed</string>
+    <string name="edit_profile_updated_success">Profile updated</string>
+
+    <string name="edit_profile_discard_title">Discard changes?</string>
+    <string name="edit_profile_discard_message">You have unsaved changes. If you leave now, they will be lost.</string>
+    <string name="edit_profile_discard_confirm">Discard</string>
+
+    <string name="edit_profile_camera_permission_title">Camera permission required</string>
+    <string name="edit_profile_camera_permission_message">We need access to your camera to take your new profile picture.</string>
+    <string name="edit_profile_open_settings">Open settings</string>
+
     <!-- Suscripción y Planes -->
     <string name="choose_plan_title">Choose your plan</string>
     <string name="choose_plan_header_title">Start publishing your properties!</string>
@@ -578,11 +605,17 @@
     <string name="home_properties_count">%s properties</string>
     <string name="home_search_location">Search by location</string>
     <string name="home_sort">Sort</string>
+    <string name="sort_default">Default</string>
+    <string name="sort_price_low_high">Price: Low to High</string>
+    <string name="sort_price_high_low">Price: High to Low</string>
     <string name="map_type_todo">All</string>
     <string name="map_type_types">%d types</string>
     <string name="map_preview_title">Property detail</string>
     <string name="saved_empty_title">You don\'t have saved properties yet</string>
     <string name="saved_empty_subtitle">Save properties you\'re interested in to find them here easier</string>
+    <string name="home_empty_title">No listings available</string>
+    <string name="home_empty_subtitle">Try changing your filters or search to see more properties</string>
+    <string name="home_empty_clear_filters">Clear filters</string>
     <string name="checkout_free_trial_heading">You won\'t be charged during your first month</string>
     <string name="checkout_free_trial_body">A payment method will be requested to activate it automatically at the end of your trial month, unless you cancel before.</string>
     <string name="checkout_plan_format">Plan %s</string>
@@ -779,38 +812,196 @@
     <string name="poi_park">Park</string>
     <string name="address_colonia_format">Neighborhood: %1$s</string>
     <string name="address_postal_format">ZIP %1$s</string>
-    <string name="legal_terms_title">Terms and Conditions</string>
-    <string name="legal_terms_updated">October 3, 2026</string>
-    <string name="legal_terms_subtitle">General Terms/Conditions - All Users</string>
-    <string name="legal_terms_s1_title">Minimum age (18 years)</string>
-    <string name="legal_terms_s1_content">This is set because the platform handles financial transactions (rent/sale) and direct contact between strangers, a context in which allowing minors access is not advisable, unlike a generic social network.</string>
-    <string name="legal_terms_s2_title">Code of conduct</string>
-    <string name="legal_terms_s2_content">They derive directly from the risks already identified in RF25 (false information, offensive content, fraud), plus an additional rule: having authorization to publish the property, to prevent a user from listing a property without the owner\'s permission.</string>
-    <string name="legal_terms_s3_title">Account suspension or deletion</string>
-    <string name="legal_terms_s3_content">It connects to the already designed reporting flow (Report listing -> Administrator Reports) and to the account deletion flow with a 30-day period, keeping consistency across the project\'s different modules.</string>
-    <string name="legal_terms_s4_title">NearHouse as an intermediary</string>
-    <string name="legal_terms_s4_content">This is the clause that gives the platform the greatest protection against legal disputes. Without it, NearHouse could be perceived as responsible for a failed transaction between two users (for example, a rental fraud). It therefore explicitly states that the platform is not a party to the transaction and does not guarantee the accuracy of the listings. It is a standard clause on marketplace-type platforms (Mercado Libre, Airbnb, among others, use equivalent clauses).</string>
-    <string name="legal_terms_s5_title">Payments</string>
-    <string name="legal_terms_s5_content">Two rules are set: payments to publish or promote a listing are non-refundable except for an error attributable to the platform, and if a paid listing is removed for breaking the rules, no refund applies either. This prevents a user from posting improper content, paying, and then requesting a refund once it is removed.</string>
-    <string name="legal_terms_s6_title">Limitation of liability</string>
-    <string name="legal_terms_s6_content">It states that the platform is not responsible for fraud between users. It complements the intermediary clause, but with a broader scope, covering not only fraud but any bad experience arising from the use of the app.</string>
-    <string name="legal_terms_s7_title">Changes to the terms and conditions</string>
-    <string name="legal_terms_s7_content">A 15-day prior notice period is defined, as it is a reasonable period (neither too short nor excessively long), and it is established that notification is given within the app, consistent with how NearHouse actually works.</string>
+    <string name="legal_terms_title">Terms and conditions</string>
+    <string name="legal_terms_updated">October 20, 2026</string>
+    <string name="legal_terms_subtitle">Terms and Conditions of Use for NearHouse</string>
+    <string name="legal_terms_s1_title">Acceptance of the terms</string>
+    <string name="legal_terms_s1_content">By creating an account or using NearHouse, you accept these terms. We recommend reading them carefully. If you do not agree with anything, you may stop using the app at any time.</string>
+    <string name="legal_terms_s2_title">What NearHouse is</string>
+    <string name="legal_terms_s2_content">NearHouse is an app to publish and search for houses, apartments, and land for sale or rent in Manzanillo, Colima.\nNearHouse is an academic project created by students. It is not a formal business or commercial service.\n• It may contain errors or change over time.\n• We may modify, suspend, or remove the app at any time.\n• If you downloaded it without knowing about the project, please keep in mind that it is not a professional service and we do not guarantee it will always be available.</string>
+    <string name="legal_terms_s3_title">Minimum age (18 years)</string>
+    <string name="legal_terms_s3_content">To create an account and use NearHouse, you must be at least 18 years old. By registering, you confirm that you meet this age requirement. If we detect that an account belongs to a minor, we will suspend it and delete its data.</string>
+    <string name="legal_terms_s4_title">Your account</string>
+    <string name="legal_terms_s4_content">• The information you provide when registering must be true.\n• We verify your email and phone number.\n• You can sign in with your email and password, or with your Google account.\n• Take care of your password. You are responsible for anything done with your account.</string>
+    <string name="legal_terms_s5_title">Code of conduct</string>
+    <string name="legal_terms_s5_content">In NearHouse, it is prohibited to:\n• publish false or misleading information;\n• upload offensive content;\n• commit or attempt fraud;\n• impersonate another person;\n• publish a property without authorization from its owner.\nAll listings undergo review by an administrator before being published. Photos must be taken at the property.</string>
+    <string name="legal_terms_s6_title">Account suspension or deletion</string>
+    <string name="legal_terms_s6_content">Any user can report a listing. Administrators review reports and can remove listings, suspend, or delete accounts that do not comply with these rules.\nIf you want to delete your account, request it at [CORREO DE CONTACTO]. We will delete your data within 30 days.</string>
+    <string name="legal_terms_s7_title">NearHouse as an intermediary</string>
+    <string name="legal_terms_s7_content">NearHouse only connects the publisher with the seeker. We are not party to the sale or rental, we do not charge a commission for them, and we do not guarantee that what is published is accurate.\nInspect the property and its documents before paying or signing anything.</string>
+    <string name="legal_terms_s8_title">Payments</string>
+    <string name="legal_terms_s8_content">Payments to publish or promote a listing, and to subscribe to a plan, are simulated. NearHouse makes no real charges to your card or bank account.\n• We recommend not entering real card details.\n• Since there are no real charges, there are no refunds.</string>
+    <string name="legal_terms_s9_title">Limitation of liability</string>
+    <string name="legal_terms_s9_content">NearHouse is not liable for fraud between users, nor for damages or issues resulting from an agreement between them or the use of the app.</string>
+    <string name="legal_terms_s10_title">Your content</string>
+    <string name="legal_terms_s10_content">• The photos and text of your listings remain yours.\n• By publishing them, you allow NearHouse to display them within the app.\n• We can remove any content that violates these rules.</string>
+    <string name="legal_terms_s11_title">Modification of terms and conditions</string>
+    <string name="legal_terms_s11_content">If we change these terms, we will notify you within the app 15 days in advance. If you continue using NearHouse after that period, you accept the changes.</string>
+    <string name="legal_terms_s12_title">Contact</string>
+    <string name="legal_terms_s12_content">If you have questions about these terms, write to us at [CORREO DE CONTACTO].</string>
     <string name="legal_privacy_title">Privacy Policy</string>
-    <string name="legal_privacy_updated">October 3, 2026</string>
-    <string name="legal_privacy_subtitle">Welcome to NearHouse. This Privacy Notice applies to the NearHouse application and the services related to it (the \"Platform\"), developed as an academic project (\"NearHouse\", \"we\" or \"the app\").\n\nWe are committed to protecting your privacy. This notice explains how we collect, use, share and protect your personal information within the app. If you do not agree with this notice, we recommend that you do not use the Platform.</string>
-    <string name="legal_privacy_s1_title">What data the app collects</string>
-    <string name="legal_privacy_s1_content">The list starts from what NearHouse functionally needs to operate, not from a generic list taken from another app:\n\n• Name, last names, date of birth: identify the person and allow confirming they are of legal age (a requirement set in the Terms).\n• Email and phone: are the means of contact and account recovery; the phone is also used for SMS verification.\n• Location: is a core data point in a real estate portal, since without it nearby properties cannot be shown nor a property located on the map.\n• Profile photos and history of listings/favorites/conversations: are data generated by using the app (they do not come from a form, they are created while using NearHouse), so they must be declared separately.</string>
-    <string name="legal_privacy_s2_title">What each piece of data is used for</string>
-    <string name="legal_privacy_s2_content">The applicable regulation requires each piece of data to have a specific purpose and not a vague justification such as \"to improve the experience\". Therefore, in the document each piece of data is tied to a concrete function of the app (for example: date of birth → minimum age verification, not \"personalization\").</string>
-    <string name="legal_privacy_s3_title">Who it is shared with</string>
-    <string name="legal_privacy_s3_content">It is not that NearHouse shares data in a general way, but rather with the external services necessary for the app to work (Google authentication, SMS verification, payment gateway, cloud storage). This must be declared explicitly because the regulation requires stating which third parties information is shared with and for what purpose, without leaving it implicit.</string>
-    <string name="legal_privacy_s4_title">Protection and retention period</string>
-    <string name="legal_privacy_s4_content">Two aspects are covered: how the information is protected (password encryption, restricted access) and how long it is kept (while the account is active, plus 30 additional days in case of a deletion request). This period is consistent with the \"delete account\" flow previously defined in the project.</string>
-    <string name="legal_privacy_s5_title">ARCO rights</string>
-    <string name="legal_privacy_s5_content">• A – Access: the user can request to know what data is held about them.\n• R – Rectification: they can correct outdated or incorrect data (for example, their phone number).\n• C – Cancellation: they can request the deletion of their data, which corresponds to account deletion.\n• O – Opposition: they can request that a specific piece of data not be used for a certain purpose, without having to delete the whole account.\n\nThese rights must be included under the Federal Law on Protection of Personal Data Held by Private Parties (LFPDPPP) in Mexico.</string>
-    <string name="legal_privacy_s6_title">Minors</string>
-    <string name="legal_privacy_s6_content">Since the project sets 18 years as the minimum age, the position adopted is that data from minors is not intentionally collected. Allowing minors would imply additional requirements (parental consent, age verification), which exceeds the scope of the project.</string>
-    <string name="legal_privacy_s7_title">Analytics (Firebase)</string>
-    <string name="legal_privacy_s7_content">Its use is declared even though it is limited to usage statistics, since any tool that records user behavior within the app (screens visited, time of use) constitutes data processing and must be mentioned, even if it does not identify the person by name.</string>
+    <string name="legal_privacy_updated">October 20, 2026</string>
+    <string name="legal_privacy_subtitle">Welcome to NearHouse. This Privacy Notice applies to the NearHouse application and its related services (the \"Platform\"), developed as an academic project.\n\nWe are committed to protecting your privacy. This notice explains how we collect, use, share, and protect your personal information within the app, pursuant to the Federal Law on Protection of Personal Data Held by Private Parties. If you do not agree with this notice, we recommend not using the Platform.</string>
+    <string name="legal_privacy_s1_title">Who is responsible for your data</string>
+    <string name="legal_privacy_s1_content">The entity responsible for your personal data is [NOMBRE DEL RESPONSABLE], located at [CIUDAD O DOMICILIO]. You can contact us at [CORREO DE CONTACTO].</string>
+    <string name="legal_privacy_s2_title">What data the app collects</string>
+    <string name="legal_privacy_s2_content">We only collect data that NearHouse needs to operate.\n\nTo create your account:\n• full name;\n• email;\n• phone number;\n• password;\n• date of birth.\n\nIf you sign in with Google: the name and email of your Google account.\n\nData you add:\n• profile photo;\n• listings with their photos;\n• address and location of the property;\n• contact info for your listings (name, phone, and email);\n• saved listings.\n\nLocation: we use your device\'s location when taking photos for a listing and when using the map. We only use it at those times.\n\nCamera: we use it only for you to take photos of the property.\n\nPayments: when paying for a listing or choosing a plan, the app shows an example payment form. Payments are simulated: no charge is made, and we do not send or store your card details. We recommend not entering real card details.</string>
+    <string name="legal_privacy_s3_title">What each piece of data is used for</string>
+    <string name="legal_privacy_s3_content">• Full name: to identify you and show who posted a listing.\n• Email: to verify your account, recover it if you forget your password, and allow other users to contact you when you publish.\n• Phone number: to verify your account via SMS, recover it, and allow other users to contact you via WhatsApp when you publish.\n• Password: so you can log in.\n• Google name and email: to create your account and allow you to log in without entering a password.\n• Date of birth: to confirm you are at least 18 years old.\n• Profile photo: to display it on your account.\n• Property photos: to display your listing.\n• Location when taking photos: to verify they were taken at the property and show it on the map.\n• Location when using the map: to show you nearby properties.\n• Property address: to indicate where it is located.\n• Saved listings: so you can easily find what interests you.</string>
+    <string name="legal_privacy_s4_title">What is visible publicly</string>
+    <string name="legal_privacy_s4_content">When you publish a listing, other users can see:\n• its photos;\n• the address and location of the property;\n• your contact info: name, phone, and email.\n\nIf you do not want other people to see this information, do not publish listings.</string>
+    <string name="legal_privacy_s5_title">Who it is shared with</string>
+    <string name="legal_privacy_s5_content">We do not sell your data. We only use third-party services for the app to function:\n• Google Firebase: phone verification via SMS and Google sign-in.\n• Google Maps: displaying the map.\n• Railway: servers where data is stored. They may be located outside Mexico.\n• Brevo: sending emails with your verification code.</string>
+    <string name="legal_privacy_s6_title">Protection and retention period</string>
+    <string name="legal_privacy_s6_content">• Your password is saved encrypted. No one can see it, not even the NearHouse team.\n• Access to data is limited.\n• We keep your data while your account is active, and for 30 days after you request account deletion.</string>
+    <string name="legal_privacy_s7_title">ARCO rights</string>
+    <string name="legal_privacy_s7_content">You have the right to:\n• Access: know what data we hold about you.\n• Rectification: correct or update your data.\n• Cancellation: request that we delete your data.\n• Opposition: request that a specific piece of data not be used for a specific purpose.\n\nHow to exercise them: write to us at [CORREO DE CONTACTO] with your full name, your account email, and your request.\n\nResponse time: we will respond within a maximum period of 20 business days.\n\nWithdraw consent: you can also withdraw your consent at any time through the same channel.\n\nIf you believe we did not handle your request properly, you may contact the Ministry of Anti-Corruption and Good Governance (Secretaría Anticorrupción y Buen Governance).</string>
+    <string name="legal_privacy_s8_title">Minors</string>
+    <string name="legal_privacy_s8_content">NearHouse is intended only for people over 18 years old. We do not intentionally collect data from minors. If we detect an account belonging to a minor, we will delete it.</string>
+    <string name="legal_privacy_s9_title">Changes to this notice</string>
+    <string name="legal_privacy_s9_content">If we change this notice, we will notify you within the app and update the \"Last updated\" date shown above.</string>
+
+    <!-- Account Administration -->
+    <string name="account_admin_title">Account management</string>
+
+    <!-- Access Data -->
+    <string name="section_access_data">Access information</string>
+    <string name="label_email">Email address</string>
+    <string name="label_phone">Phone number</string>
+    <string name="label_password">Password</string>
+    <string name="masked_password">••••••••</string>
+
+    <!-- Membership and Payments -->
+    <string name="section_membership">Membership &amp; payments</string>
+    <string name="label_current_plan">Current plan</string>
+    <string name="buyer_no_plan">No plan</string>
+    <string name="buyer_plan_subtitle">Explore plans to publish your listings</string>
+    <string name="seller_plan_status_format">%1$s (%2$s)</string>
+    <string name="seller_renewal_format">Renews on %1$s</string>
+
+    <!-- Account Management -->
+    <string name="section_account_management">Account management</string>
+    <string name="deactivate_account_title">Temporarily deactivate account</string>
+    <string name="deactivate_account_subtitle">Pause your listings and profile. You can return whenever you want.</string>
+    <string name="delete_account_title">Permanently delete account</string>
+    <string name="delete_account_subtitle">This action is irreversible and will erase all your data.</string>
+
+    <!-- Actions and Dialogs -->
+    <string name="coming_soon">Coming soon</string>
+    <string name="cancel">Cancel</string>
+    <string name="confirm_deactivate">Deactivate</string>
+    <string name="confirm_delete">Delete</string>
+    <string name="delete_keyword_target">DELETE</string>
+
+    <string name="dialog_deactivate_title">Deactivate your account?</string>
+    <string name="dialog_deactivate_text">Your listings and profile will no longer be visible. You can reactivate your account anytime by logging back in.</string>
+    <string name="dialog_delete_title">Delete your account?</string>
+    <string name="dialog_delete_text">Your profile, listings, and all your data will be permanently deleted. This action cannot be undone.</string>
+    <string name="dialog_delete_placeholder">Type DELETE to confirm</string>
+
+    <!-- Plans (API) -->
+    <string name="plan_price_amount">$%1$d</string>
+    <string name="plan_limit_single">Up to 1 active listing</string>
+    <string name="plan_limit_multi_format">Up to %1$d active listings</string>
+    <string name="plan_limit_unlimited">Unlimited active listings</string>
+    <string name="plan_vis_1">Standard visibility</string>
+    <string name="plan_vis_2">Featured visibility</string>
+    <string name="plan_vis_3">Maximum visibility</string>
+    <string name="plan_full_name_format">Plan %1$s</string>
+    <string name="plan_status_active">Active</string>
+    <string name="plan_status_expired">Expired</string>
+    <string name="plan_expires_format">Expires on %1$s</string>
+    <string name="plan_expired_format">Expired on %1$s</string>
+    <string name="plan_current_btn">Current plan</string>
+    <string name="plan_free_trial_dialog_text">Activate your free month of the %1$s plan. After %2$d days your plan expires and you can subscribe to it for %3$s</string>
+    <string name="free_trial_activate_btn">Activate</string>
+    <string name="plans_load_error">Could not load the plans</string>
+    <string name="plans_retry">Retry</string>
+    <string name="network_error_connection">Could not connect to the server. Check your internet connection and try again</string>
+
+    <string name="search_filters_colonias_loading">Loading neighborhoods…</string>
+    <string name="search_filters_colonias_error">Could not load neighborhoods</string>
+    <string name="search_filters_colonias_empty">There are no neighborhoods with listings yet</string>
+    <string name="search_filters_colonias_retry">Retry</string>
+
+    <!-- Report Listing -->
+    <string name="report_title">Report listing</string>
+    <string name="report_category_question">Why do you want to report this listing?</string>
+    <string name="report_reason_question">Please tell us the reason for the report.</string>
+    <string name="report_anonymous_notice">Your report is anonymous to others, and we will review all reports according to our community guidelines</string>
+
+    <!-- Categories -->
+    <string name="report_category_false_info">False information</string>
+    <string name="report_category_false_info_desc">Incorrect or outdated details</string>
+    <string name="report_category_offensive">Offensive content</string>
+    <string name="report_category_offensive_desc">Inappropriate text or images</string>
+    <string name="report_category_fraud">Potential fraud</string>
+    <string name="report_category_fraud_desc">Someone is attempting to scam or charge without authorization</string>
+
+    <!-- Reasons: False Information -->
+    <string name="report_reason_photos_mismatch">Photos do not match the property</string>
+    <string name="report_reason_wrong_price">False or misleading price</string>
+    <string name="report_reason_wrong_data">Incorrect details</string>
+    <string name="report_reason_wrong_location">Incorrect location</string>
+    <string name="report_reason_not_available">The property is no longer available</string>
+
+    <!-- Reasons: Offensive Content -->
+    <string name="report_reason_offensive_language">Offensive language or insults</string>
+    <string name="report_reason_discriminatory">Discriminatory content</string>
+    <string name="report_reason_sexual">Sexual content</string>
+    <string name="report_reason_violent">Violent content</string>
+
+    <!-- Reasons: Potential Fraud -->
+    <string name="report_reason_suspicious_price">Suspiciously low price</string>
+    <string name="report_reason_not_exist">The property does not exist</string>
+    <string name="report_reason_multiple_publishers">Property posted by multiple people</string>
+    <string name="report_reason_advance_payment">Requesting payment before viewing the property</string>
+    <string name="report_reason_other">Other</string>
+
+    <!-- Description & Evidence Form -->
+    <string name="report_description_title">Please complete the reason for the report</string>
+    <string name="report_description_placeholder">Provide a detailed description of your issue so we can better help you resolve it</string>
+    <string name="report_evidence_title">Upload an image or video as evidence</string>
+    <string name="report_add_evidence_cd">Add evidence</string>
+    <string name="report_send">Send</string>
+
+    <!-- Confirmations & Errors -->
+    <string name="report_success_title">Thank you for your report</string>
+    <string name="report_success_message">We will review it and, if it violates our guidelines, we will take the necessary action</string>
+    <string name="report_success_button">Got it</string>
+    <string name="report_discard_title">Discard report?</string>
+    <string name="report_discard_message">If you exit now, any unsubmitted changes will be lost.</string>
+    <string name="report_error_title">File not allowed</string>
+    <string name="report_error_image_size">Images must not exceed 5 MB.</string>
+    <string name="report_error_video_size">Videos must not exceed 20 MB.</string>
+    <string name="report_error_video_duration">Videos must not exceed 30 seconds.</string>
+
+    <!-- Common for Reports -->
+    <string name="report_common_ok">OK</string>
+    <string name="report_common_remove">Remove</string>
+    <string name="report_common_discard">Discard</string>
+    <string name="report_common_cancel">Cancel</string>
+
+    <!-- Profile & Navigation -->
+    <string name="cd_back">Back</string>
+    <string name="cd_edit_profile">Edit profile</string>
+
+    <!-- Listing Actions -->
+    <string name="action_create_listing">Create listing +</string>
+    <string name="empty_listings_message">You don\'t have any listings yet. Create your first listing so buyers can see it.</string>
+
+    <!-- Listing Statuses -->
+    <string name="status_in_review">Under review</string>
+    <string name="status_published">Published</string>
+    <string name="status_rejected">Rejected</string>
+
+    <string name="create_listing_error_description_min">Enter at least 30 characters</string>
+    <string name="create_listing_description_area_hint">Include the property area (m²)</string>
+    <string name="create_listing_redetect">Detect again</string>
+    <string name="create_listing_hint_colonia_undetected">Detect the neighborhood to continue</string>
+    <string name="create_listing_error_network">No internet connection. Check your connection and try again.</string>
+    <string name="create_listing_error_session">Your session has expired. Please log in again.</string>
+    <string name="create_listing_colonia_undetected">We couldnt detect the neighborhood at this location. Try detecting the location again.</string>
+    <string name="create_listing_error_generic">Couldnt submit the listing. Please try again.</string>
+    <string name="create_listing_error_forbidden">Your account isnt allowed to publish listings.</string>
 </resources>

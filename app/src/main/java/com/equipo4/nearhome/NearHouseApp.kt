@@ -2,6 +2,8 @@ package com.equipo4.nearhome
 
 import android.graphics.Color
 import com.equipo4.nearhome.ui.theme.NearHomeTheme
+import androidx.compose.foundation.isSystemInDarkTheme
+import com.equipo4.nearhome.data.local.SettingsManager
 import android.net.Uri
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
@@ -12,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -50,12 +53,26 @@ import com.equipo4.nearhome.ui.home.filter.SearchFiltersScreen
 import com.equipo4.nearhome.ui.legal.PoliticaPrivacidadScreen
 import com.equipo4.nearhome.ui.legal.TerminosCondicionesScreen
 import com.equipo4.nearhome.ui.profile.ProfileScreen
+import com.equipo4.nearhome.ui.profile.UserRole
+import com.equipo4.nearhome.ui.profile.account.AccountAdminRoute
+import com.equipo4.nearhome.ui.profile.account.AccountAdminViewModel
+import com.equipo4.nearhome.ui.profile.seller.EditProfileScreen
+import com.equipo4.nearhome.ui.profile.seller.MyListingsScreen
+import com.equipo4.nearhome.ui.subscription.CheckoutScreen
+import com.equipo4.nearhome.ui.subscription.ChoosePlanScreen
 import com.equipo4.nearhome.ui.saved.SavedScreen
 import com.equipo4.nearhome.ui.publicacion.detail.DetailPublicacionScreen
+import com.equipo4.nearhome.ui.publicacion.report.ReportCategoryScreen
+import com.equipo4.nearhome.ui.publicacion.report.ReportReasonScreen
+import com.equipo4.nearhome.ui.publicacion.report.ReportViewModel
 import com.equipo4.nearhome.ui.splash.SplashScreen
 import com.equipo4.nearhome.data.local.SessionManager
+import com.equipo4.nearhome.data.session.CurrentUserStore
+import com.equipo4.nearhome.di.NetworkModule
+import com.equipo4.nearhome.network.AuthApi
 import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.compose.navigation
+import kotlinx.coroutines.launch
 import com.equipo4.nearhome.ui.createlisting.CreateListingStep1Screen
 import com.equipo4.nearhome.ui.createlisting.CreateListingViewModel
 import com.equipo4.nearhome.ui.createlisting.canCreateListings
@@ -76,7 +93,15 @@ object AppRoutes {
     const val SEARCH_FILTERS = "search_filters"
     const val SAVED = "saved"
     const val PROFILE = "profile"
+    const val ACCOUNT_ADMIN = "account_admin"
+    const val MY_LISTINGS = "my_listings"
+    const val CHOOSE_PLAN = "choose_plan"
+    const val CHECKOUT = "checkout"
+    const val EDIT_PROFILE = "edit_profile"
     const val PUBLICACION_DETAIL = "publicacion_detail"
+    const val REPORT_GRAPH = "report_graph"
+    const val REPORT_CATEGORY = "report_category"
+    const val REPORT_REASON = "report_reason"
     const val TERMS_AND_CONDITIONS = "terms_and_conditions"
     const val PRIVACY_POLICY = "privacy_policy"
     const val ADMIN_PANEL = "admin_panel"
@@ -100,6 +125,7 @@ object AppRoutes {
     const val CREATE_LISTING_STEP3 = "create_listing_step3"
     const val CREATE_LISTING_STEP4 = "create_listing_step4"
     const val CREATE_LISTING_PREVIEW = "create_listing_preview"
+    const val SUBSCRIPTION = "subscription"
 }
 
 class MainActivity : AppCompatActivity() {
@@ -117,7 +143,13 @@ class MainActivity : AppCompatActivity() {
         )
         super.onCreate(savedInstanceState)
         setContent {
-            NearHomeTheme {
+            val context = LocalContext.current
+            remember { SettingsManager(context) }
+            val darkModeState by SettingsManager.darkModeState.collectAsState()
+            val systemInDark = isSystemInDarkTheme()
+            val useDarkTheme = darkModeState ?: systemInDark
+
+            NearHomeTheme(darkTheme = useDarkTheme) {
                 NearHouseApp()
             }
         }
@@ -129,6 +161,11 @@ fun NearHouseApp() {
     val navController = rememberNavController()
     val context = LocalContext.current
     val sessionManager = remember { SessionManager(context) }
+    val scope = rememberCoroutineScope()
+    val authApi = remember {
+        NetworkModule.provideRetrofit(NetworkModule.provideOkHttpClient(sessionManager))
+            .create(AuthApi::class.java)
+    }
 
     NavHost(
         navController = navController,
@@ -253,16 +290,28 @@ fun NearHouseApp() {
         val onBottomTab: (Int) -> Unit = { index ->
             when (index) {
                 0 -> navController.navigate(AppRoutes.HOME) {
-                    popUpTo(AppRoutes.HOME) { inclusive = false }
+                    popUpTo(AppRoutes.HOME) {
+                        inclusive = false
+                        saveState = true
+                    }
                     launchSingleTop = true
+                    restoreState = true
                 }
                 1 -> navController.navigate(AppRoutes.SAVED) {
-                    popUpTo(AppRoutes.HOME) { inclusive = false }
+                    popUpTo(AppRoutes.HOME) {
+                        inclusive = false
+                        saveState = true
+                    }
                     launchSingleTop = true
+                    restoreState = true
                 }
                 3 -> navController.navigate(AppRoutes.PROFILE) {
-                    popUpTo(AppRoutes.HOME) { inclusive = false }
+                    popUpTo(AppRoutes.HOME) {
+                        inclusive = false
+                        saveState = true
+                    }
                     launchSingleTop = true
+                    restoreState = true
                 }
                 else -> Unit // 2 Notificaciones: aún sin pantalla
             }
@@ -293,11 +342,22 @@ fun NearHouseApp() {
             )
         }
 
-        // Pantalla: Perfil (Vendedor/Arrendador/Admin)
+        // Pantalla: Perfil
         composable(AppRoutes.PROFILE) {
             ProfileScreen(
-                onMyListingsClick = { navController.navigate(AppRoutes.CREATE_LISTING_GRAPH) },
-                onAccountClick = {},
+                onMyListingsClick = {
+                    scope.launch {
+                        if (CurrentUserStore.roleOrNull() == null) {
+                            CurrentUserStore.refresh(authApi)
+                        }
+                        when (CurrentUserStore.roleOrNull()) {
+                            UserRole.COMPRADOR -> navController.navigate(AppRoutes.SUBSCRIPTION)
+                            null -> Unit // sin datos no se decide, para no mandar a un vendedor a suscripciones
+                            else -> navController.navigate(AppRoutes.MY_LISTINGS)
+                        }
+                    }
+                },
+                onAccountClick = { navController.navigate(AppRoutes.ACCOUNT_ADMIN) },
                 onAdminPanelClick = {
                     navController.navigate(AppRoutes.ADMIN_PANEL)
                 },
@@ -305,13 +365,48 @@ fun NearHouseApp() {
                 onPrivacyClick = { navController.navigate(AppRoutes.PRIVACY_POLICY) },
                 onLogoutClick = {
                     sessionManager.clearSession()
+                    CurrentUserStore.clear()
                     navController.navigate(AppRoutes.LOGIN) {
                         popUpTo(0) { inclusive = true }
                     }
                 },
                 onSessionExpired = {
+                    CurrentUserStore.clear()
                     navController.navigate(AppRoutes.LOGIN) {
                         popUpTo(0) { inclusive = true }
+                    }
+                },
+                onBottomTabSelected = onBottomTab
+            )
+        }
+
+        // Pantalla: Mis Anuncios (Vendedor / Admin / SuperAdmin)
+        composable(AppRoutes.MY_LISTINGS) {
+            MyListingsScreen(
+                onBackClick = { navController.popBackStack() },
+                onEditProfileClick = { navController.navigate(AppRoutes.EDIT_PROFILE) },
+                onCreateListingClick = { navController.navigate(AppRoutes.CREATE_LISTING_GRAPH) },
+                onPropertyClick = { propertyId ->
+                    navController.navigate("${AppRoutes.PUBLICACION_DETAIL}/$propertyId")
+                },
+                onBottomTabSelected = onBottomTab
+            )
+        }
+
+        // Pantalla: Editar Perfil (Vendedor / Admin / SuperAdmin)
+        composable(AppRoutes.EDIT_PROFILE) {
+            EditProfileScreen(
+                onNavigateToMyListingsWithSnackbar = { message ->
+                    if (message.isNotEmpty()) {
+                        navController.previousBackStackEntry
+                            ?.savedStateHandle
+                            ?.set("snackbar_msg", message)
+                    }
+                    navController.popBackStack()
+                },
+                onNavigateToAccount = {
+                    navController.navigate(AppRoutes.PROFILE) {
+                        popUpTo(AppRoutes.EDIT_PROFILE) { inclusive = true }
                     }
                 },
                 onBottomTabSelected = onBottomTab
@@ -324,7 +419,7 @@ fun NearHouseApp() {
             startDestination = AppRoutes.CREATE_LISTING_STEP1
         ) {
             composable(AppRoutes.CREATE_LISTING_STEP1) { entry ->
-                val canCreate = remember { canCreateListings(sessionManager.getUserRole()) }
+                val canCreate = remember { canCreateListings(CurrentUserStore.roleOrNull()) }
                 // Comprador: se cierra el flujo y regresa a Cuenta
                 LaunchedEffect(canCreate) {
                     if (!canCreate) navController.popBackStack(AppRoutes.PROFILE, inclusive = false)
@@ -381,7 +476,9 @@ fun NearHouseApp() {
                     onEdit = { navController.popBackStack(AppRoutes.CREATE_LISTING_STEP1, inclusive = false) },
                     onFinished = {
                         vm.reset()
-                        navController.popBackStack(AppRoutes.CREATE_LISTING_GRAPH, inclusive = true)
+                        navController.navigate(AppRoutes.MY_LISTINGS) {
+                            popUpTo(AppRoutes.CREATE_LISTING_GRAPH) { inclusive = true }
+                        }
                     }
                 )
             }
@@ -601,12 +698,10 @@ fun NearHouseApp() {
                     action = action,
                     onBackClick = { navController.popBackStack() },
                     onConfirmed = { message ->
-                        // Regresa al Detalle con el aviso verde.
                         navController.previousBackStackEntry?.savedStateHandle?.set(AppRoutes.LISTING_MESSAGE, message)
                         navController.popBackStack()
                     },
                     onDeleted = { message ->
-                        // Borra Detalle y Eliminar del historial y vuelve a la lista.
                         navController.getBackStackEntry(AppRoutes.ADMIN_LISTINGS)
                             .savedStateHandle[AppRoutes.LISTING_MESSAGE] = message
                         navController.popBackStack(AppRoutes.ADMIN_LISTINGS, inclusive = false)
@@ -655,8 +750,86 @@ fun NearHouseApp() {
                     navController.popBackStack()
                 },
                 onReportClick = {
+                    navController.navigate("${AppRoutes.REPORT_GRAPH}/$publicacionId")
                 },
                 onEditClick = {
+                }
+            )
+        }
+
+        // Flujo: Reportar Publicación (Sub-gráfico de navegación con ViewModel compartido)
+        navigation(
+            route = "${AppRoutes.REPORT_GRAPH}/{publicacionId}",
+            startDestination = AppRoutes.REPORT_CATEGORY,
+            arguments = listOf(navArgument("publicacionId") { type = NavType.StringType })
+        ) {
+            composable(AppRoutes.REPORT_CATEGORY) { entry ->
+                val publicacionId = entry.arguments?.getString("publicacionId") ?: ""
+                val parentEntry = remember(entry) {
+                    navController.getBackStackEntry("${AppRoutes.REPORT_GRAPH}/{publicacionId}")
+                }
+                val reportViewModel: ReportViewModel = viewModel(parentEntry)
+
+                LaunchedEffect(publicacionId) {
+                    reportViewModel.initPublicacion(publicacionId)
+                }
+
+                ReportCategoryScreen(
+                    viewModel = reportViewModel,
+                    onBackClick = { navController.popBackStack() },
+                    onCategorySelected = {
+                        navController.navigate(AppRoutes.REPORT_REASON)
+                    }
+                )
+            }
+
+            composable(AppRoutes.REPORT_REASON) { entry ->
+                val parentEntry = remember(entry) {
+                    navController.getBackStackEntry("${AppRoutes.REPORT_GRAPH}/{publicacionId}")
+                }
+                val reportViewModel: ReportViewModel = viewModel(parentEntry)
+
+                ReportReasonScreen(
+                    viewModel = reportViewModel,
+                    onBackClick = { navController.popBackStack() },
+                    onReportSubmitted = {
+                        navController.popBackStack(
+                            route = AppRoutes.REPORT_CATEGORY,
+                            inclusive = true
+                        )
+                    }
+                )
+            }
+        }
+
+        composable(AppRoutes.ACCOUNT_ADMIN) {
+            AccountAdminRoute(
+                viewModel = viewModel(),
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToPlans = { navController.navigate(AppRoutes.SUBSCRIPTION) },
+                onBottomTabSelected = onBottomTab
+            )
+        }
+
+        composable(AppRoutes.SUBSCRIPTION) {
+            ChoosePlanScreen(
+                onBackClick = { navController.popBackStack() },
+                onPlanSelected = { plan -> navController.navigate("${AppRoutes.CHECKOUT}/${plan.id}") },
+                onFreeTrialActivated = {
+                    navController.popBackStack(AppRoutes.ACCOUNT_ADMIN, inclusive = false)
+                }
+            )
+        }
+
+        composable(
+            route = "${AppRoutes.CHECKOUT}/{planId}",
+            arguments = listOf(navArgument("planId") { type = NavType.IntType })
+        ) { entry ->
+            CheckoutScreen(
+                planId = entry.arguments?.getInt("planId") ?: 0,
+                onBackClick = { navController.popBackStack() },
+                onSuccessFinished = {
+                    navController.popBackStack(AppRoutes.ACCOUNT_ADMIN, inclusive = false)
                 }
             )
         }

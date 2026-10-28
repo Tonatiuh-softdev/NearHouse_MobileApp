@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
+    <!-- Ruta existente para la sección de anuncios -->
     <files-path name="listing_photos" path="listing_photos/" />
+
+    <!-- Rutas requeridas para la cámara en Editar Perfil -->
+    <external-files-path name="my_pictures" path="Pictures" />
+    <external-files-path name="external_files" path="." />
 </paths>

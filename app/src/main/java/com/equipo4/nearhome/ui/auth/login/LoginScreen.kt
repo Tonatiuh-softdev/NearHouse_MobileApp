@@ -1,5 +1,6 @@
 package com.equipo4.nearhome.ui.auth.login
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -18,7 +19,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -36,11 +37,6 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.equipo4.nearhome.R
 
-private val BlueLinkColor = Color(0xFF42A5F5)
-private val GrayInputBg = Color(0xFFFAFAFA)
-private val GrayInputBorder = Color(0xFFE0E0E0)
-private val GoogleButtonBg = Color(0xFFEEEEEE)
-
 @Composable
 fun LoginScreen(
     viewModel: LoginViewModel = viewModel(),
@@ -49,8 +45,14 @@ fun LoginScreen(
     onLoginSuccess: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
 
-    // Navega a Home SÓLO cuando la API responde con éxito
+    LaunchedEffect(uiState.googleSuccessMessage) {
+        uiState.googleSuccessMessage?.let { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+    }
+
     LaunchedEffect(uiState.isSuccess) {
         if (uiState.isSuccess) {
             onLoginSuccess()
@@ -63,7 +65,7 @@ fun LoginScreen(
         onPasswordChange = viewModel::onPasswordChanged,
         onTogglePasswordVisibility = viewModel::togglePasswordVisibility,
         onLoginClick = viewModel::onLoginClicked,
-        onGoogleLoginClick = viewModel::onGoogleLoginClicked,
+        onGoogleLoginClick = { viewModel.onGoogleLoginClicked(context) },
         onForgotPasswordClick = onNavigateToForgotPassword,
         onRegisterClick = onNavigateToRegister
     )
@@ -80,12 +82,12 @@ private fun LoginContent(
     onForgotPasswordClick: () -> Unit,
     onRegisterClick: () -> Unit
 ) {
-    // El botón solo se activa con formulario válido y sin una petición en curso
     val canSubmit = uiState.isFormValid && !uiState.isLoading
+    val cs = MaterialTheme.colorScheme
 
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = Color.White
+        color = cs.background
     ) {
         Column(
             modifier = Modifier
@@ -109,7 +111,7 @@ private fun LoginContent(
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Normal,
                 fontFamily = FontFamily.Serif,
-                color = Color.Black
+                color = cs.onSurface
             )
 
             Spacer(modifier = Modifier.height(14.dp))
@@ -118,12 +120,12 @@ private fun LoginContent(
                 text = "Inicio de Sesión",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = Color.Black
+                color = cs.onSurface
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            HorizontalDivider(color = Color(0xFFEEEEEE), thickness = 1.dp)
+            HorizontalDivider(color = cs.outlineVariant, thickness = 1.dp)
 
             Spacer(modifier = Modifier.height(28.dp))
 
@@ -133,13 +135,13 @@ private fun LoginContent(
                     text = "Correo:",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
-                    color = Color.Black
+                    color = cs.onSurface
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 OutlinedTextField(
                     value = uiState.email,
                     onValueChange = onEmailChange,
-                    placeholder = { Text("email@domain.com", color = Color.Gray) },
+                    placeholder = { Text("email@domain.com", color = cs.onSurfaceVariant) },
                     singleLine = true,
                     enabled = !uiState.isLoading,
                     keyboardOptions = KeyboardOptions(
@@ -148,10 +150,12 @@ private fun LoginContent(
                     ),
                     shape = RoundedCornerShape(8.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = GrayInputBg,
-                        unfocusedContainerColor = GrayInputBg,
-                        focusedBorderColor = GrayInputBorder,
-                        unfocusedBorderColor = GrayInputBorder
+                        focusedContainerColor = cs.surfaceVariant,
+                        unfocusedContainerColor = cs.surfaceVariant,
+                        focusedBorderColor = cs.primary,
+                        unfocusedBorderColor = cs.outlineVariant,
+                        focusedTextColor = cs.onSurface,
+                        unfocusedTextColor = cs.onSurface
                     ),
                     isError = uiState.email.isNotEmpty() && !uiState.isEmailValid,
                     modifier = Modifier.fillMaxWidth()
@@ -166,13 +170,13 @@ private fun LoginContent(
                     text = "Contraseña:",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium,
-                    color = Color.Black
+                    color = cs.onSurface
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 OutlinedTextField(
                     value = uiState.password,
                     onValueChange = onPasswordChange,
-                    placeholder = { Text("***************", color = Color.Gray) },
+                    placeholder = { Text("***************", color = cs.onSurfaceVariant) },
                     singleLine = true,
                     enabled = !uiState.isLoading,
                     visualTransformation = if (uiState.isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
@@ -181,7 +185,7 @@ private fun LoginContent(
                             Icon(
                                 imageVector = if (uiState.isPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                                 contentDescription = "Mostrar u ocultar contraseña",
-                                tint = Color.Gray
+                                tint = cs.onSurfaceVariant
                             )
                         }
                     },
@@ -189,16 +193,17 @@ private fun LoginContent(
                         keyboardType = KeyboardType.Password,
                         imeAction = ImeAction.Done
                     ),
-                    // "Listo" en el teclado envía el formulario, con las mismas reglas del botón
                     keyboardActions = KeyboardActions(
                         onDone = { if (canSubmit) onLoginClick() }
                     ),
                     shape = RoundedCornerShape(8.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = GrayInputBg,
-                        unfocusedContainerColor = GrayInputBg,
-                        focusedBorderColor = GrayInputBorder,
-                        unfocusedBorderColor = GrayInputBorder
+                        focusedContainerColor = cs.surfaceVariant,
+                        unfocusedContainerColor = cs.surfaceVariant,
+                        focusedBorderColor = cs.primary,
+                        unfocusedBorderColor = cs.outlineVariant,
+                        focusedTextColor = cs.onSurface,
+                        unfocusedTextColor = cs.onSurface
                     ),
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -206,11 +211,10 @@ private fun LoginContent(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Muestra mensaje de error devuelto por la API / Red
             if (uiState.errorMessage != null) {
                 Text(
                     text = uiState.errorMessage!!,
-                    color = MaterialTheme.colorScheme.error,
+                    color = cs.error,
                     fontSize = 13.sp,
                     textAlign = TextAlign.Center,
                     modifier = Modifier
@@ -227,8 +231,10 @@ private fun LoginContent(
             ) {
                 Text(
                     text = buildAnnotatedString {
-                        append("¿Olvidaste tu contraseña?. ")
-                        withStyle(style = SpanStyle(color = BlueLinkColor, fontWeight = FontWeight.Bold)) {
+                        withStyle(style = SpanStyle(color = cs.onSurfaceVariant)) {
+                            append("¿Olvidaste tu contraseña?. ")
+                        }
+                        withStyle(style = SpanStyle(color = cs.primary, fontWeight = FontWeight.Bold)) {
                             append("Recuperar contraseña")
                         }
                     },
@@ -245,10 +251,10 @@ private fun LoginContent(
                 enabled = canSubmit,
                 shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Black,
-                    disabledContainerColor = Color(0xFF888888),
-                    contentColor = Color.White,
-                    disabledContentColor = Color.White
+                    containerColor = cs.primary,
+                    disabledContainerColor = cs.primary.copy(alpha = 0.5f),
+                    contentColor = cs.onPrimary,
+                    disabledContentColor = cs.onPrimary
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -257,7 +263,7 @@ private fun LoginContent(
                 if (uiState.isLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(20.dp),
-                        color = Color.White,
+                        color = cs.onPrimary,
                         strokeWidth = 2.dp
                     )
                 } else {
@@ -276,25 +282,26 @@ private fun LoginContent(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFE0E0E0))
+                HorizontalDivider(modifier = Modifier.weight(1f), color = cs.outlineVariant)
                 Text(
                     text = "o",
                     fontSize = 14.sp,
-                    color = Color.Gray,
+                    color = cs.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = 12.dp)
                 )
-                HorizontalDivider(modifier = Modifier.weight(1f), color = Color(0xFFE0E0E0))
+                HorizontalDivider(modifier = Modifier.weight(1f), color = cs.outlineVariant)
             }
 
             Spacer(modifier = Modifier.height(18.dp))
 
-            // Botón "Continuar con Google" (fuera del alcance de esta tarea)
+            // Botón "Continuar con Google"
             Button(
                 onClick = onGoogleLoginClick,
+                enabled = !uiState.isLoading,
                 shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = GoogleButtonBg,
-                    contentColor = Color.Black
+                    containerColor = cs.surfaceVariant,
+                    contentColor = cs.onSurface
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -313,21 +320,24 @@ private fun LoginContent(
                     Text(
                         text = "Continuar con Google",
                         fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium
+                        fontWeight = FontWeight.Medium,
+                        color = cs.onSurface
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            HorizontalDivider(color = Color(0xFFEEEEEE), thickness = 1.dp)
+            HorizontalDivider(color = cs.outlineVariant, thickness = 1.dp)
 
             Spacer(modifier = Modifier.height(16.dp))
 
             Text(
                 text = buildAnnotatedString {
-                    append("No tengo cuenta. ")
-                    withStyle(style = SpanStyle(color = BlueLinkColor, fontWeight = FontWeight.Bold)) {
+                    withStyle(style = SpanStyle(color = cs.onSurfaceVariant)) {
+                        append("No tengo cuenta. ")
+                    }
+                    withStyle(style = SpanStyle(color = cs.primary, fontWeight = FontWeight.Bold)) {
                         append("Registrarme")
                     }
                 },

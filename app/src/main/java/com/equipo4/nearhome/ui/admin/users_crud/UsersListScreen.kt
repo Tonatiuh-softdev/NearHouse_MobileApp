@@ -20,7 +20,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -29,6 +28,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.equipo4.nearhome.domain.model.UserAccountRole
 import com.equipo4.nearhome.domain.model.UserAccountStatus
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
+import com.equipo4.nearhome.ui.theme.nearHouseColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,15 +51,14 @@ fun UsersListScreen(
 
     val isFiltered = searchQuery.isNotBlank() || activeFiltersCount > 0
     val subtitleText = if (isFiltered) {
-        val resultsText = if (users.size == 1) "1 resultado" else "${users.size} resultados"
-        resultsText
+        if (users.size == 1) "1 resultado" else "${users.size} resultados"
     } else {
         "$totalCount cuentas registradas"
     }
 
     Scaffold(
         topBar = {
-            Column(modifier = Modifier.background(Color.White)) {
+            Column(modifier = Modifier.background(MaterialTheme.colorScheme.surface)) {
                 TopAppBar(
                     title = {
                         Column {
@@ -67,12 +66,12 @@ fun UsersListScreen(
                                 text = "Usuarios",
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF1F2937)
+                                color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
                                 text = subtitleText,
                                 fontSize = 12.sp,
-                                color = Color(0xFF6B7280)
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     },
@@ -81,11 +80,11 @@ fun UsersListScreen(
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = "Regresar",
-                                tint = Color(0xFF1F2937)
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
                 )
 
                 // Buscador
@@ -98,31 +97,33 @@ fun UsersListScreen(
                         value = searchQuery,
                         onValueChange = viewModel::onSearchQueryChanged,
                         placeholder = {
-                            Text("Buscar por nombre, correo o teléfono", fontSize = 14.sp, color = Color(0xFF9CA3AF))
+                            Text("Buscar por nombre, correo o teléfono", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         },
                         leadingIcon = {
-                            Icon(Icons.Default.Search, contentDescription = null, tint = Color(0xFF6B7280))
+                            Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                         },
                         trailingIcon = {
                             if (searchQuery.isNotBlank()) {
                                 IconButton(onClick = { viewModel.onSearchQueryChanged("") }) {
-                                    Icon(Icons.Default.Close, contentDescription = "Limpiar búsqueda", tint = Color(0xFF6B7280))
+                                    Icon(Icons.Default.Close, contentDescription = "Limpiar búsqueda", tint = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
                             }
                         },
                         shape = RoundedCornerShape(12.dp),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFF0B2C4D),
-                            unfocusedBorderColor = Color(0xFFE5E7EB),
-                            focusedContainerColor = Color.White,
-                            unfocusedContainerColor = Color.White
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                            focusedContainerColor = MaterialTheme.colorScheme.surface,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
                         ),
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
 
-                // Botones / Filtros rápidos (Rol, Estatus, Filtros a la derecha)
+                // Botones / Filtros rápidos
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -130,7 +131,6 @@ fun UsersListScreen(
                         .padding(horizontal = 16.dp, vertical = 8.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    // 1. Botón Rol
                     Box {
                         FilterChip(
                             selected = selectedRole != null,
@@ -150,18 +150,19 @@ fun UsersListScreen(
                             },
                             shape = RoundedCornerShape(10.dp),
                             colors = FilterChipDefaults.filterChipColors(
-                                containerColor = Color.White,
-                                selectedContainerColor = Color(0xFFE0F2FE),
-                                labelColor = Color(0xFF1F2937),
-                                selectedLabelColor = Color(0xFF0369A1)
+                                containerColor = MaterialTheme.colorScheme.surface,
+                                selectedContainerColor = MaterialTheme.nearHouseColors.filterChipSelectedBg,
+                                labelColor = MaterialTheme.colorScheme.onSurface,
+                                selectedLabelColor = MaterialTheme.colorScheme.primary
                             )
                         )
                         DropdownMenu(
                             expanded = showRoleMenu,
-                            onDismissRequest = { showRoleMenu = false }
+                            onDismissRequest = { showRoleMenu = false },
+                            modifier = Modifier.background(MaterialTheme.colorScheme.surface)
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Todos") },
+                                text = { Text("Todos", color = MaterialTheme.colorScheme.onSurface) },
                                 onClick = {
                                     viewModel.onRoleSelected(null)
                                     showRoleMenu = false
@@ -169,7 +170,7 @@ fun UsersListScreen(
                             )
                             UserAccountRole.entries.forEach { role ->
                                 DropdownMenuItem(
-                                    text = { Text(role.label) },
+                                    text = { Text(role.label, color = MaterialTheme.colorScheme.onSurface) },
                                     onClick = {
                                         viewModel.onRoleSelected(role)
                                         showRoleMenu = false
@@ -179,7 +180,6 @@ fun UsersListScreen(
                         }
                     }
 
-                    // 2. Botón Estatus
                     Box {
                         FilterChip(
                             selected = selectedStatus != null,
@@ -199,18 +199,19 @@ fun UsersListScreen(
                             },
                             shape = RoundedCornerShape(10.dp),
                             colors = FilterChipDefaults.filterChipColors(
-                                containerColor = Color.White,
-                                selectedContainerColor = Color(0xFFDCFCE7),
-                                labelColor = Color(0xFF1F2937),
-                                selectedLabelColor = Color(0xFF15803D)
+                                containerColor = MaterialTheme.colorScheme.surface,
+                                selectedContainerColor = MaterialTheme.nearHouseColors.filterChipSelectedBg,
+                                labelColor = MaterialTheme.colorScheme.onSurface,
+                                selectedLabelColor = MaterialTheme.colorScheme.primary
                             )
                         )
                         DropdownMenu(
                             expanded = showStatusMenu,
-                            onDismissRequest = { showStatusMenu = false }
+                            onDismissRequest = { showStatusMenu = false },
+                            modifier = Modifier.background(MaterialTheme.colorScheme.surface)
                         ) {
                             DropdownMenuItem(
-                                text = { Text("Todos") },
+                                text = { Text("Todos", color = MaterialTheme.colorScheme.onSurface) },
                                 onClick = {
                                     viewModel.onStatusSelected(null)
                                     showStatusMenu = false
@@ -218,7 +219,7 @@ fun UsersListScreen(
                             )
                             UserAccountStatus.entries.forEach { status ->
                                 DropdownMenuItem(
-                                    text = { Text(status.label) },
+                                    text = { Text(status.label, color = MaterialTheme.colorScheme.onSurface) },
                                     onClick = {
                                         viewModel.onStatusSelected(status)
                                         showStatusMenu = false
@@ -228,7 +229,6 @@ fun UsersListScreen(
                         }
                     }
 
-                    // 3. Botón Filtros Avanzados (a la derecha)
                     FilterChip(
                         selected = activeFiltersCount > 0,
                         onClick = onFilterClick,
@@ -240,12 +240,12 @@ fun UsersListScreen(
                                     Box(
                                         modifier = Modifier
                                             .size(18.dp)
-                                            .background(Color(0xFF0B2C4D), CircleShape),
+                                            .background(MaterialTheme.colorScheme.primary, CircleShape),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Text(
                                             text = activeFiltersCount.toString(),
-                                            color = Color.White,
+                                            color = MaterialTheme.colorScheme.onPrimary,
                                             fontSize = 10.sp,
                                             fontWeight = FontWeight.Bold
                                         )
@@ -255,18 +255,18 @@ fun UsersListScreen(
                         },
                         shape = RoundedCornerShape(10.dp),
                         colors = FilterChipDefaults.filterChipColors(
-                            containerColor = Color.White,
-                            selectedContainerColor = Color(0xFFE0F2FE),
-                            labelColor = Color(0xFF1F2937),
-                            selectedLabelColor = Color(0xFF0369A1)
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            selectedContainerColor = MaterialTheme.nearHouseColors.filterChipSelectedBg,
+                            labelColor = MaterialTheme.colorScheme.onSurface,
+                            selectedLabelColor = MaterialTheme.colorScheme.primary
                         )
                     )
                 }
-                HorizontalDivider(color = Color(0xFFE5E7EB), thickness = 1.dp)
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline, thickness = 1.dp)
             }
         },
         bottomBar = { NearHomeBottomBar(selectedTab = 3, onTabSelected = onBottomTabSelected) },
-        containerColor = Color(0xFFF9FAFB)
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -280,7 +280,7 @@ fun UsersListScreen(
                 Text(
                     text = "Mostrando ${users.size} usuarios · Más recientes primero",
                     fontSize = 12.sp,
-                    color = Color(0xFF6B7280),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
                 )
                 LazyColumn(
@@ -312,13 +312,13 @@ private fun EmptyUsersState(onClearFilters: () -> Unit) {
         Box(
             modifier = Modifier
                 .size(90.dp)
-                .background(Color(0xFFE5E7EB).copy(alpha = 0.5f), CircleShape),
+                .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = Icons.Outlined.Group,
                 contentDescription = null,
-                tint = Color(0xFF0B2C4D),
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(44.dp)
             )
         }
@@ -329,7 +329,7 @@ private fun EmptyUsersState(onClearFilters: () -> Unit) {
             text = "No encontramos usuarios",
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF1F2937),
+            color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center
         )
 
@@ -338,7 +338,7 @@ private fun EmptyUsersState(onClearFilters: () -> Unit) {
         Text(
             text = "No hay cuentas que coincidan con la búsqueda y los filtros actuales. Prueba con otro dato o limpia los filtros.",
             fontSize = 14.sp,
-            color = Color(0xFF6B7280),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(horizontal = 16.dp)
         )
@@ -348,8 +348,8 @@ private fun EmptyUsersState(onClearFilters: () -> Unit) {
         OutlinedButton(
             onClick = onClearFilters,
             shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF0B2C4D)),
-            border = BorderStroke(1.dp, Color(0xFF0B2C4D))
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.primary),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
         ) {
             Text(
                 text = "Limpiar búsqueda y filtros",
@@ -361,9 +361,9 @@ private fun EmptyUsersState(onClearFilters: () -> Unit) {
         Spacer(Modifier.height(16.dp))
 
         Surface(
-            color = Color.White,
+            color = MaterialTheme.colorScheme.surface,
             shape = RoundedCornerShape(12.dp),
-            border = BorderStroke(1.dp, Color(0xFFE5E7EB))
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
         ) {
             Row(
                 modifier = Modifier.padding(14.dp),
@@ -373,13 +373,13 @@ private fun EmptyUsersState(onClearFilters: () -> Unit) {
                 Icon(
                     imageVector = Icons.Outlined.Info,
                     contentDescription = null,
-                    tint = Color(0xFF6B7280),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(20.dp)
                 )
                 Text(
                     text = "Si aún no existen usuarios registrados, este espacio mostrará las nuevas cuentas cuando se creen.",
                     fontSize = 12.sp,
-                    color = Color(0xFF6B7280)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
