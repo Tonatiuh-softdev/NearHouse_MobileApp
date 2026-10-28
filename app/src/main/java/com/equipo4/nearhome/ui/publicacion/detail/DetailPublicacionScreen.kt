@@ -300,10 +300,18 @@ private fun DetailContent(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                FeatureItem(iconRes = R.drawable.ic_regla_medicion, label = "${pub.metrosCuadrados} m²")
-                FeatureItem(iconRes = R.drawable.ic_habitaciones, label = stringResource(R.string.property_bedrooms_format, pub.recamaras))
-                FeatureItem(iconRes = R.drawable.ic_bathrooms, label = stringResource(R.string.property_bathrooms_format, pub.banos))
-                FeatureItem(iconRes = R.drawable.ic_cocheras, label = stringResource(R.string.property_garages_format, pub.cocheras))
+                if (pub.metrosCuadrados > 0) {
+                    FeatureItem(iconRes = R.drawable.ic_regla_medicion, label = "${pub.metrosCuadrados} m²")
+                }
+                if (pub.recamaras > 0) {
+                    FeatureItem(iconRes = R.drawable.ic_habitaciones, label = stringResource(R.string.property_bedrooms_format, pub.recamaras))
+                }
+                if (pub.banos > 0) {
+                    FeatureItem(iconRes = R.drawable.ic_bathrooms, label = stringResource(R.string.property_bathrooms_format, pub.banos))
+                }
+                if (pub.cocheras > 0) {
+                    FeatureItem(iconRes = R.drawable.ic_cocheras, label = stringResource(R.string.property_garages_format, pub.cocheras))
+                }
             }
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -584,31 +592,5 @@ private fun HerramientasBottomSheet(
                 Text(text = stringResource(R.string.detail_report), color = MaterialTheme.colorScheme.onSurface)
             }
         }
-    }
-}
-
-@Composable
-private fun PhotoGallery(
-    images: List<Int>,
-    modifier: Modifier = Modifier,
-    content: @Composable BoxScope.() -> Unit = {}
-) {
-    val totalPages = images.ifEmpty { listOf(1) }.size
-    val pagerState = rememberPagerState(pageCount = { totalPages })
-
-    Box(modifier = modifier) {
-        HorizontalPager(
-            state = pagerState,
-            modifier = Modifier.fillMaxSize()
-        ) { page ->
-            val imageRes = images.getOrNull(page) ?: R.drawable.prop_depto_sala
-            Image(
-                painter = painterResource(id = imageRes),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
-            )
-        }
-        content()
     }
 }

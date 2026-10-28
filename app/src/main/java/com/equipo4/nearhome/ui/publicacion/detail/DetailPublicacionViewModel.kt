@@ -23,12 +23,6 @@ class DetailPublicacionViewModel(
     val uiState: StateFlow<DetailPublicacionUiState> = _uiState.asStateFlow()
 
     fun cargarPublicacion(id: String) {
-        // Si ya tenemos cargada esta misma publicación, no reiniciamos a Loading
-        val currentState = _uiState.value
-        if (currentState is DetailPublicacionUiState.Success && currentState.publicacion.id == id) {
-            return
-        }
-
         viewModelScope.launch {
             _uiState.value = DetailPublicacionUiState.Loading
             try {
@@ -56,19 +50,58 @@ class DetailPublicacionViewModel(
     }
 }
 
-/** Adapta una propiedad del repositorio al modelo del detalle (descripción y vendedor son de prueba). */
+/**
+ * Adapta una propiedad al modelo del detalle. Con datos del API usa la descripción y el contacto reales;
+ * con los datos de prueba (sin descripción) conserva los textos de ejemplo.
+ */
 private fun Property.toDetail(): PublicacionDetail {
     val tipoLabel = when (type) {
         PropertyType.CASA -> AppStrings.get(R.string.search_filters_type_house)
         PropertyType.DEPARTAMENTO -> AppStrings.get(R.string.search_filters_type_apartment)
         PropertyType.TERRENO -> AppStrings.get(R.string.search_filters_type_land)
     }
+    val esReal = description != null
+
+    val descripcionFinal = if (esReal) {
+        buildString {
+            append(description)
+            if (!rules.isNullOrBlank()) append("\n\n${AppStrings.get(R.string.create_listing_ad_rules)}: $rules")
+        }
+    } else {
+        "Exclusivo inmueble de ${areaSqM}m² ubicado en una de las mejores zonas de Manzanillo. " +
+                "Cuenta con una distribución ideal para disfrutar del confort y recibir invitados. " +
+                "Cerca de comercios, escuelas y servicios. Agenda una visita y conócelo."
+    }
+
+    val columna1: List<String>
+    val columna2: List<String>
+    if (esReal) {
+        val si = AppStrings.get(R.string.create_listing_yes)
+        val no = AppStrings.get(R.string.create_listing_no)
+        columna1 = buildList {
+            if (jardinPatio) add(AppStrings.get(R.string.create_listing_garden))
+            if (amueblado) add(AppStrings.get(R.string.create_listing_furnished))
+            if (elevador) add(AppStrings.get(R.string.create_listing_elevator))
+        }
+        columna2 = buildList {
+            piso?.let {
+                val valor = if (it == 0) AppStrings.get(R.string.create_listing_ground_floor) else it.toString()
+                add("${AppStrings.get(R.string.create_listing_floor)}: $valor")
+            }
+            niveles?.let { add("${AppStrings.get(R.string.create_listing_levels)}: $it") }
+            if (listingType == ListingType.RENTA && type != PropertyType.TERRENO) {
+                add("${AppStrings.get(R.string.create_listing_pets)}: ${if (mascotasPermitidas) si else no}")
+            }
+        }
+    } else {
+        columna1 = listOf("Alberca", "Terraza")
+        columna2 = listOf("Estancia mínima en días: 1", "No se permiten mascotas")
+    }
+
     return PublicacionDetail(
         id = id,
         titulo = title,
-        descripcion = "Exclusivo inmueble de ${areaSqM}m² ubicado en una de las mejores zonas de Manzanillo. " +
-                "Cuenta con una distribución ideal para disfrutar del confort y recibir invitados. " +
-                "Cerca de comercios, escuelas y servicios. Agenda una visita y conócelo.",
+        descripcion = descripcionFinal,
         precio = price,
         esRenta = listingType == ListingType.RENTA,
         tipoPropiedad = tipoLabel,
@@ -78,11 +111,17 @@ private fun Property.toDetail(): PublicacionDetail {
         recamaras = bedrooms ?: 0,
         banos = bathrooms ?: 0,
         cocheras = garages ?: 0,
-        caracteristicasColumna1 = listOf("Alberca", "Terraza"),
-        caracteristicasColumna2 = listOf("Estancia mínima en días: 1", "No se permiten mascotas"),
-        esPropietario = false,
+        caracteristicasColumna1 = columna1,
+        caracteristicasColumna2 = columna2,
+        esPropietario = isOwner,
         estaGuardado = isSaved,
-        telefonoVendedor = "523121234567",
-        emailVendedor = "vendedor@ejemplo.com"
+        telefonoVendedor = if (esReal) whatsappNumber(sellerPhone) else "523121234567",
+        emailVendedor = sellerEmail ?: "vendedor@ejemplo.com"
     )
+}
+
+/** WhatsApp pide el número con lada de país y solo dígitos: a los de 10 dígitos se les antepone 52. */
+private fun whatsappNumber(raw: String?): String {
+    val digits = raw.orEmpty().filter(Char::isDigit)
+    return if (digits.length == 10) "52$digits" else digits
 }
