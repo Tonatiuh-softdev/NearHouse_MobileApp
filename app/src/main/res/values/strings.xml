@@ -1017,4 +1017,6 @@
     <string name="phone_sms_error_expired">El código ya expiró. Pide uno nuevo</string>
     <string name="phone_sms_error_verify">No se pudo verificar el código. Intenta de nuevo</string>
     <string name="phone_sms_error_restart">Se perdieron los datos del registro. Vuelve a empezar</string>
+    <string name="listings_load_error">No se pudieron cargar los anuncios. Revisa tu conexión e inténtalo de nuevo.</string>
+    <string name="listings_retry">Reintentar</string>
 </resources>

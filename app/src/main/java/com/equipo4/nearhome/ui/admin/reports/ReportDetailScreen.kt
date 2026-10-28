@@ -32,6 +32,7 @@ import com.equipo4.nearhome.domain.model.ReportType
 import com.equipo4.nearhome.ui.theme.NoticeTone
 import com.equipo4.nearhome.ui.theme.noticeColors
 import kotlinx.coroutines.launch
+import coil.compose.AsyncImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -321,8 +322,8 @@ fun ReportDetailScreen(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     if (targetProperty!!.images.isNotEmpty()) {
-                                        Image(
-                                            painter = painterResource(id = targetProperty!!.images.first()),
+                                        AsyncImage(
+                                            model = targetProperty!!.images.first(),
                                             contentDescription = null,
                                             modifier = Modifier
                                                 .size(68.dp)
