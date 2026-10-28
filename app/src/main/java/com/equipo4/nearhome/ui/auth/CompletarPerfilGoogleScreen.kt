@@ -24,7 +24,7 @@ fun CompletarPerfilGoogleScreen(
     var nombre by remember { mutableStateOf(proofData.nombre) }
     var apellidos by remember { mutableStateOf(proofData.apellidos) }
     var telefono by remember { mutableStateOf("") }
-    var smsTokenInput by remember { mutableStateOf("") }
+    var smsTokenInput by remember { mutableStateOf("123456") }
 
     val uiState by viewModel.uiState.collectAsState()
 
@@ -94,6 +94,7 @@ fun CompletarPerfilGoogleScreen(
                 value = telefono,
                 onValueChange = { telefono = it },
                 label = { Text("Teléfono (+52...)") },
+                placeholder = { Text("+523141234567") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                 modifier = Modifier.fillMaxWidth()
             )
@@ -103,6 +104,7 @@ fun CompletarPerfilGoogleScreen(
                 value = smsTokenInput,
                 onValueChange = { smsTokenInput = it },
                 label = { Text("Código de verificación SMS") },
+                supportingText = { Text("Código de prueba: 123456") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 modifier = Modifier.fillMaxWidth()
             )
