@@ -1004,4 +1004,7 @@
     <string name="create_listing_colonia_undetected">We couldnt detect the neighborhood at this location. Try detecting the location again.</string>
     <string name="create_listing_error_generic">Couldnt submit the listing. Please try again.</string>
     <string name="create_listing_error_forbidden">Your account isnt allowed to publish listings.</string>
+
+    <string name="listings_load_error">Failed to load listings. Check your connection and try again.</string>
+    <string name="listings_retry">Retry</string>
 </resources>

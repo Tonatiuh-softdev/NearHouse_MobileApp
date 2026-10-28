@@ -32,6 +32,10 @@ import com.equipo4.nearhome.R
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
 import com.equipo4.nearhome.ui.theme.NoticeTone
 import com.equipo4.nearhome.ui.theme.adminAccent
+import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,6 +50,15 @@ fun AdminListingsScreen(
 ) {
     val state by viewModel.uiState.collectAsState()
     val snackbar = remember { SnackbarHostState() }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) viewModel.reload()
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     LaunchedEffect(message) {
         if (message != null) {
@@ -119,20 +132,34 @@ fun AdminListingsScreen(
                 )
             }
 
-            if (state.results.isEmpty()) {
-                EmptyListings(
-                    state = state,
-                    onClear = viewModel::clearAll,
-                    modifier = Modifier.weight(1f)
-                )
-            } else {
-                LazyColumn(
-                    modifier = Modifier.weight(1f),
-                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    items(state.results, key = { it.id }) { listing ->
-                        ListingCard(listing = listing, onClick = { onListingClick(listing.id) })
+            when {
+                state.results.isEmpty() && state.isLoading -> {
+                    Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = adminAccent())
+                    }
+                }
+
+                state.results.isEmpty() && state.loadError -> {
+                    LoadErrorState(onRetry = viewModel::reload, modifier = Modifier.weight(1f))
+                }
+
+                state.results.isEmpty() -> {
+                    EmptyListings(
+                        state = state,
+                        onClear = viewModel::clearAll,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                else -> {
+                    LazyColumn(
+                        modifier = Modifier.weight(1f),
+                        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        items(state.results, key = { it.id }) { listing ->
+                            ListingCard(listing = listing, onClick = { onListingClick(listing.id) })
+                        }
                     }
                 }
             }
@@ -279,6 +306,40 @@ private fun EmptyListings(state: AdminListingsUiState, onClear: () -> Unit, modi
             ) {
                 Text(stringResource(R.string.listings_clear_button))
             }
+        }
+    }
+}
+
+@Composable
+private fun LoadErrorState(onRetry: () -> Unit, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            Icons.Filled.ErrorOutline,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(48.dp)
+        )
+        Spacer(Modifier.height(12.dp))
+        Text(
+            stringResource(R.string.listings_load_error),
+            fontSize = 14.sp,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(Modifier.height(16.dp))
+        OutlinedButton(
+            onClick = onRetry,
+            shape = RoundedCornerShape(12.dp),
+            border = BorderStroke(1.dp, adminAccent()),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = adminAccent())
+        ) {
+            Text(stringResource(R.string.listings_retry))
         }
     }
 }
