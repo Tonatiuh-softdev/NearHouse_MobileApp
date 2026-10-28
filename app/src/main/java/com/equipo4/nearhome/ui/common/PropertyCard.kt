@@ -2,7 +2,6 @@ package com.equipo4.nearhome.ui.common
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -28,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.domain.model.ListingType
 import com.equipo4.nearhome.domain.model.Property
@@ -94,10 +94,11 @@ private fun PropertyImageCarousel(
             state = pagerState,
             modifier = Modifier.fillMaxSize()
         ) { page ->
-            val imageRes = property.images.getOrNull(page)
-            if (imageRes != null) {
-                Image(
-                    painter = painterResource(id = imageRes),
+            // La foto puede ser una URL del API (String) o un recurso de los datos de prueba (Int)
+            val image = property.images.getOrNull(page)
+            if (image != null) {
+                AsyncImage(
+                    model = image,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
@@ -306,6 +307,12 @@ private fun PropertyInfoContent(
                     FeatureItem(
                         iconRes = R.drawable.ic_regla_medicion,
                         text = "${property.frontMeters.toInt()}x${property.depthMeters.toInt()} m"
+                    )
+                } else if (property.areaSqM > 0) {
+                    // Los terrenos del API traen los m², no frente y fondo
+                    FeatureItem(
+                        iconRes = R.drawable.ic_regla_medicion,
+                        text = "${property.areaSqM} m²"
                     )
                 }
             } else {

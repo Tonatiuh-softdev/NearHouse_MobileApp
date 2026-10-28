@@ -45,6 +45,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.domain.model.ListingType
@@ -559,10 +560,10 @@ private fun PropertyPreviewSheet(
         val pagerState = rememberPagerState(pageCount = { totalPages })
         Box(modifier = Modifier.fillMaxWidth().height(190.dp).clip(RoundedCornerShape(12.dp))) {
             HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize()) { page ->
-                val imageRes = property.images.getOrNull(page)
-                if (imageRes != null) {
-                    Image(
-                        painter = painterResource(id = imageRes),
+                val imageModel = property.images.getOrNull(page)
+                if (imageModel != null) {
+                    AsyncImage(
+                        model = imageModel,
                         contentDescription = null,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
