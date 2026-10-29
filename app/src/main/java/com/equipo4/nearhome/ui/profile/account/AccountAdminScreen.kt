@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -68,7 +69,10 @@ fun AccountAdminScreen(
                 title = {
                     Text(
                         text = stringResource(id = R.string.account_admin_title),
-                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold)
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 18.sp
+                        )
                     )
                 },
                 navigationIcon = {
@@ -108,6 +112,8 @@ fun AccountAdminScreen(
                     .padding(paddingValues)
                     .verticalScroll(rememberScrollState())
             ) {
+                Spacer(modifier = Modifier.height(8.dp))
+
                 // ==================== DATOS DE ACCESO ====================
                 SectionHeader(title = stringResource(id = R.string.section_access_data))
 
@@ -117,7 +123,11 @@ fun AccountAdminScreen(
                     subtitle = userData.email,
                     onClick = { onEvent(AccountAdminUiEvent.OnOptionClick) }
                 )
-                HorizontalDivider(modifier = Modifier.padding(horizontal = 20.dp))
+                HorizontalDivider(
+                    modifier = Modifier.padding(start = 56.dp, end = 16.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                    thickness = 0.8.dp
+                )
 
                 OptionRowItem(
                     icon = Icons.Outlined.Smartphone,
@@ -125,7 +135,11 @@ fun AccountAdminScreen(
                     subtitle = userData.phone,
                     onClick = { onEvent(AccountAdminUiEvent.OnOptionClick) }
                 )
-                HorizontalDivider(modifier = Modifier.padding(horizontal = 20.dp))
+                HorizontalDivider(
+                    modifier = Modifier.padding(start = 56.dp, end = 16.dp),
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                    thickness = 0.8.dp
+                )
 
                 OptionRowItem(
                     icon = Icons.Outlined.Lock,
@@ -134,16 +148,26 @@ fun AccountAdminScreen(
                     onClick = { onEvent(AccountAdminUiEvent.OnOptionClick) }
                 )
 
-                // ==================== MEMBRESÍA Y PAGOS ====================
-                if (userData.role == UserRole.VENDEDOR || userData.role == UserRole.COMPRADOR) {
-                    SectionHeader(title = stringResource(id = R.string.section_membership))
+                Spacer(modifier = Modifier.height(16.dp))
 
-                    val planName = userData.planName
+                // ==================== MEMBRESÍA Y PAGOS ====================
+                SectionHeader(title = stringResource(id = R.string.section_membership))
+
+                val planName = userData.planName
+
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 6.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                ) {
                     OptionRowItem(
                         icon = Icons.Outlined.PublishedWithChanges,
                         title = stringResource(id = R.string.label_current_plan),
                         subtitle = if (planName != null) {
-                            stringResource(id = R.string.seller_plan_status_format, planName, userData.planStatus.orEmpty())
+                            val statusText = if (!userData.planStatus.isNullOrEmpty()) " (${userData.planStatus})" else ""
+                            "$planName$statusText"
                         } else {
                             stringResource(id = R.string.buyer_no_plan)
                         },
@@ -157,11 +181,14 @@ fun AccountAdminScreen(
                         } else {
                             MaterialTheme.colorScheme.onSurfaceVariant
                         },
-                        iconBackgroundColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                        iconTintColor = MaterialTheme.colorScheme.onSurface,
+                        useIconContainer = true,
+                        iconBackgroundColor = MaterialTheme.colorScheme.surfaceVariant,
+                        iconTintColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         onClick = onNavigateToPlans
                     )
                 }
+
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // ==================== GESTIÓN DE LA CUENTA ====================
                 if (userData.role != UserRole.SUPER_ADMIN) {
@@ -171,24 +198,30 @@ fun AccountAdminScreen(
                         icon = Icons.Outlined.PowerSettingsNew,
                         title = stringResource(id = R.string.deactivate_account_title),
                         subtitle = stringResource(id = R.string.deactivate_account_subtitle),
-                        iconBackgroundColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                        iconTintColor = MaterialTheme.colorScheme.onSurface,
+                        useIconContainer = true,
+                        iconBackgroundColor = MaterialTheme.colorScheme.surfaceVariant,
+                        iconTintColor = MaterialTheme.colorScheme.onSurfaceVariant,
                         onClick = { onEvent(AccountAdminUiEvent.OnDeactivateRequested) }
                     )
-                    HorizontalDivider(modifier = Modifier.padding(horizontal = 20.dp))
+                    HorizontalDivider(
+                        modifier = Modifier.padding(start = 72.dp, end = 16.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                        thickness = 0.8.dp
+                    )
 
                     OptionRowItem(
                         icon = Icons.Outlined.Delete,
                         title = stringResource(id = R.string.delete_account_title),
                         subtitle = stringResource(id = R.string.delete_account_subtitle),
                         titleColor = MaterialTheme.colorScheme.error,
-                        iconBackgroundColor = MaterialTheme.colorScheme.errorContainer,
+                        useIconContainer = true,
+                        iconBackgroundColor = MaterialTheme.colorScheme.surfaceVariant,
                         iconTintColor = MaterialTheme.colorScheme.error,
                         onClick = { onEvent(AccountAdminUiEvent.OnDeleteRequested) }
                     )
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(32.dp))
             }
         }
     }
@@ -226,7 +259,9 @@ fun AccountAdminScreen(
                     Text(text = stringResource(id = R.string.dialog_delete_text))
                     OutlinedTextField(
                         value = uiState.deleteInputText,
-                        onValueChange = { onEvent(AccountAdminUiEvent.OnDeleteInputChanged(it)) },
+                        onValueChange = { newText ->
+                            onEvent(AccountAdminUiEvent.OnDeleteInputChanged(newText))
+                        },
                         placeholder = { Text(text = stringResource(id = R.string.dialog_delete_placeholder)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
@@ -256,21 +291,15 @@ fun AccountAdminScreen(
 
 @Composable
 private fun SectionHeader(title: String) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-    ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleSmall.copy(
-                fontWeight = FontWeight.Bold,
-                fontSize = 13.sp
-            ),
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
+    Text(
+        text = title,
+        style = MaterialTheme.typography.titleSmall.copy(
+            fontWeight = FontWeight.Bold,
+            fontSize = 15.sp
+        ),
+        color = MaterialTheme.colorScheme.onBackground,
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)
+    )
 }
 
 @Composable
@@ -279,8 +308,10 @@ private fun OptionRowItem(
     title: String,
     subtitle: String,
     secondLine: String? = null,
-    secondLineColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     titleColor: Color = MaterialTheme.colorScheme.onSurface,
+    subtitleColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    secondLineColor: Color = subtitleColor,
+    useIconContainer: Boolean = false,
     iconBackgroundColor: Color = Color.Transparent,
     iconTintColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     onClick: () -> Unit
@@ -289,24 +320,61 @@ private fun OptionRowItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(horizontal = 20.dp, vertical = 12.dp),
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
-            modifier = Modifier.size(36.dp).background(color = iconBackgroundColor, shape = CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(imageVector = icon, contentDescription = null, tint = iconTintColor, modifier = Modifier.size(18.dp))
+        if (useIconContainer) {
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(color = iconBackgroundColor, shape = CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = iconTintColor,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+            Spacer(modifier = Modifier.width(16.dp))
+        } else {
+            Box(
+                modifier = Modifier.size(24.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = iconTintColor,
+                    modifier = Modifier.size(22.dp)
+                )
+            }
+            Spacer(modifier = Modifier.width(16.dp))
         }
 
-        Spacer(modifier = Modifier.width(14.dp))
-
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = title, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = titleColor, maxLines = 1)
+            Text(
+                text = title,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = titleColor,
+                maxLines = 1
+            )
             Spacer(modifier = Modifier.height(2.dp))
-            Text(text = subtitle, fontSize = 12.sp, lineHeight = 16.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                text = subtitle,
+                fontSize = 13.sp,
+                lineHeight = 17.sp,
+                color = subtitleColor
+            )
             if (secondLine != null) {
-                Text(text = secondLine, fontSize = 12.sp, lineHeight = 16.sp, color = secondLineColor)
+                Text(
+                    text = secondLine,
+                    fontSize = 13.sp,
+                    lineHeight = 17.sp,
+                    color = secondLineColor
+                )
             }
         }
 
