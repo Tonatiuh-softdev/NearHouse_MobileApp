@@ -425,8 +425,8 @@ private fun LogoutDialog(onCancel: () -> Unit, onConfirm: () -> Unit) {
                         shape = RoundedCornerShape(6.dp),
                         contentPadding = PaddingValues(horizontal = 8.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary
+                            containerColor = MaterialTheme.colorScheme.error,
+                            contentColor = MaterialTheme.colorScheme.onError
                         )
                     ) { Text(stringResource(R.string.profile_logout), fontSize = 13.sp, maxLines = 1) }
                 }
