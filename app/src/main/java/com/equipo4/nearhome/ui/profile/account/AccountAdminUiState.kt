@@ -22,7 +22,10 @@ data class AccountAdminUiState(
     @param:StringRes val userMessage: Int? = null
 ) {
     val isDeleteButtonEnabled: Boolean
-        get() = deleteInputText.trim() == "ELIMINAR"
+        get() {
+            val input = deleteInputText.trim().uppercase()
+            return input == "ELIMINAR" || input == "DELETE"
+        }
 }
 
 sealed interface AccountAdminUiEvent {
