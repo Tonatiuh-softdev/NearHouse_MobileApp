@@ -4,7 +4,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class GoogleAuthRequest(
-    val idToken: String?
+    val idToken: String?,
+    val reactivar: Boolean = false
 )
 
 @Serializable

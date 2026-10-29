@@ -19,7 +19,13 @@ import retrofit2.http.Part
 // --- Modelos para Login ---
 data class LoginRequest(
     val correo: String,
-    val contrasena: String
+    val contrasena: String,
+    val reactivar: Boolean = false
+)
+
+data class DesactivarCuentaRequest(
+    val contrasena: String? = null,
+    val googleToken: String? = null
 )
 
 data class LoginResponse(
@@ -50,7 +56,8 @@ data class UsuarioMeDto(
     val tieneFoto: Boolean = false,
     val fotoVersion: String? = null,
     val plan: PlanUsuarioDto? = null,
-    val pruebaDisponible: Boolean = false
+    val pruebaDisponible: Boolean = false,
+    val desactivada: Boolean = false
 )
 
 // --- Modelos para Registro y Verificación ---
@@ -159,6 +166,10 @@ interface AuthApi {
 
     @PATCH("api/v1/usuarios/me")
     suspend fun updateMe(@Body request: UpdateMeRequest): Response<UsuarioMeDto>
+
+    // Desactivar cuenta
+    @POST("api/v1/usuarios/me/desactivar")
+    suspend fun desactivarCuenta(@Body request: DesactivarCuentaRequest): Response<Unit>
 
     // Sube la foto de perfil (campo "foto")
     @Multipart

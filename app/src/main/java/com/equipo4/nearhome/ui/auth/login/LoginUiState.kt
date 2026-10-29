@@ -9,10 +9,11 @@ data class LoginUiState(
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
     val isSuccess: Boolean = false,
-    val googleSuccessMessage: String? = null
+    val googleSuccessMessage: String? = null,
+    val showReactivateDialog: Boolean = false,
+    val isReactivating: Boolean = false,
+    val reactivateSuccessMessage: String? = null
 ) {
-    // El botón Entrar solo se activa si el correo tiene formato válido,
-    // la contraseña no está vacía y no se está ejecutando la petición (isLoading)
     val isFormValid: Boolean
         get() = isEmailValid && isPasswordValid && !isLoading
 }

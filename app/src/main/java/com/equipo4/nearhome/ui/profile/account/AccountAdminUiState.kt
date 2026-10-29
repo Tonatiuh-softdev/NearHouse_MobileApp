@@ -10,13 +10,18 @@ data class UserAccountData(
     val planName: String? = null,
     val planStatus: String? = null,
     val planExpired: Boolean = false,
-    val renewalDate: String? = null
+    val renewalDate: String? = null,
+    val isGoogleUser: Boolean = false
 )
 
 data class AccountAdminUiState(
     val isLoading: Boolean = false,
     val userData: UserAccountData? = null,
     val showDeactivateDialog: Boolean = false,
+    val deactivatePasswordInput: String = "",
+    val deactivateError: String? = null,
+    val isDeactivating: Boolean = false,
+    val isDeactivatedSuccess: Boolean = false,
     val showDeleteDialog: Boolean = false,
     val deleteInputText: String = "",
     @param:StringRes val userMessage: Int? = null
@@ -31,7 +36,8 @@ data class AccountAdminUiState(
 sealed interface AccountAdminUiEvent {
     data object OnOptionClick : AccountAdminUiEvent
     data object OnDeactivateRequested : AccountAdminUiEvent
-    data object OnDeactivateConfirmed : AccountAdminUiEvent
+    data class OnDeactivatePasswordChanged(val text: String) : AccountAdminUiEvent
+    data class OnDeactivateConfirmed(val googleToken: String? = null) : AccountAdminUiEvent
     data object OnDeactivateDismissed : AccountAdminUiEvent
     data object OnDeleteRequested : AccountAdminUiEvent
     data object OnDeleteConfirmed : AccountAdminUiEvent

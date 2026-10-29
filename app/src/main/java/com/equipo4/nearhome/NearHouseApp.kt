@@ -879,6 +879,13 @@ fun NearHouseApp() {
                 viewModel = viewModel(),
                 onNavigateBack = { navController.popBackStack() },
                 onNavigateToPlans = { navController.navigate(AppRoutes.SUBSCRIPTION) },
+                onNavigateToLogin = { msg ->
+                    CurrentUserStore.clear()
+                    sessionManager.clearSession()
+                    navController.navigate(AppRoutes.LOGIN) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
                 onBottomTabSelected = onBottomTab
             )
         }

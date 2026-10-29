@@ -23,6 +23,7 @@ sealed class GoogleAuthState {
     object Loading : GoogleAuthState()
     object SessionSuccess : GoogleAuthState()
     data class RequiresRegistration(val proofData: GoogleProofResponse) : GoogleAuthState()
+    data class RequiresReactivation(val idToken: String) : GoogleAuthState()
     data class Error(val mensaje: String) : GoogleAuthState()
 }
 
@@ -38,11 +39,11 @@ class GoogleAuthViewModel(
     /**
      * Inicia autenticación con Google usando el token obtenido de Firebase.
      */
-    fun procesarTokenGoogle(idToken: String) {
+    fun procesarTokenGoogle(idToken: String, reactivar: Boolean = false) {
         viewModelScope.launch {
             _uiState.value = GoogleAuthState.Loading
             try {
-                val response = apiService.autenticarConGoogle(GoogleAuthRequest(idToken))
+                val response = apiService.autenticarConGoogle(GoogleAuthRequest(idToken, reactivar))
                 if (response.isSuccessful && response.body() != null) {
                     val json: JsonObject = response.body()!!
 
@@ -55,9 +56,15 @@ class GoogleAuthViewModel(
                         guardarSesionDesdeJson(json)
                         _uiState.value = GoogleAuthState.SessionSuccess
                     }
+                } else if (response.code() == 409) {
+                    _uiState.value = GoogleAuthState.RequiresReactivation(idToken)
                 } else {
                     val mensajeError = extraerMensajeError(response.errorBody()?.string())
-                    _uiState.value = GoogleAuthState.Error(mensajeError)
+                    if (mensajeError.contains("CUENTA_DESACTIVADA", ignoreCase = true) || mensajeError.contains("desactivada", ignoreCase = true)) {
+                        _uiState.value = GoogleAuthState.RequiresReactivation(idToken)
+                    } else {
+                        _uiState.value = GoogleAuthState.Error(mensajeError)
+                    }
                 }
             } catch (_: IOException) {
                 _uiState.value = GoogleAuthState.Error("No se pudo conectar con el servidor. Revisa tu conexión a internet e inténtalo de nuevo")

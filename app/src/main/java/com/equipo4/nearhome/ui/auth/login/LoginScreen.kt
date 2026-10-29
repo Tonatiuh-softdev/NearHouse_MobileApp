@@ -54,10 +54,34 @@ fun LoginScreen(
         }
     }
 
+    LaunchedEffect(uiState.reactivateSuccessMessage) {
+        uiState.reactivateSuccessMessage?.let { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+    }
+
     LaunchedEffect(uiState.isSuccess) {
         if (uiState.isSuccess) {
             onLoginSuccess()
         }
+    }
+
+    if (uiState.showReactivateDialog) {
+        AlertDialog(
+            onDismissRequest = { viewModel.onDismissReactivateDialog() },
+            title = { Text("Cuenta Desactivada") },
+            text = { Text("Tu cuenta está desactivada. ¿Quieres reactivarla?") },
+            confirmButton = {
+                Button(onClick = { viewModel.onConfirmReactivate() }) {
+                    Text("Reactivar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.onDismissReactivateDialog() }) {
+                    Text("Cancelar")
+                }
+            }
+        )
     }
 
     LoginContent(
@@ -65,7 +89,7 @@ fun LoginScreen(
         onEmailChange = viewModel::onEmailChanged,
         onPasswordChange = viewModel::onPasswordChanged,
         onTogglePasswordVisibility = viewModel::togglePasswordVisibility,
-        onLoginClick = viewModel::onLoginClicked,
+        onLoginClick = { viewModel.onLoginClicked() },
         onGoogleLoginClick = {
             viewModel.onGoogleLoginClicked(context) { token ->
                 onGoogleAuthTokenReceived(token)

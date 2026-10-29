@@ -1,15 +1,19 @@
 package com.equipo4.nearhome.ui.profile.account
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -17,8 +21,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -31,9 +39,19 @@ fun AccountAdminRoute(
     viewModel: AccountAdminViewModel,
     onNavigateBack: () -> Unit,
     onNavigateToPlans: () -> Unit,
+    onNavigateToLogin: (String) -> Unit = {},
     onBottomTabSelected: (Int) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    LaunchedEffect(uiState.isDeactivatedSuccess) {
+        if (uiState.isDeactivatedSuccess) {
+            val msg = "Tu cuenta está desactivada. Para volver, solo inicia sesión"
+            Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+            onNavigateToLogin(msg)
+        }
+    }
 
     AccountAdminScreen(
         uiState = uiState,
@@ -54,6 +72,7 @@ fun AccountAdminScreen(
     onBottomTabSelected: (Int) -> Unit = {}
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
+    var isPasswordVisible by remember { mutableStateOf(false) }
 
     uiState.userMessage?.let { messageRes ->
         val message = stringResource(id = messageRes)
@@ -229,16 +248,69 @@ fun AccountAdminScreen(
     // ==================== DIÁLOGOS DE CONFIRMACIÓN ====================
     if (uiState.showDeactivateDialog) {
         AlertDialog(
-            onDismissRequest = { onEvent(AccountAdminUiEvent.OnDeactivateDismissed) },
+            onDismissRequest = {
+                if (!uiState.isDeactivating) {
+                    onEvent(AccountAdminUiEvent.OnDeactivateDismissed)
+                }
+            },
             title = { Text(text = stringResource(id = R.string.dialog_deactivate_title)) },
-            text = { Text(text = stringResource(id = R.string.dialog_deactivate_text)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(text = stringResource(id = R.string.dialog_deactivate_text))
+
+                    OutlinedTextField(
+                        value = uiState.deactivatePasswordInput,
+                        onValueChange = { onEvent(AccountAdminUiEvent.OnDeactivatePasswordChanged(it)) },
+                        label = { Text("Contraseña actual") },
+                        singleLine = true,
+                        enabled = !uiState.isDeactivating,
+                        visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        trailingIcon = {
+                            IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
+                                Icon(
+                                    imageVector = if (isPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                                    contentDescription = "Mostrar u ocultar contraseña"
+                                )
+                            }
+                        },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    if (uiState.deactivateError != null) {
+                        Text(
+                            text = uiState.deactivateError,
+                            color = MaterialTheme.colorScheme.error,
+                            fontSize = 13.sp
+                        )
+                    }
+                }
+            },
             confirmButton = {
-                TextButton(onClick = { onEvent(AccountAdminUiEvent.OnDeactivateConfirmed) }) {
-                    Text(text = stringResource(id = R.string.confirm_deactivate))
+                Button(
+                    enabled = uiState.deactivatePasswordInput.isNotBlank() && !uiState.isDeactivating,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error,
+                        contentColor = MaterialTheme.colorScheme.onError
+                    ),
+                    onClick = { onEvent(AccountAdminUiEvent.OnDeactivateConfirmed()) }
+                ) {
+                    if (uiState.isDeactivating) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            color = MaterialTheme.colorScheme.onError,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text(text = stringResource(id = R.string.confirm_deactivate))
+                    }
                 }
             },
             dismissButton = {
-                TextButton(onClick = { onEvent(AccountAdminUiEvent.OnDeactivateDismissed) }) {
+                TextButton(
+                    enabled = !uiState.isDeactivating,
+                    onClick = { onEvent(AccountAdminUiEvent.OnDeactivateDismissed) }
+                ) {
                     Text(text = stringResource(id = R.string.cancel))
                 }
             }
