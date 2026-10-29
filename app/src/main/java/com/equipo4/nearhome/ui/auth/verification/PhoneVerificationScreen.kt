@@ -53,6 +53,11 @@ import com.equipo4.nearhome.R
 import kotlinx.coroutines.delay
 
 import androidx.compose.ui.res.stringResource
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.ui.platform.LocalContext
 
 private val PrimaryNavy = Color(0xFF0B2C4D)
 private val ErrorRed = Color(0xFFE53935)
@@ -70,10 +75,18 @@ fun PhoneVerificationScreen(
     viewModel: PhoneVerificationViewModel = viewModel(),
     onNavigateToLogin: () -> Unit = {}
 ) {
+    // Firebase necesita la Activity para mandar el SMS
+    val activity = LocalContext.current.findActivity()
+
     LaunchedEffect(phoneNumber) {
         if (phoneNumber.isNotEmpty()) {
             viewModel.setPhoneNumber(phoneNumber)
         }
+    }
+
+    // Al abrir la pantalla se manda el primer SMS
+    LaunchedEffect(activity) {
+        activity?.let { viewModel.enviarPrimerCodigo(it) }
     }
 
     val uiState by viewModel.uiState.collectAsState()
@@ -90,9 +103,16 @@ fun PhoneVerificationScreen(
             uiState = uiState,
             onOtpCodeChanged = viewModel::onOtpCodeChanged,
             onVerifyClicked = viewModel::onVerifyClicked,
-            onResendSmsClicked = viewModel::onResendSmsClicked
+            onResendSmsClicked = { activity?.let { viewModel.onResendSmsClicked(it) } }
         )
     }
+}
+
+/** Busca la Activity detrás del Context de Compose. */
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
 }
 
 @Composable
@@ -177,20 +197,31 @@ private fun VerificationInputContent(
 
                 Button(
                     onClick = onVerifyClicked,
+                    enabled = !uiState.isLoading,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(46.dp),
                     shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = PrimaryNavy,
-                        contentColor = Color.White
+                        contentColor = Color.White,
+                        disabledContainerColor = PrimaryNavy.copy(alpha = 0.6f),
+                        disabledContentColor = Color.White
                     )
                 ) {
-                    Text(
-                        text = stringResource(R.string.phone_verify_button),
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    if (uiState.isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            color = Color.White,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text(
+                            text = stringResource(R.string.phone_verify_button),
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
 

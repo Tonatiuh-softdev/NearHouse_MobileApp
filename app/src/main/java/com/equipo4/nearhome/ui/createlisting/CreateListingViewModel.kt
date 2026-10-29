@@ -3,13 +3,14 @@ package com.equipo4.nearhome.ui.createlisting
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.equipo4.nearhome.R
+import com.equipo4.nearhome.data.repository.PublicacionRepository
 import com.equipo4.nearhome.domain.model.ListingType
 import com.equipo4.nearhome.domain.model.PropertyType
-import com.equipo4.nearhome.ui.home.filter.ALL_COLONIAS
+import com.equipo4.nearhome.util.AppStrings
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.File
@@ -47,7 +48,7 @@ class CreateListingViewModel : ViewModel() {
             bedrooms = null, bathrooms = null, parking = null, floor = null, levels = null,
             furnished = false, petsAllowed = false, elevator = false, garden = false,
             landUse = null,
-            touched = s.touched.filter { it in setOf("price", "area", "colonia") }.toSet()
+            touched = s.touched.filter { it in setOf("price", "area") }.toSet()
         )
     }
 
@@ -73,7 +74,7 @@ class CreateListingViewModel : ViewModel() {
         }
     }
 
-    /** Ubicación GPS al tomar la primera foto. Corre aquí para sobrevivir a girar el celular. */
+    /** Ubicación GPS al tomar la primera foto (o al volver a detectar). Corre aquí para sobrevivir a girar el celular. */
     fun locate(context: Context) {
         val app = context.applicationContext
         viewModelScope.launch {
@@ -87,17 +88,10 @@ class CreateListingViewModel : ViewModel() {
         }
     }
 
-    /** Al soltar el pin se recalcula la dirección (y la colonia) y hay que volver a confirmar. */
-    fun onPinMoved(context: Context, lat: Double, lng: Double) {
-        val app = context.applicationContext
-        viewModelScope.launch { resolve(app, lat, lng) }
-    }
-
     private suspend fun resolve(app: Context, lat: Double, lng: Double) {
         val a = LocationHelper.reverseGeocode(app, lat, lng)
-        // Se intenta reconocer la colonia con todos los hints del geocoder.
-        // Si no hay coincidencia confiable, queda en null y la pantalla pide elegirla a mano.
-        val matched = a?.let { ColoniaMatcher.match(it.hints, ALL_COLONIAS) }
+        // La colonia sale del geocoder; si no se logra detectar queda en null y la pantalla pide volver a detectar
+        val colonia = a?.let { ColoniaDetector.detect(it) }
         _state.update {
             if (it.photos.isEmpty()) it   // el usuario borró todas las fotos mientras cargaba
             else it.copy(
@@ -105,20 +99,10 @@ class CreateListingViewModel : ViewModel() {
                 street = a?.street.orEmpty(),
                 streetNumber = a?.number.orEmpty(),
                 postalCode = a?.postalCode.orEmpty(),
-                locationColonia = matched,
-                colonia = matched ?: it.colonia,
+                locationColonia = colonia,
                 locationConfirmed = false, locationLoading = false, locationError = false
             )
         }
-    }
-
-    /** Colonia elegida a mano cuando el geocoder no la reconoció (o al corregir). */
-    fun setLocationColonia(colonia: String) = _state.update {
-        it.copy(
-            locationColonia = colonia,
-            colonia = colonia,
-            locationConfirmed = false
-        )
     }
 
     fun updateAddress(street: String? = null, number: String? = null, postalCode: String? = null) =
@@ -144,16 +128,27 @@ class CreateListingViewModel : ViewModel() {
     // ---------------- Envío ----------------
 
     /**
-     * Envía el anuncio a revisión.
-     * TODO: conectar con el endpoint de crear anuncio (subir fotos + datos) cuando esté disponible.
-     * Por ahora solo simula el envío para poder probar el flujo completo.
+     * Envía el anuncio al API: datos + fotos comprimidas. Queda "En revisión".
+     * Si falla, [CreateListingState.submitError] trae el mensaje para mostrarlo en la vista previa.
      */
-    fun submit() {
-        if (_state.value.submitting || _state.value.submitted) return
+    fun submit(context: Context) {
+        val actual = _state.value
+        if (actual.submitting || actual.submitted) return
+        val repositorio = PublicacionRepository(context)
         viewModelScope.launch {
-            _state.update { it.copy(submitting = true) }
-            delay(800)
-            _state.update { it.copy(submitting = false, submitted = true) }
+            _state.update { it.copy(submitting = true, submitError = null) }
+            repositorio.crear(_state.value)
+                .onSuccess {
+                    _state.update { it.copy(submitting = false, submitted = true) }
+                }
+                .onFailure { e ->
+                    _state.update {
+                        it.copy(
+                            submitting = false,
+                            submitError = e.message ?: AppStrings.get(R.string.create_listing_error_generic)
+                        )
+                    }
+                }
         }
     }
 

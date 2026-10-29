@@ -138,7 +138,7 @@
     <string name="language_spanish">Español</string>
     <string name="language_english">English</string>
     <string name="dark_mode_on">Activated</string>
-    <string name="dark_mode_off">Deactivated</string>
+    <string name="dark_mode_off">Desactivated</string>
     <string name="profile_section_info">Information</string>
     <string name="profile_terms">Terms and conditions</string>
     <string name="profile_privacy">Privacy policy</string>
@@ -981,4 +981,40 @@
     <string name="report_common_remove">Remove</string>
     <string name="report_common_discard">Discard</string>
     <string name="report_common_cancel">Cancel</string>
+
+    <!-- Profile & Navigation -->
+    <string name="cd_back">Back</string>
+    <string name="cd_edit_profile">Edit profile</string>
+
+    <!-- Listing Actions -->
+    <string name="action_create_listing">Create listing +</string>
+    <string name="empty_listings_message">You don\'t have any listings yet. Create your first listing so buyers can see it.</string>
+
+    <!-- Listing Statuses -->
+    <string name="status_in_review">Under review</string>
+    <string name="status_published">Published</string>
+    <string name="status_rejected">Rejected</string>
+
+    <string name="create_listing_error_description_min">Enter at least 30 characters</string>
+    <string name="create_listing_description_area_hint">Include the property area (m²)</string>
+    <string name="create_listing_redetect">Detect again</string>
+    <string name="create_listing_hint_colonia_undetected">Detect the neighborhood to continue</string>
+    <string name="create_listing_error_network">No internet connection. Check your connection and try again.</string>
+    <string name="create_listing_error_session">Your session has expired. Please log in again.</string>
+    <string name="create_listing_colonia_undetected">We couldnt detect the neighborhood at this location. Try detecting the location again.</string>
+    <string name="create_listing_error_generic">Couldnt submit the listing. Please try again.</string>
+    <string name="create_listing_error_forbidden">Your account isnt allowed to publish listings.</string>
+
+    <!-- Phone verification by SMS (Firebase) -->
+    <string name="phone_sms_wait_for_sms">Wait for the SMS or request a new one</string>
+    <string name="phone_sms_enter_6">Enter the 6 digits of the code</string>
+    <string name="phone_sms_error_invalid_number">The phone number is not valid</string>
+    <string name="phone_sms_error_too_many">Too many attempts. Wait a few minutes and try again</string>
+    <string name="phone_sms_error_network">No connection. Check your internet and try again</string>
+    <string name="phone_sms_error_send">The SMS could not be sent. Try again</string>
+    <string name="phone_sms_error_expired">The code has expired. Request a new one</string>
+    <string name="phone_sms_error_verify">The code could not be verified. Try again</string>
+    <string name="phone_sms_error_restart">The sign-up data was lost. Please start again</string>
+    <string name="listings_load_error">Failed to load listings. Check your connection and try again.</string>
+    <string name="listings_retry">Retry</string>
 </resources>

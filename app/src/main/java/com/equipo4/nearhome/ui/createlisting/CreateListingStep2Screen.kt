@@ -19,7 +19,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
@@ -33,8 +32,6 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.input.pointer.PointerEventPass
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -46,13 +43,11 @@ import androidx.core.content.FileProvider
 import coil.compose.AsyncImage
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
-import com.equipo4.nearhome.ui.home.filter.ALL_COLONIAS
 import com.equipo4.nearhome.ui.theme.NoticeTone
 import com.equipo4.nearhome.ui.theme.noticeColors
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
-import com.google.maps.android.compose.CameraMoveStartedReason
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
@@ -76,27 +71,14 @@ fun CreateListingStep2Screen(
     val context = LocalContext.current
     val cs = MaterialTheme.colorScheme
 
-    var editing by remember { mutableStateOf(false) }
     var permissionDenied by remember { mutableStateOf(false) }
     var cameraGranted by remember { mutableStateOf(context.isGranted(Manifest.permission.CAMERA)) }
     var startCamera by remember { mutableStateOf(false) }
     var pendingPath by rememberSaveable { mutableStateOf<String?>(null) }
     var pendingTab by remember { mutableStateOf<Int?>(null) }
-    var mapTouching by remember { mutableStateOf(false) }
-    var coloniaOpen by remember { mutableStateOf(false) }
-    var coloniaManual by remember { mutableStateOf(false) }
 
-    LaunchedEffect(editing) { if (!editing) mapTouching = false }
-
-    // Si cambia el punto, la colonia vuelve a depender de la detección automática
-    LaunchedEffect(state.latitude, state.longitude) {
-        coloniaManual = false
-        coloniaOpen = false
-    }
-
-    // Si falta calle, número o el geocoder no reconoció la colonia, se piden a mano
-    val needsManual = state.hasLocation &&
-            (state.street.isBlank() || state.streetNumber.isBlank() || state.locationColonia == null)
+    // Si falta calle o número, se piden a mano. La colonia siempre sale de la ubicación detectada.
+    val needsManual = state.hasLocation && (state.street.isBlank() || state.streetNumber.isBlank())
 
     // Tocar otra pestaña con datos capturados pregunta antes de descartar
     val onTab: (Int) -> Unit = { index ->
@@ -178,7 +160,7 @@ fun CreateListingStep2Screen(
                     val hint = when {
                         state.photos.isEmpty() -> R.string.create_listing_step2_hint
                         !state.hasLocation -> R.string.create_listing_hint_no_location
-                        state.locationColonia == null -> R.string.create_listing_hint_colonia
+                        state.locationColonia == null -> R.string.create_listing_hint_colonia_undetected
                         else -> R.string.create_listing_hint_confirm
                     }
                     Text(
@@ -199,8 +181,7 @@ fun CreateListingStep2Screen(
     ) { padding ->
         Column(
             Modifier.fillMaxSize().padding(padding)
-                // Mientras se toca el mapa en modo corrección, la pantalla no hace scroll
-                .verticalScroll(rememberScrollState(), enabled = !mapTouching)
+                .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
@@ -334,11 +315,7 @@ fun CreateListingStep2Screen(
                     }
                 }
 
-                state.hasLocation -> LocationMap(
-                    lat = state.latitude!!, lng = state.longitude!!, editing = editing,
-                    onPinSettled = { la, lo -> viewModel.onPinMoved(context, la, lo) },
-                    onTouching = { mapTouching = it }
-                )
+                state.hasLocation -> LocationMap(lat = state.latitude!!, lng = state.longitude!!)
 
                 else -> Box(
                     Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(12.dp)).background(cs.surfaceVariant),
@@ -351,12 +328,10 @@ fun CreateListingStep2Screen(
                 }
             }
 
-            // --- Dirección ---
+            // --- Dirección (solo la ubicación detectada) ---
             if (state.hasLocation && !state.locationLoading) {
                 val success = noticeColors(NoticeTone.SUCCESS)
                 val coloniaMissing = state.locationColonia == null
-                val showColoniaPicker = coloniaMissing || editing
-                val showFields = editing || needsManual
                 Column(
                     Modifier.fillMaxWidth()
                         .border(
@@ -372,35 +347,13 @@ fun CreateListingStep2Screen(
                         style = MaterialTheme.typography.labelMedium, color = cs.onSurfaceVariant
                     )
 
-                    if (showColoniaPicker) {
-                        // Se elige a mano solo si el geocoder no la reconoció (o al corregir)
-                        DropdownHeader(
-                            text = state.locationColonia,
-                            placeholder = stringResource(R.string.create_listing_select),
-                            expanded = coloniaOpen,
-                            isError = coloniaMissing,
-                            onClick = { coloniaOpen = !coloniaOpen }
+                    if (coloniaMissing) {
+                        // El geocoder no reconoció la colonia: se vuelve a detectar (no se elige a mano)
+                        Text(
+                            stringResource(R.string.create_listing_colonia_undetected),
+                            style = MaterialTheme.typography.bodySmall, color = cs.error
                         )
-                        if (coloniaOpen) {
-                            SingleChoicePanel(ALL_COLONIAS, state.locationColonia) { c ->
-                                viewModel.setLocationColonia(c)
-                                coloniaManual = true
-                                coloniaOpen = false
-                            }
-                        }
-                        if (coloniaMissing) {
-                            Text(
-                                stringResource(R.string.create_listing_colonia_not_found),
-                                style = MaterialTheme.typography.bodySmall, color = cs.error
-                            )
-                        } else if (coloniaManual) {
-                            Text(
-                                stringResource(R.string.create_listing_colonia_manual_warning),
-                                style = MaterialTheme.typography.bodySmall, color = cs.onSurfaceVariant
-                            )
-                        }
                     } else {
-                        // Detectada sola: solo lectura
                         Row(
                             Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
@@ -417,7 +370,8 @@ fun CreateListingStep2Screen(
                         }
                     }
 
-                    if (showFields) {
+                    // Calle y número solo se escriben cuando el geocoder no los encontró
+                    if (needsManual) {
                         OutlinedTextField(
                             value = state.street,
                             onValueChange = { viewModel.updateAddress(street = it) },
@@ -441,18 +395,12 @@ fun CreateListingStep2Screen(
                                 singleLine = true, modifier = Modifier.weight(1f)
                             )
                         }
-                        if (editing) {
-                            Text(
-                                stringResource(R.string.create_listing_drag_pin),
-                                style = MaterialTheme.typography.bodySmall, color = cs.onSurfaceVariant
-                            )
-                        }
                     }
                     Text(state.fullAddress, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
 
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
                         Button(
-                            onClick = { viewModel.confirmLocation(); editing = false },
+                            onClick = { viewModel.confirmLocation() },
                             enabled = state.street.isNotBlank() &&
                                     state.streetNumber.isNotBlank() &&
                                     state.locationColonia != null,
@@ -476,9 +424,9 @@ fun CreateListingStep2Screen(
                             )
                         }
                         OutlinedButton(
-                            onClick = { editing = !editing },
+                            onClick = { viewModel.locate(context) },
                             shape = RoundedCornerShape(8.dp), modifier = Modifier.weight(1f)
-                        ) { Text(stringResource(R.string.create_listing_correct)) }
+                        ) { Text(stringResource(R.string.create_listing_redetect)) }
                     }
                 }
             }
@@ -544,81 +492,33 @@ private fun AddPhotoTile(onClick: () -> Unit) {
     }
 }
 
-/**
- * Mapa de la ubicación.
- * - Normal: pin fijo en la ubicación, mapa sin gestos.
- * - Corrección: el mapa se agranda, el pin queda al centro y el usuario mueve el mapa;
- *   al soltarlo se recalcula la dirección.
- */
+/** Mapa de solo lectura: un pin fijo en la ubicación detectada, sin gestos. */
 @Composable
-private fun LocationMap(
-    lat: Double,
-    lng: Double,
-    editing: Boolean,
-    onPinSettled: (Double, Double) -> Unit,
-    onTouching: (Boolean) -> Unit
-) {
-    val cs = MaterialTheme.colorScheme
+private fun LocationMap(lat: Double, lng: Double) {
     val cameraState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(LatLng(lat, lng), 17f)
     }
-    val currentOnSettled by rememberUpdatedState(onPinSettled)
-    val currentOnTouching by rememberUpdatedState(onTouching)
 
-    // Fuera de la corrección, el mapa siempre sigue la ubicación
-    LaunchedEffect(lat, lng, editing) {
-        if (!editing) cameraState.animate(CameraUpdateFactory.newLatLngZoom(LatLng(lat, lng), 17f))
-    }
-
-    // En corrección: cuando el usuario termina de mover el mapa, se toma el centro
-    LaunchedEffect(editing) {
-        if (!editing) return@LaunchedEffect
-        var byGesture = false
-        snapshotFlow { cameraState.isMoving }.collect { moving ->
-            if (moving) {
-                byGesture = cameraState.cameraMoveStartedReason == CameraMoveStartedReason.GESTURE
-            } else if (byGesture) {
-                byGesture = false
-                val target = cameraState.position.target
-                currentOnSettled(target.latitude, target.longitude)
-            }
-        }
+    // Si se vuelve a detectar la ubicación, el mapa se mueve al nuevo punto
+    LaunchedEffect(lat, lng) {
+        cameraState.animate(CameraUpdateFactory.newLatLngZoom(LatLng(lat, lng), 17f))
     }
 
     Box(
         Modifier.fillMaxWidth()
-            .height(if (editing) 300.dp else 180.dp)
+            .height(180.dp)
             .clip(RoundedCornerShape(12.dp))
-            .then(
-                if (editing) Modifier.pointerInput(Unit) {
-                    awaitPointerEventScope {
-                        while (true) {
-                            val event = awaitPointerEvent(PointerEventPass.Initial)
-                            currentOnTouching(event.changes.any { it.pressed })
-                        }
-                    }
-                } else Modifier
-            )
     ) {
         GoogleMap(
             modifier = Modifier.fillMaxSize(),
             cameraPositionState = cameraState,
             uiSettings = MapUiSettings(
                 zoomControlsEnabled = false, mapToolbarEnabled = false,
-                scrollGesturesEnabled = editing, zoomGesturesEnabled = editing,
+                scrollGesturesEnabled = false, zoomGesturesEnabled = false,
                 rotationGesturesEnabled = false, tiltGesturesEnabled = false
             )
         ) {
-            if (!editing) {
-                Marker(state = rememberMarkerState(key = "$lat,$lng", position = LatLng(lat, lng)))
-            }
-        }
-        if (editing) {
-            // Pin fijo al centro: la punta queda justo en el centro del mapa
-            Icon(
-                Icons.Default.LocationOn, contentDescription = null, tint = cs.error,
-                modifier = Modifier.align(Alignment.Center).offset(y = (-20).dp).size(40.dp)
-            )
+            Marker(state = rememberMarkerState(key = "$lat,$lng", position = LatLng(lat, lng)))
         }
     }
 }

@@ -8,7 +8,9 @@ import com.equipo4.nearhome.R
 
 enum class LandUse { HABITACIONAL, AGRICOLA }
 
-const val MAX_TITLE = 80
+// Mismos límites que la base de datos
+const val MAX_TITLE = 60
+const val MIN_DESCRIPTION = 30
 const val MAX_DESCRIPTION = 1000
 const val MAX_RULES = 300
 
@@ -18,7 +20,6 @@ data class CreateListingState(
     val propertyType: PropertyType? = null,
     val price: String = "",          // solo dígitos
     val area: String = "",           // solo dígitos (solo se pide en Terreno)
-    val colonia: String? = null,
     val bedrooms: Int? = null,
     val bathrooms: Int? = null,
     val parking: Int? = null,
@@ -37,7 +38,7 @@ data class CreateListingState(
     val street: String = "",
     val streetNumber: String = "",
     val postalCode: String = "",
-    val locationColonia: String? = null,      // colonia según la ubicación de la foto (manda sobre la del Paso 1)
+    val locationColonia: String? = null,      // colonia detectada con el GPS (el API la crea si no existe)
     val locationConfirmed: Boolean = false,
     val locationLoading: Boolean = false,
     val locationError: Boolean = false,
@@ -51,6 +52,7 @@ data class CreateListingState(
     // ---- Envío (Paso 4 / vista previa) ----
     val submitting: Boolean = false,
     val submitted: Boolean = false,
+    val submitError: String? = null,
 
     // ---- Control de errores visibles ----
     val touched: Set<String> = emptySet()
@@ -62,21 +64,21 @@ data class CreateListingState(
 
     /**
      * Campos visibles según operación y tipo:
-     * Departamento: 9 al rentar, 8 al comprar. Casa: 8 al rentar, 7 al comprar. Terreno: 4.
-     * (Mascotas permitidas solo existe al rentar.)
+     * Departamento: 8 al rentar, 7 al comprar. Casa: 7 al rentar, 6 al comprar. Terreno: 3.
+     * (Mascotas permitidas solo existe al rentar. La colonia ya no se elige: sale de la ubicación.)
      */
     val fieldCount: Int
         get() = when (propertyType) {
-            PropertyType.DEPARTAMENTO -> if (isRent) 9 else 8
-            PropertyType.CASA -> if (isRent) 8 else 7
-            PropertyType.TERRENO -> 4
+            PropertyType.DEPARTAMENTO -> if (isRent) 8 else 7
+            PropertyType.CASA -> if (isRent) 7 else 6
+            PropertyType.TERRENO -> 3
             null -> 0
         }
 
     val isStep1Valid: Boolean
         get() {
             if (listingType == null || propertyType == null) return false
-            if (!priceValid || colonia == null) return false
+            if (!priceValid) return false
             return when (propertyType) {
                 PropertyType.DEPARTAMENTO ->
                     bedrooms != null && bathrooms != null && parking != null && floor != null
@@ -91,8 +93,10 @@ data class CreateListingState(
     val isStep2Valid
         get() = photos.isNotEmpty() && hasLocation && locationColonia != null && locationConfirmed
 
-    /** Título y descripción son obligatorios; las reglas son opcionales. */
-    val isStep3Valid get() = title.isNotBlank() && description.isNotBlank()
+    val descriptionValid get() = description.trim().length >= MIN_DESCRIPTION
+
+    /** Título obligatorio y descripción de al menos 30 caracteres; las reglas son opcionales. */
+    val isStep3Valid get() = title.isNotBlank() && descriptionValid
 
     /** Dirección completa para mostrar; calle, número, colonia y C.P. se guardan además por separado. */
     val fullAddress: String
@@ -128,11 +132,10 @@ data class CreateListingState(
     fun isInvalid(key: String): Boolean = key in touched && when (key) {
         "price" -> !priceValid
         "area" -> !areaValid
-        "colonia" -> colonia == null
         "bedrooms", "bathrooms", "parking", "floor", "levels" -> numberOf(key) == null
         "landUse" -> landUse == null
         "title" -> title.isBlank()
-        "description" -> description.isBlank()
+        "description" -> !descriptionValid
         else -> false
     }
 

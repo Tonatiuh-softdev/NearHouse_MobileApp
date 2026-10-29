@@ -10,6 +10,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
+import com.equipo4.nearhome.data.repository.Repositories
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -149,6 +150,9 @@ class MainActivity : AppCompatActivity() {
                 darkScrim = Color.TRANSPARENT
             )
         )
+
+        Repositories.init(applicationContext)
+
         super.onCreate(savedInstanceState)
         setContent {
             val context = LocalContext.current

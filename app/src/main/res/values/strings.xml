@@ -981,4 +981,42 @@
     <string name="report_common_remove">Eliminar</string>
     <string name="report_common_discard">Descartar</string>
     <string name="report_common_cancel">Cancelar</string>
+
+    <!-- Mis Publicaciones -->
+
+    <!-- Perfil y Navegación -->
+    <string name="cd_back">Regresar</string>
+    <string name="cd_edit_profile">Editar perfil</string>
+
+    <!-- Acciones de Publicación -->
+    <string name="action_create_listing">Crear anuncio +</string>
+    <string name="empty_listings_message">Aún no tienes anuncios. Crea tu primer anuncio para que los compradores lo vean.</string>
+
+    <!-- Estados de Publicación -->
+    <string name="status_in_review">En revisión</string>
+    <string name="status_published">Publicado</string>
+    <string name="status_rejected">Rechazado</string>
+
+    <string name="create_listing_error_description_min">Escribe al menos 30 caracteres</string>
+    <string name="create_listing_description_area_hint">Incluye la superficie (m²) del inmueble</string>
+    <string name="create_listing_colonia_undetected">No pudimos detectar la colonia en este punto. Vuelve a detectar la ubicación.</string>
+    <string name="create_listing_redetect">Volver a detectar</string>
+    <string name="create_listing_hint_colonia_undetected">Detecta la colonia para continuar</string>
+    <string name="create_listing_error_network">No hay conexión. Revisa tu internet e inténtalo de nuevo.</string>
+    <string name="create_listing_error_generic">No se pudo enviar el anuncio. Inténtalo de nuevo.</string>
+    <string name="create_listing_error_session">Tu sesión expiró. Inicia sesión de nuevo.</string>
+    <string name="create_listing_error_forbidden">Tu cuenta no puede publicar anuncios.</string>
+
+    <!-- Verificación del teléfono por SMS (Firebase) -->
+    <string name="phone_sms_wait_for_sms">Espera a que llegue el SMS o pide uno nuevo</string>
+    <string name="phone_sms_enter_6">Escribe los 6 dígitos del código</string>
+    <string name="phone_sms_error_invalid_number">El número de teléfono no es válido</string>
+    <string name="phone_sms_error_too_many">Demasiados intentos. Espera unos minutos e intenta de nuevo</string>
+    <string name="phone_sms_error_network">Sin conexión. Revisa tu internet e intenta de nuevo</string>
+    <string name="phone_sms_error_send">No se pudo enviar el SMS. Intenta de nuevo</string>
+    <string name="phone_sms_error_expired">El código ya expiró. Pide uno nuevo</string>
+    <string name="phone_sms_error_verify">No se pudo verificar el código. Intenta de nuevo</string>
+    <string name="phone_sms_error_restart">Se perdieron los datos del registro. Vuelve a empezar</string>
+    <string name="listings_load_error">No se pudieron cargar los anuncios. Revisa tu conexión e inténtalo de nuevo.</string>
+    <string name="listings_retry">Reintentar</string>
 </resources>

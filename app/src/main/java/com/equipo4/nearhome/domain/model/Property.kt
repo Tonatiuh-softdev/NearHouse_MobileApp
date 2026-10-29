@@ -18,14 +18,15 @@ data class Property(
     val listingType: ListingType,
     val location: String,
     val type: PropertyType,
+    /** m² del terreno. En casa y departamento es 0 (la superficie va en la descripción). */
     val areaSqM: Int,
     val bedrooms: Int? = null,
     val bathrooms: Int? = null,
     val garages: Int? = null,
     val frontMeters: Double? = null,
     val depthMeters: Double? = null,
-    /** IDs de recursos drawable (R.drawable.*). Con backend pasarán a ser URLs. */
-    val images: List<Int> = emptyList(),
+    /** Fotos: URLs (String) que vienen del API, o R.drawable.* (Int) en los datos de prueba. Coil carga las dos. */
+    val images: List<Any> = emptyList(),
     val isSaved: Boolean = false,
     val latitude: Double? = null,
     val longitude: Double? = null,
@@ -37,5 +38,14 @@ data class Property(
     val elevador: Boolean = false,
     val amueblado: Boolean = false,
     val usoSuelo: String? = null,
-    val superficieSqM: Double? = null
+    val superficieSqM: Double? = null,
+    // ---- Datos que solo trae el API (null en los datos de prueba) ----
+    val description: String? = null,
+    val rules: String? = null,
+    val sellerName: String? = null,
+    val sellerEmail: String? = null,
+    val sellerPhone: String? = null,
+    /** True si el anuncio es del usuario que tiene la sesión iniciada. */
+    val isOwner: Boolean = false,
+    val registeredAt: Long = 0L
 )
