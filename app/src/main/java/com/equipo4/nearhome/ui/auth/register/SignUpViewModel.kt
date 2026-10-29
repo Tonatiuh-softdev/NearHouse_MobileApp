@@ -56,7 +56,7 @@ class SignUpViewModel(
     /**
      * Entregable 1: Inicia la autenticación de Google desde la pantalla de Registro
      */
-    fun onGoogleLoginClicked(context: Context) {
+    fun onGoogleLoginClicked(context: Context, onTokenReceived: (String) -> Unit) {
         viewModelScope.launch {
             _uiState.update {
                 it.copy(
@@ -73,8 +73,7 @@ class SignUpViewModel(
                 onSuccess = { firebaseToken ->
                     _uiState.update { it.copy(isLoading = false) }
                     if (firebaseToken != null) {
-                        // Requisito Entregable 1: Mostrar mensaje temporal al obtener el token
-                        _uiState.update { it.copy(googleSuccessMessage = "Cuenta de Google lista") }
+                        onTokenReceived(firebaseToken)
                     }
                 },
                 onFailure = { error ->
