@@ -48,8 +48,8 @@ class GoogleAuthManager(private val context: Context) {
             val firebaseCredential = GoogleAuthProvider.getCredential(googleIdToken, null)
             val authResult = firebaseAuth.signInWithCredential(firebaseCredential).await()
 
-            // 4. Obtener el Token de Firebase
-            val firebaseIdToken = authResult.user?.getIdToken(false)?.await()?.token
+            // 4. Obtener el Token de Firebase (forceRefresh = true para asegurar validez)
+            val firebaseIdToken = authResult.user?.getIdToken(true)?.await()?.token
 
             // 5. REGLA OBLIGATORIA: Cerrar sesión en Firebase de inmediato
             firebaseAuth.signOut()

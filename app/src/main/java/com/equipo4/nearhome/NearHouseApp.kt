@@ -1,6 +1,7 @@
 package com.equipo4.nearhome
 
 import android.graphics.Color
+import android.widget.Toast
 import com.equipo4.nearhome.ui.theme.NearHomeTheme
 import androidx.compose.foundation.isSystemInDarkTheme
 import com.equipo4.nearhome.data.local.SettingsManager
@@ -15,6 +16,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -81,6 +84,10 @@ import com.equipo4.nearhome.ui.createlisting.CreateListingStep2Screen
 import com.equipo4.nearhome.ui.createlisting.CreateListingStep3Screen
 import com.equipo4.nearhome.ui.createlisting.CreateListingStep4Screen
 import com.equipo4.nearhome.ui.createlisting.CreateListingPreviewScreen
+import com.equipo4.nearhome.ui.auth.CompletarPerfilGoogleScreen
+import com.equipo4.nearhome.ui.auth.GoogleAuthState
+import com.equipo4.nearhome.ui.auth.GoogleAuthViewModel
+import com.equipo4.nearhome.ui.auth.GoogleAuthViewModelFactory
 
 object AppRoutes {
     const val SPLASH = "splash"
@@ -88,6 +95,7 @@ object AppRoutes {
     const val SIGN_UP = "signup"
     const val FORGOT_PASSWORD = "forgot_password"
     const val COMPLETE_PROFILE = "complete_profile"
+    const val COMPLETAR_PERFIL_GOOGLE = "completar_perfil_google"
     const val PHONE_VERIFICATION = "phone_verification"
     const val HOME = "home"
     const val MAP = "home_map"
@@ -171,11 +179,38 @@ fun NearHouseApp() {
             .create(AuthApi::class.java)
     }
 
+    // ViewModel global para la autenticación con Google usando su Factory
+    val googleAuthViewModel: GoogleAuthViewModel = viewModel(
+        factory = GoogleAuthViewModelFactory(context)
+    )
+    val googleAuthState by googleAuthViewModel.uiState.collectAsState()
+
+    // Escucha global de respuestas de la API de Google
+    LaunchedEffect(googleAuthState) {
+        when (googleAuthState) {
+            is GoogleAuthState.SessionSuccess -> {
+                sessionManager.setLoggedIn(true)
+                navController.navigate(AppRoutes.HOME) {
+                    popUpTo(AppRoutes.LOGIN) { inclusive = true }
+                }
+                googleAuthViewModel.reiniciarEstado()
+            }
+            is GoogleAuthState.RequiresRegistration -> {
+                navController.navigate(AppRoutes.COMPLETAR_PERFIL_GOOGLE)
+            }
+            is GoogleAuthState.Error -> {
+                Toast.makeText(context, (googleAuthState as GoogleAuthState.Error).mensaje, Toast.LENGTH_LONG).show()
+                googleAuthViewModel.reiniciarEstado()
+            }
+            else -> {}
+        }
+    }
+
     NavHost(
         navController = navController,
         startDestination = AppRoutes.SPLASH
     ) {
-        // Pantalla 0: Animacion
+        // Pantalla 0: Animación
         composable(AppRoutes.SPLASH) {
             SplashScreen(
                 onFinished = { isLoggedIn ->
@@ -206,6 +241,9 @@ fun NearHouseApp() {
                     navController.navigate(AppRoutes.HOME) {
                         popUpTo(AppRoutes.LOGIN) { inclusive = true }
                     }
+                },
+                onGoogleAuthTokenReceived = { token ->
+                    googleAuthViewModel.procesarTokenGoogle(token)
                 }
             )
         }
@@ -226,6 +264,9 @@ fun NearHouseApp() {
                 },
                 onNavigateToPrivacy = {
                     navController.navigate(AppRoutes.PRIVACY_POLICY)
+                },
+                onGoogleAuthTokenReceived = { token ->
+                    googleAuthViewModel.procesarTokenGoogle(token)
                 }
             )
         }
@@ -248,7 +289,7 @@ fun NearHouseApp() {
             )
         }
 
-        // Pantalla 3: Completa tu Perfil
+        // Pantalla 3: Completa tu Perfil tradicional
         composable(AppRoutes.COMPLETE_PROFILE) {
             CompleteProfileScreen(
                 onCompleteProfileSuccess = { phoneNumber ->
@@ -256,6 +297,33 @@ fun NearHouseApp() {
                     navController.navigate("${AppRoutes.PHONE_VERIFICATION}/$encodedPhone")
                 }
             )
+        }
+
+        // Pantalla 3b: Completar Perfil con Google (Caso C - Usuario nuevo)
+        composable(AppRoutes.COMPLETAR_PERFIL_GOOGLE) {
+            val state = googleAuthState
+            var proofDataSaved by remember { mutableStateOf<com.equipo4.nearhome.data.remote.dto.GoogleProofResponse?>(null) }
+
+            if (state is GoogleAuthState.RequiresRegistration) {
+                proofDataSaved = state.proofData
+            }
+
+            proofDataSaved?.let { proofData ->
+                CompletarPerfilGoogleScreen(
+                    proofData = proofData,
+                    viewModel = googleAuthViewModel,
+                    onRegistroExitoso = {
+                        sessionManager.setLoggedIn(true)
+                        navController.navigate(AppRoutes.HOME) {
+                            popUpTo(AppRoutes.LOGIN) { inclusive = true }
+                        }
+                    },
+                    onVolverAlLogin = {
+                        googleAuthViewModel.reiniciarEstado()
+                        navController.popBackStack(AppRoutes.LOGIN, inclusive = false)
+                    }
+                )
+            }
         }
 
         // Pantalla 4: Verificación de Teléfono
