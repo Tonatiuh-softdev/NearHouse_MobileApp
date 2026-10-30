@@ -1006,6 +1006,16 @@
     <string name="create_listing_error_generic">No se pudo enviar el anuncio. Inténtalo de nuevo.</string>
     <string name="create_listing_error_session">Tu sesión expiró. Inicia sesión de nuevo.</string>
     <string name="create_listing_error_forbidden">Tu cuenta no puede publicar anuncios.</string>
+    <string name="my_listings_load_error">No se pudieron cargar tus anuncios</string>
+
+    <string name="manage_listing_title">Gestión de anuncio</string>
+    <string name="manage_listing_edit">Editar anuncio</string>
+    <string name="manage_listing_pause">Pausar/ocultar anuncio</string>
+    <string name="manage_listing_resume">Reactivar anuncio</string>
+    <string name="manage_listing_delete">Eliminar anuncio</string>
+    <string name="manage_listing_delete_question">¿Estás seguro de que quieres eliminar este anuncio?</string>
+    <string name="manage_listing_delete_warning">Esta acción no se puede deshacer.</string>
+    <string name="manage_listing_confirm">Confirmar</string>
 
     <!-- Verificación del teléfono por SMS (Firebase) -->
     <string name="phone_sms_wait_for_sms">Espera a que llegue el SMS o pide uno nuevo</string>

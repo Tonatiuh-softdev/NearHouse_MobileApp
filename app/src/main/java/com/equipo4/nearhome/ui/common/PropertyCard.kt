@@ -42,8 +42,10 @@ import java.util.Locale
 @Composable
 fun PropertyCard(
     property: Property,
-    onToggleSave: () -> Unit,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onToggleSave: () -> Unit = {},
+    showSaveButton: Boolean = true,
+    badge: (@Composable () -> Unit)? = null
 ) {
     val totalPages = property.images.ifEmpty { listOf(1) }.size
     val pagerState = rememberPagerState(pageCount = { totalPages })
@@ -65,6 +67,8 @@ fun PropertyCard(
                 coroutineScope = coroutineScope,
                 totalPages = totalPages,
                 onToggleSave = onToggleSave,
+                showSaveButton = showSaveButton,
+                badge = badge,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(210.dp)
@@ -83,6 +87,8 @@ private fun PropertyImageCarousel(
     coroutineScope: CoroutineScope,
     totalPages: Int,
     onToggleSave: () -> Unit,
+    showSaveButton: Boolean,
+    badge: (@Composable () -> Unit)?,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -120,45 +126,39 @@ private fun PropertyImageCarousel(
             }
         }
 
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(12.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .background(Color.Black.copy(alpha = 0.6f))
-                .padding(horizontal = 10.dp, vertical = 4.dp)
-        ) {
-            Text(
-                text = "${pagerState.currentPage + 1} / $totalPages",
-                color = Color.White,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.SemiBold
-            )
+        if (showSaveButton) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(12.dp)
+                    .size(36.dp)
+                    .clip(CircleShape)
+                    .background(Color.Black.copy(alpha = 0.4f))
+                    .clickable { onToggleSave() },
+                contentAlignment = Alignment.Center
+            ) {
+                val bookmarkIcon = if (property.isSaved) {
+                    R.drawable.ic_guardar_relleno_abajo
+                } else {
+                    R.drawable.ic_guardar_abajo
+                }
+                Icon(
+                    painter = painterResource(id = bookmarkIcon),
+                    contentDescription = stringResource(R.string.property_save_cd),
+                    tint = Color.White,
+                    modifier = Modifier
+                        .size(18.dp)
+                        .scale(if (property.isSaved) 1.45f else 1.0f)
+                )
+            }
         }
 
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(12.dp)
-                .size(36.dp)
-                .clip(CircleShape)
-                .background(Color.Black.copy(alpha = 0.4f))
-                .clickable { onToggleSave() },
-            contentAlignment = Alignment.Center
-        ) {
-            val bookmarkIcon = if (property.isSaved) {
-                R.drawable.ic_guardar_relleno_abajo
-            } else {
-                R.drawable.ic_guardar_abajo
-            }
-            Icon(
-                painter = painterResource(id = bookmarkIcon),
-                contentDescription = stringResource(R.string.property_save_cd),
-                tint = Color.White,
+        if (badge != null) {
+            Box(
                 modifier = Modifier
-                    .size(18.dp)
-                    .scale(if (property.isSaved) 1.45f else 1.0f)
-            )
+                    .align(Alignment.TopEnd)
+                    .padding(12.dp)
+            ) { badge() }
         }
 
         if (pagerState.currentPage > 0) {

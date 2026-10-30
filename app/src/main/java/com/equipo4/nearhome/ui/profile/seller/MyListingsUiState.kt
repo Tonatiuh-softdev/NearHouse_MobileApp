@@ -13,7 +13,11 @@ enum class ListingStatus(@StringRes val labelRes: Int, val colorHex: Long) {
 
 data class MyListingItem(
     val property: Property,
-    val status: ListingStatus
+    val status: ListingStatus,
+    /** Motivo que escribió el administrador. Solo viene en los rechazados. */
+    val rejectionReason: String? = null,
+    /** False si el vendedor pausó el anuncio. */
+    val isActive: Boolean = true
 )
 
 data class MyListingsUiState(
@@ -23,5 +27,7 @@ data class MyListingsUiState(
     val userPhotoUrl: String? = null,
     val role: UserRole = UserRole.COMPRADOR,
     val listings: List<MyListingItem> = emptyList(),
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    /** True si no se pudieron cargar los anuncios. */
+    val loadError: Boolean = false
 )

@@ -60,6 +60,10 @@ interface PublicacionesApi {
     @GET("api/v1/publicaciones")
     suspend fun listar(): List<PublicacionDto>
 
+    /** Los anuncios del usuario con sesión, en cualquier estado (Mis anuncios). */
+    @GET("api/v1/publicaciones/mias")
+    suspend fun misAnuncios(): List<PublicacionDto>
+
     @GET("api/v1/publicaciones/{id}")
     suspend fun obtener(@Path("id") id: Int): PublicacionDto
 

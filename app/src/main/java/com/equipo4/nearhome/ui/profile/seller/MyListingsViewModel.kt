@@ -3,6 +3,7 @@ package com.equipo4.nearhome.ui.profile.seller
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.equipo4.nearhome.data.repository.MyListingsRepository
 import com.equipo4.nearhome.data.session.CurrentUserStore
 import com.equipo4.nearhome.ui.profile.UserRole
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,6 +14,8 @@ import kotlinx.coroutines.launch
 import com.equipo4.nearhome.di.NetworkModule
 
 class MyListingsViewModel(application: Application) : AndroidViewModel(application) {
+
+    private val repository = MyListingsRepository(application)
 
     private val _uiState = MutableStateFlow(MyListingsUiState())
     val uiState: StateFlow<MyListingsUiState> = _uiState.asStateFlow()
@@ -34,14 +37,22 @@ class MyListingsViewModel(application: Application) : AndroidViewModel(applicati
                 }
             }
         }
-        loadMyListings()
     }
 
+    /**
+     * Pide los anuncios al API. La pantalla lo llama cada vez que se muestra, así un anuncio
+     * recién creado, aprobado o rechazado aparece con su estado actual.
+     */
     fun loadMyListings() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-            // AQUÍ: conectar con los endpoints de publicaciones cuando Nahum los termine
-            _uiState.update { it.copy(isLoading = false) }
+            _uiState.update { it.copy(isLoading = true, loadError = false) }
+            repository.load()
+                .onSuccess { items ->
+                    _uiState.update { it.copy(listings = items, isLoading = false, loadError = false) }
+                }
+                .onFailure {
+                    _uiState.update { it.copy(isLoading = false, loadError = true) }
+                }
         }
     }
 }

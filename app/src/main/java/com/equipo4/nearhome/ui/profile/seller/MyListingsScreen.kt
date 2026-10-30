@@ -28,7 +28,10 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
+import com.equipo4.nearhome.ui.common.PropertyCard
 import com.equipo4.nearhome.ui.profile.UserRole
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 
 @Composable
 fun MyListingsScreen(
@@ -41,11 +44,21 @@ fun MyListingsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
+    // Anuncio seleccionado para el panel de gestión
+    var selected by remember { mutableStateOf<MyListingItem?>(null) }
+
+    // Cada vez que se muestra la pantalla se piden los anuncios, para ver su estado actual
+    LaunchedEffect(Unit) { viewModel.loadMyListings() }
+
     // Regla de control de acceso: Si el usuario en sesión es COMPRADOR, regresa a Cuenta.
     LaunchedEffect(uiState.role) {
         if (uiState.role == UserRole.COMPRADOR) {
             onBackClick()
         }
+    }
+
+    selected?.let { item ->
+        ManageListingSheet(item = item, onDismiss = { selected = null })
     }
 
     Scaffold(
@@ -68,40 +81,26 @@ fun MyListingsScreen(
                 )
             }
 
-            // Sección Lista o Estado Vacío
-            if (uiState.listings.isEmpty() && !uiState.isLoading) {
-                item {
-                    EmptyListingsMessage()
+            // Sección Lista, carga, error o Estado Vacío
+            when {
+                uiState.isLoading && uiState.listings.isEmpty() -> item {
+                    Box(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 40.dp),
+                        contentAlignment = Alignment.Center
+                    ) { CircularProgressIndicator() }
                 }
-            } else {
-                items(
+
+                uiState.loadError && uiState.listings.isEmpty() -> item {
+                    LoadErrorMessage(onRetry = viewModel::loadMyListings)
+                }
+
+                uiState.listings.isEmpty() -> item { EmptyListingsMessage() }
+
+                else -> items(
                     items = uiState.listings,
                     key = { it.property.id }
                 ) { item ->
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 20.dp, vertical = 8.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant
-                        ),
-                        onClick = { onPropertyClick(item.property.id) }
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = item.property.id,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            StatusChip(status = item.status)
-                        }
-                    }
+                    MyListingCard(item = item, onClick = { selected = item })
                 }
             }
         }
@@ -242,6 +241,121 @@ private fun HeaderSection(
     }
 }
 
+/** Tarjeta de un anuncio del vendedor: la misma del home, con su estado y, si lo rechazaron, el motivo. */
+@Composable
+private fun MyListingCard(item: MyListingItem, onClick: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 8.dp)
+    ) {
+        PropertyCard(
+            property = item.property,
+            onClick = onClick,
+            showSaveButton = false,
+            badge = { StatusChip(status = item.status) }
+        )
+
+        if (item.status == ListingStatus.REJECTED && !item.rejectionReason.isNullOrBlank()) {
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = stringResource(R.string.listing_history_reason_format, item.rejectionReason),
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onErrorContainer,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(MaterialTheme.colorScheme.errorContainer)
+                    .padding(10.dp)
+            )
+        }
+    }
+}
+
+/** Panel de gestión. Por ahora los botones no hacen nada: falta conectar los endpoints. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ManageListingSheet(
+    item: MyListingItem,
+    onDismiss: () -> Unit
+) {
+    var confirmDelete by remember { mutableStateOf(false) }
+    val danger = Color(0xFFDC2626)
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp)
+                .padding(bottom = 24.dp)
+                .navigationBarsPadding(),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.manage_listing_title),
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+            PropertyCard(
+                property = item.property,
+                onClick = {},
+                showSaveButton = false,
+                badge = { StatusChip(status = item.status) }
+            )
+            Button(
+                onClick = { /* pendiente: editar */ },
+                shape = RoundedCornerShape(10.dp),
+                modifier = Modifier.fillMaxWidth().height(48.dp)
+            ) { Text(stringResource(R.string.manage_listing_edit)) }
+
+            OutlinedButton(
+                onClick = { /* pendiente: pausar o reactivar */ },
+                shape = RoundedCornerShape(10.dp),
+                modifier = Modifier.fillMaxWidth().height(48.dp)
+            ) {
+                Text(
+                    stringResource(
+                        if (item.isActive) R.string.manage_listing_pause else R.string.manage_listing_resume
+                    )
+                )
+            }
+            Button(
+                onClick = { confirmDelete = true },
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = danger,
+                    contentColor = Color.White
+                ),
+                modifier = Modifier.fillMaxWidth().height(48.dp)
+            ) { Text(stringResource(R.string.manage_listing_delete)) }
+        }
+    }
+
+    if (confirmDelete) {
+        AlertDialog(
+            onDismissRequest = { confirmDelete = false },
+            title = { Text(stringResource(R.string.manage_listing_delete_question)) },
+            text = { Text(stringResource(R.string.manage_listing_delete_warning)) },
+            confirmButton = {
+                TextButton(onClick = { confirmDelete = false /* pendiente: eliminar */ }) {
+                    Text(stringResource(R.string.manage_listing_confirm), color = danger)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmDelete = false }) {
+                    Text(stringResource(R.string.listing_action_cancel))
+                }
+            }
+        )
+    }
+}
+
 @Composable
 private fun StatusChip(status: ListingStatus, modifier: Modifier = Modifier) {
     Surface(
@@ -254,8 +368,30 @@ private fun StatusChip(status: ListingStatus, modifier: Modifier = Modifier) {
             color = Color.White,
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
+            maxLines = 1,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
         )
+    }
+}
+
+@Composable
+private fun LoadErrorMessage(onRetry: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 32.dp, vertical = 40.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.my_listings_load_error),
+            fontSize = 14.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
+        OutlinedButton(onClick = onRetry, shape = RoundedCornerShape(10.dp)) {
+            Text(stringResource(R.string.create_listing_retry))
+        }
     }
 }
 

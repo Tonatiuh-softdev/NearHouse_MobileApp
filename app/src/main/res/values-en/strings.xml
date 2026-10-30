@@ -1004,6 +1004,16 @@
     <string name="create_listing_colonia_undetected">We couldnt detect the neighborhood at this location. Try detecting the location again.</string>
     <string name="create_listing_error_generic">Couldnt submit the listing. Please try again.</string>
     <string name="create_listing_error_forbidden">Your account isnt allowed to publish listings.</string>
+    <string name="my_listings_load_error">Failed to load your listings</string>
+
+    <string name="manage_listing_title">Listing Management</string>
+    <string name="manage_listing_edit">Edit Listing</string>
+    <string name="manage_listing_pause">Pause/Hide Listing</string>
+    <string name="manage_listing_resume">Reactivate Listing</string>
+    <string name="manage_listing_delete">Delete Listing</string>
+    <string name="manage_listing_delete_question">Are you sure you want to delete this listing?</string>
+    <string name="manage_listing_delete_warning">This action cannot be undone.</string>
+    <string name="manage_listing_confirm">Confirm</string>
 
     <!-- Phone verification by SMS (Firebase) -->
     <string name="phone_sms_wait_for_sms">Wait for the SMS or request a new one</string>
