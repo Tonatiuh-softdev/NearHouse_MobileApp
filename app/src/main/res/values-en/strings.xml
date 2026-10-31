@@ -1014,6 +1014,7 @@
     <string name="manage_listing_delete_question">Are you sure you want to delete this listing?</string>
     <string name="manage_listing_delete_warning">This action cannot be undone.</string>
     <string name="manage_listing_confirm">Confirm</string>
+    <string name="manage_listing_options_cd">Listing options</string>
 
     <!-- Phone verification by SMS (Firebase) -->
     <string name="phone_sms_wait_for_sms">Wait for the SMS or request a new one</string>

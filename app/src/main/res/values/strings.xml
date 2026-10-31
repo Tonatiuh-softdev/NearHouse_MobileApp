@@ -1016,6 +1016,7 @@
     <string name="manage_listing_delete_question">¿Estás seguro de que quieres eliminar este anuncio?</string>
     <string name="manage_listing_delete_warning">Esta acción no se puede deshacer.</string>
     <string name="manage_listing_confirm">Confirmar</string>
+    <string name="manage_listing_options_cd">Opciones del anuncio</string>
 
     <!-- Verificación del teléfono por SMS (Firebase) -->
     <string name="phone_sms_wait_for_sms">Espera a que llegue el SMS o pide uno nuevo</string>
