@@ -32,6 +32,8 @@ import com.equipo4.nearhome.ui.common.PropertyCard
 import com.equipo4.nearhome.ui.profile.UserRole
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.filled.MoreVert
 
 @Composable
 fun MyListingsScreen(
@@ -100,7 +102,11 @@ fun MyListingsScreen(
                     items = uiState.listings,
                     key = { it.property.id }
                 ) { item ->
-                    MyListingCard(item = item, onClick = { selected = item })
+                    MyListingCard(
+                        item = item,
+                        onClick = { onPropertyClick(item.property.id) },
+                        onMenuClick = { selected = item }
+                    )
                 }
             }
         }
@@ -241,9 +247,9 @@ private fun HeaderSection(
     }
 }
 
-/** Tarjeta de un anuncio del vendedor: la misma del home, con su estado y, si lo rechazaron, el motivo. */
+/** Tarjeta de un anuncio del vendedor: la misma del home, con su estado, el menú de tres puntos y, si lo rechazaron, el motivo. */
 @Composable
-private fun MyListingCard(item: MyListingItem, onClick: () -> Unit) {
+private fun MyListingCard(item: MyListingItem, onClick: () -> Unit, onMenuClick: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -253,7 +259,29 @@ private fun MyListingCard(item: MyListingItem, onClick: () -> Unit) {
             property = item.property,
             onClick = onClick,
             showSaveButton = false,
-            badge = { StatusChip(status = item.status) }
+            badge = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    StatusChip(status = item.status)
+                    Box(
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clip(CircleShape)
+                            .background(Color.Black.copy(alpha = 0.45f))
+                            .clickable { onMenuClick() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.MoreVert,
+                            contentDescription = stringResource(R.string.manage_listing_options_cd),
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+            }
         )
 
         if (item.status == ListingStatus.REJECTED && !item.rejectionReason.isNullOrBlank()) {
