@@ -3,15 +3,17 @@ package com.equipo4.nearhome.ui.profile.seller
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.equipo4.nearhome.R
 import com.equipo4.nearhome.data.repository.MyListingsRepository
 import com.equipo4.nearhome.data.session.CurrentUserStore
+import com.equipo4.nearhome.di.NetworkModule
 import com.equipo4.nearhome.ui.profile.UserRole
+import com.equipo4.nearhome.util.AppStrings
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import com.equipo4.nearhome.di.NetworkModule
 
 class MyListingsViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -19,6 +21,10 @@ class MyListingsViewModel(application: Application) : AndroidViewModel(applicati
 
     private val _uiState = MutableStateFlow(MyListingsUiState())
     val uiState: StateFlow<MyListingsUiState> = _uiState.asStateFlow()
+
+    /** Aviso para mostrar en un snackbar (anuncio eliminado o el error si no se pudo). */
+    private val _message = MutableStateFlow<String?>(null)
+    val message: StateFlow<String?> = _message.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -54,5 +60,25 @@ class MyListingsViewModel(application: Application) : AndroidViewModel(applicati
                     _uiState.update { it.copy(isLoading = false, loadError = true) }
                 }
         }
+    }
+
+    /** Elimina el anuncio en el API y, si salió bien, lo quita de la lista. */
+    fun deleteListing(id: String) {
+        viewModelScope.launch {
+            repository.delete(id)
+                .onSuccess {
+                    _uiState.update { state ->
+                        state.copy(listings = state.listings.filterNot { it.property.id == id })
+                    }
+                    _message.value = AppStrings.get(R.string.manage_listing_deleted)
+                }
+                .onFailure {
+                    _message.value = it.message ?: AppStrings.get(R.string.create_listing_error_generic)
+                }
+        }
+    }
+
+    fun messageShown() {
+        _message.value = null
     }
 }

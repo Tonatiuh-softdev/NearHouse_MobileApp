@@ -1,13 +1,17 @@
 package com.equipo4.nearhome.data.repository
 
 import android.content.Context
+import com.equipo4.nearhome.R
 import com.equipo4.nearhome.data.local.SessionManager
 import com.equipo4.nearhome.data.remote.PublicacionesApi
 import com.equipo4.nearhome.di.NetworkModule
 import com.equipo4.nearhome.ui.profile.seller.ListingStatus
 import com.equipo4.nearhome.ui.profile.seller.MyListingItem
+import com.equipo4.nearhome.util.AppStrings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import retrofit2.HttpException
+import java.io.IOException
 import kotlin.coroutines.cancellation.CancellationException
 
 /** Mis anuncios: todos los del vendedor con sesión, con su estado de revisión y, si fue rechazado, el motivo. */
@@ -42,6 +46,23 @@ class MyListingsRepository(context: Context) {
             throw e
         } catch (e: Exception) {
             Result.failure(e)
+        }
+    }
+
+    /** Elimina un anuncio de forma permanente. Si falla, el mensaje del error ya viene listo para mostrarse. */
+    suspend fun delete(id: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            api.eliminar(id.toInt())
+            Result.success(Unit)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            val mensaje = when {
+                e is HttpException && e.code() == 401 -> AppStrings.get(R.string.create_listing_error_session)
+                e is IOException -> AppStrings.get(R.string.create_listing_error_network)
+                else -> AppStrings.get(R.string.create_listing_error_generic)
+            }
+            Result.failure(PublicacionException(mensaje))
         }
     }
 }
