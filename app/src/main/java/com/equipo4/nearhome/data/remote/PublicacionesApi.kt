@@ -1,6 +1,7 @@
 package com.equipo4.nearhome.data.remote
 
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
@@ -66,6 +67,10 @@ interface PublicacionesApi {
 
     @GET("api/v1/publicaciones/{id}")
     suspend fun obtener(@Path("id") id: Int): PublicacionDto
+
+    /** Elimina un anuncio del usuario con sesión, de forma permanente. Responde 204 sin cuerpo. */
+    @DELETE("api/v1/publicaciones/{id}")
+    suspend fun eliminar(@Path("id") id: Int)
 
     // ---- Administrador ----
 

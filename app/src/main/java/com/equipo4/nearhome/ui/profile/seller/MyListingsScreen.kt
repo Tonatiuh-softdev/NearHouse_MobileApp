@@ -1,13 +1,17 @@
 package com.equipo4.nearhome.ui.profile.seller
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Person
@@ -30,10 +34,6 @@ import com.equipo4.nearhome.R
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
 import com.equipo4.nearhome.ui.common.PropertyCard
 import com.equipo4.nearhome.ui.profile.UserRole
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.clickable
-import androidx.compose.material.icons.filled.MoreVert
 
 @Composable
 fun MyListingsScreen(
@@ -45,6 +45,8 @@ fun MyListingsScreen(
     onBottomTabSelected: (Int) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val message by viewModel.message.collectAsState()
+    val snackbar = remember { SnackbarHostState() }
 
     // Anuncio seleccionado para el panel de gestión
     var selected by remember { mutableStateOf<MyListingItem?>(null) }
@@ -59,12 +61,28 @@ fun MyListingsScreen(
         }
     }
 
+    // Aviso de anuncio eliminado (o del error)
+    LaunchedEffect(message) {
+        message?.let {
+            snackbar.showSnackbar(it)
+            viewModel.messageShown()
+        }
+    }
+
     selected?.let { item ->
-        ManageListingSheet(item = item, onDismiss = { selected = null })
+        ManageListingSheet(
+            item = item,
+            onDismiss = { selected = null },
+            onDelete = {
+                selected = null
+                viewModel.deleteListing(item.property.id)
+            }
+        )
     }
 
     Scaffold(
         bottomBar = { NearHomeBottomBar(selectedTab = 3, onTabSelected = onBottomTabSelected) },
+        snackbarHost = { SnackbarHost(snackbar) },
         containerColor = MaterialTheme.colorScheme.background // Adaptable a modo oscuro/claro
     ) { innerPadding ->
         LazyColumn(
@@ -300,12 +318,13 @@ private fun MyListingCard(item: MyListingItem, onClick: () -> Unit, onMenuClick:
     }
 }
 
-/** Panel de gestión. Por ahora los botones no hacen nada: falta conectar los endpoints. */
+/** Panel de gestión. Eliminar ya funciona; editar y pausar todavía no hacen nada. */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ManageListingSheet(
     item: MyListingItem,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onDelete: () -> Unit
 ) {
     var confirmDelete by remember { mutableStateOf(false) }
     val danger = Color(0xFFDC2626)
@@ -371,7 +390,10 @@ private fun ManageListingSheet(
             title = { Text(stringResource(R.string.manage_listing_delete_question)) },
             text = { Text(stringResource(R.string.manage_listing_delete_warning)) },
             confirmButton = {
-                TextButton(onClick = { confirmDelete = false /* pendiente: eliminar */ }) {
+                TextButton(onClick = {
+                    confirmDelete = false
+                    onDelete()
+                }) {
                     Text(stringResource(R.string.manage_listing_confirm), color = danger)
                 }
             },
