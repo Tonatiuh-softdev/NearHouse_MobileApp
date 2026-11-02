@@ -62,6 +62,30 @@ class MyListingsViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
+    /** Pausa (activa=false) o reactiva (activa=true) un anuncio publicado. */
+    fun setListingActive(id: String, activa: Boolean) {
+        viewModelScope.launch {
+            repository.setActiva(id, activa)
+                .onSuccess { updated ->
+                    _uiState.update { state ->
+                        state.copy(
+                            listings = state.listings.map {
+                                if (it.property.id == id) updated else it
+                            }
+                        )
+                    }
+                    _message.value = AppStrings.get(
+                        if (activa) R.string.manage_listing_resumed
+                        else R.string.manage_listing_paused
+                    )
+                }
+                .onFailure {
+                    _message.value = it.message
+                        ?: AppStrings.get(R.string.create_listing_error_generic)
+                }
+        }
+    }
+
     /** Elimina el anuncio en el API y, si salió bien, lo quita de la lista. */
     fun deleteListing(id: String) {
         viewModelScope.launch {

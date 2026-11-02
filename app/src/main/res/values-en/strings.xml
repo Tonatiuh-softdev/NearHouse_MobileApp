@@ -1021,6 +1021,11 @@
     <string name="edit_listing_sent_title">Changes Saved!</string>
     <string name="edit_listing_sent_body">Your listing has been sent for review again. An administrator will review it.</string>
 
+    <string name="manage_listing_pause_only_published">Only published listings can be paused or reactivated</string>
+    <string name="manage_listing_paused">Listing paused</string>
+    <string name="manage_listing_resumed">Listing reactivated</string>
+    <string name="status_paused">Paused</string>
+
     <!-- Phone verification by SMS (Firebase) -->
     <string name="phone_sms_wait_for_sms">Wait for the SMS or request a new one</string>
     <string name="phone_sms_enter_6">Enter the 6 digits of the code</string>
