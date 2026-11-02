@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.domain.model.PropertyType
+import com.equipo4.nearhome.ui.common.DetailPublicacionSkeleton
 import com.equipo4.nearhome.ui.common.FakeMapPreview
 import com.equipo4.nearhome.ui.theme.nearHouseColors
 import com.equipo4.nearhome.util.AppStrings
@@ -93,10 +94,8 @@ fun DetailPublicacionScreen(
         ) {
             when (val state = uiState) {
                 is DetailPublicacionUiState.Loading -> {
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center),
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                    // Muestra el Skeleton en lugar de la ruedita de carga
+                    DetailPublicacionSkeleton()
                 }
                 is DetailPublicacionUiState.Error -> {
                     Text(
