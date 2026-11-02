@@ -10,6 +10,7 @@ enum class SortOption {
 }
 
 data class HomeUiState(
+    val isLoading: Boolean = true, // Estado inicial en true para la primera carga
     val searchQuery: String = "",
     val properties: List<Property> = emptyList(),
     val allProperties: List<Property> = emptyList(),

@@ -38,6 +38,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
 import com.equipo4.nearhome.ui.common.PropertyCard
+import com.equipo4.nearhome.ui.common.PropertyListSkeleton
 import com.equipo4.nearhome.ui.home.filter.PropertyFilterManager
 import com.equipo4.nearhome.ui.theme.nearHouseColors
 import kotlinx.coroutines.launch
@@ -116,37 +117,48 @@ fun HomeScreen(
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.background)
             ) {
-                Text(
-                    text = stringResource(R.string.home_properties_count, formatNumber(uiState.properties.size)),
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                )
+                if (!uiState.isLoading) {
+                    Text(
+                        text = stringResource(R.string.home_properties_count, formatNumber(uiState.properties.size)),
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                    )
+                }
 
-                if (uiState.properties.isEmpty()) {
-                    EmptyHomeState(onClearFilters = { viewModel.clearFilters() })
-                } else {
-                    LazyColumn(
-                        state = listState,
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        items(
-                            items = uiState.properties,
-                            key = { it.id }
-                        ) { property ->
-                            Box(
-                                modifier = Modifier.animateItem(
-                                    placementSpec = spring(dampingRatio = 1f, stiffness = 400f)
-                                )
-                            ) {
-                                PropertyCard(
-                                    property = property,
-                                    onToggleSave = { viewModel.toggleSaveProperty(property.id) },
-                                    onClick = { onPropertyClick(property.id) }
-                                )
+                when {
+                    // 1. Primera Carga -> Mostrar Tarjetas Esqueleto
+                    uiState.isLoading -> {
+                        PropertyListSkeleton(count = 3)
+                    }
+                    // 2. Sin resultados -> Estado Vacío
+                    uiState.properties.isEmpty() -> {
+                        EmptyHomeState(onClearFilters = { viewModel.clearFilters() })
+                    }
+                    // 3. Con resultados -> Lista de propiedades
+                    else -> {
+                        LazyColumn(
+                            state = listState,
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            items(
+                                items = uiState.properties,
+                                key = { it.id }
+                            ) { property ->
+                                Box(
+                                    modifier = Modifier.animateItem(
+                                        placementSpec = spring(dampingRatio = 1f, stiffness = 400f)
+                                    )
+                                ) {
+                                    PropertyCard(
+                                        property = property,
+                                        onToggleSave = { viewModel.toggleSaveProperty(property.id) },
+                                        onClick = { onPropertyClick(property.id) }
+                                    )
+                                }
                             }
                         }
                     }
