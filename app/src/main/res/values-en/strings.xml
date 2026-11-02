@@ -1017,6 +1017,10 @@
     <string name="manage_listing_options_cd">Listing options</string>
     <string name="manage_listing_deleted">Listing deleted</string>
 
+    <string name="edit_listing_save">Save Changes</string>
+    <string name="edit_listing_sent_title">Changes Saved!</string>
+    <string name="edit_listing_sent_body">Your listing has been sent for review again. An administrator will review it.</string>
+
     <!-- Phone verification by SMS (Firebase) -->
     <string name="phone_sms_wait_for_sms">Wait for the SMS or request a new one</string>
     <string name="phone_sms_enter_6">Enter the 6 digits of the code</string>

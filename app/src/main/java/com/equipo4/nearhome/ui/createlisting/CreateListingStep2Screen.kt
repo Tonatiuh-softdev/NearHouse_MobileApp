@@ -55,7 +55,7 @@ import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberMarkerState
 import java.io.File
 
-private const val MAX_PHOTOS = 5
+private const val MAX_PHOTOS = MAX_PHOTOS_APP
 
 private fun Context.isGranted(permission: String) =
     ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
@@ -91,9 +91,10 @@ fun CreateListingStep2Screen(
         pendingPath = null
         if (path != null) {
             if (ok) {
-                val first = viewModel.state.value.photos.isEmpty()
+                val s = viewModel.state.value
+                val firstEver = s.totalPhotoCount == 0
                 viewModel.addPhoto(path)
-                if (first) viewModel.locate(context)   // ubicación GPS del celular en ese momento
+                if (firstEver && !s.isEditing) viewModel.locate(context)
             } else {
                 File(path).delete()
             }
@@ -207,7 +208,8 @@ fun CreateListingStep2Screen(
                     style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold
                 )
                 Text(
-                    stringResource(R.string.create_listing_photo_counter, state.photos.size, MAX_PHOTOS),
+                    stringResource(
+                        R.string.create_listing_photo_counter, state.totalPhotoCount, MAX_PHOTOS_APP),
                     style = MaterialTheme.typography.labelMedium, color = cs.primary, fontWeight = FontWeight.SemiBold
                 )
             }
@@ -248,20 +250,36 @@ fun CreateListingStep2Screen(
             }
 
             // Cuadrícula de 3 columnas: miniaturas + un solo cuadro "Tomar Foto" (desaparece al llegar a 5)
-            val slots: List<String?> = state.photos + if (state.photos.size < MAX_PHOTOS) listOf(null) else emptyList()
+            // existing (url) + nuevas (path local) + tile agregar
+            data class PhotoSlot(val existing: ExistingPhoto?, val localPath: String?)
+
+            val slots: List<PhotoSlot?> = buildList {
+                state.existingPhotos.forEach { add(PhotoSlot(it, null)) }
+                state.photos.forEach { add(PhotoSlot(null, it)) }
+                if (state.totalPhotoCount < MAX_PHOTOS_APP) add(null)
+            }
+
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 slots.chunked(3).forEach { rowItems ->
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        rowItems.forEach { path ->
+                        rowItems.forEach { slot ->
                             Box(Modifier.weight(1f).aspectRatio(1f)) {
-                                if (path != null) {
-                                    PhotoThumb(
-                                        path = path,
-                                        isCover = state.photos.indexOf(path) == 0,
-                                        onDelete = { viewModel.removePhoto(path) }
+                                when {
+                                    slot == null -> AddPhotoTile(onClick = onTakePhoto)
+                                    slot.existing != null -> PhotoThumbUrl(
+                                        url = slot.existing.url,
+                                        isCover = state.existingPhotos.firstOrNull()?.id == slot.existing.id &&
+                                                state.photos.isEmpty().not().let { /* portada = primera existente si hay */
+                                                    state.existingPhotos.firstOrNull()?.id == slot.existing.id
+                                                },
+                                        onDelete = { viewModel.removeExistingPhoto(slot.existing.id) }
                                     )
-                                } else {
-                                    AddPhotoTile(onClick = onTakePhoto)
+                                    else -> PhotoThumb(
+                                        path = slot.localPath!!,
+                                        isCover = state.existingPhotos.isEmpty() &&
+                                                state.photos.indexOf(slot.localPath) == 0,
+                                        onDelete = { viewModel.removePhoto(slot.localPath) }
+                                    )
                                 }
                             }
                         }
@@ -443,6 +461,49 @@ fun CreateListingStep2Screen(
             },
             onDismiss = { pendingTab = null }
         )
+    }
+}
+
+
+@Composable
+private fun PhotoThumbUrl(url: String, isCover: Boolean, onDelete: () -> Unit) {
+    val cs = MaterialTheme.colorScheme
+    Box(Modifier.fillMaxSize().clip(RoundedCornerShape(12.dp))) {
+        AsyncImage(
+            model = url,
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
+        if (isCover) {
+            Text(
+                stringResource(R.string.create_listing_cover),
+                style = MaterialTheme.typography.labelSmall,
+                color = cs.onPrimary,
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(6.dp)
+                    .clip(RoundedCornerShape(6.dp))
+                    .background(cs.primary)
+                    .padding(horizontal = 6.dp, vertical = 2.dp)
+            )
+        }
+        IconButton(
+            onClick = onDelete,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(4.dp)
+                .size(24.dp)
+                .clip(CircleShape)
+                .background(cs.scrim.copy(alpha = 0.6f))
+        ) {
+            Icon(
+                Icons.Default.Close,
+                stringResource(R.string.create_listing_delete_photo),
+                tint = Color.White,
+                modifier = Modifier.size(14.dp)
+            )
+        }
     }
 }
 

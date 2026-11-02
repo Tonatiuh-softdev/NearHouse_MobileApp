@@ -88,6 +88,21 @@ import com.equipo4.nearhome.ui.auth.CompletarPerfilGoogleScreen
 import com.equipo4.nearhome.ui.auth.GoogleAuthState
 import com.equipo4.nearhome.ui.auth.GoogleAuthViewModel
 import com.equipo4.nearhome.ui.auth.GoogleAuthViewModelFactory
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import com.equipo4.nearhome.R
 
 object AppRoutes {
     const val SPLASH = "splash"
@@ -135,6 +150,7 @@ object AppRoutes {
     const val CREATE_LISTING_STEP4 = "create_listing_step4"
     const val CREATE_LISTING_PREVIEW = "create_listing_preview"
     const val SUBSCRIPTION = "subscription"
+    const val CREATE_LISTING_EDIT = "create_listing_edit/{listingId}"
 }
 
 class MainActivity : AppCompatActivity() {
@@ -458,6 +474,8 @@ fun NearHouseApp() {
                 onBackClick = { navController.popBackStack() },
                 onEditProfileClick = { navController.navigate(AppRoutes.EDIT_PROFILE) },
                 onCreateListingClick = { navController.navigate(AppRoutes.CREATE_LISTING_GRAPH) },
+                onEditListingClick = { id -> navController.navigate("create_listing_edit/$id")
+                },
                 onPropertyClick = { propertyId ->
                     navController.navigate("${AppRoutes.PUBLICACION_DETAIL}/$propertyId")
                 },
@@ -485,30 +503,35 @@ fun NearHouseApp() {
             )
         }
 
-        // Flujo: Crear anuncio (sub-gráfico con un solo ViewModel compartido)
+        // Flujo: Crear anuncio
         navigation(
             route = AppRoutes.CREATE_LISTING_GRAPH,
             startDestination = AppRoutes.CREATE_LISTING_STEP1
         ) {
             composable(AppRoutes.CREATE_LISTING_STEP1) { entry ->
                 val canCreate = remember { canCreateListings(CurrentUserStore.roleOrNull()) }
-                // Comprador: se cierra el flujo y regresa a Cuenta
                 LaunchedEffect(canCreate) {
                     if (!canCreate) navController.popBackStack(AppRoutes.PROFILE, inclusive = false)
                 }
                 if (canCreate) {
-                    val parent = remember(entry) { navController.getBackStackEntry(AppRoutes.CREATE_LISTING_GRAPH) }
+                    val parent = remember(entry) {
+                        navController.getBackStackEntry(AppRoutes.CREATE_LISTING_GRAPH)
+                    }
                     val vm: CreateListingViewModel = viewModel(parent)
                     CreateListingStep1Screen(
                         viewModel = vm,
-                        onExit = { navController.popBackStack(AppRoutes.CREATE_LISTING_GRAPH, inclusive = true) },
+                        onExit = {
+                            navController.popBackStack(AppRoutes.CREATE_LISTING_GRAPH, inclusive = true)
+                        },
                         onContinue = { navController.navigate(AppRoutes.CREATE_LISTING_STEP2) },
                         onBottomTabSelected = onBottomTab
                     )
                 }
             }
             composable(AppRoutes.CREATE_LISTING_STEP2) { entry ->
-                val parent = remember(entry) { navController.getBackStackEntry(AppRoutes.CREATE_LISTING_GRAPH) }
+                val parent = remember(entry) {
+                    navController.getBackStackEntry(AppRoutes.CREATE_LISTING_GRAPH)
+                }
                 val vm: CreateListingViewModel = viewModel(parent)
                 CreateListingStep2Screen(
                     viewModel = vm,
@@ -518,7 +541,9 @@ fun NearHouseApp() {
                 )
             }
             composable(AppRoutes.CREATE_LISTING_STEP3) { entry ->
-                val parent = remember(entry) { navController.getBackStackEntry(AppRoutes.CREATE_LISTING_GRAPH) }
+                val parent = remember(entry) {
+                    navController.getBackStackEntry(AppRoutes.CREATE_LISTING_GRAPH)
+                }
                 val vm: CreateListingViewModel = viewModel(parent)
                 CreateListingStep3Screen(
                     viewModel = vm,
@@ -528,24 +553,34 @@ fun NearHouseApp() {
                 )
             }
             composable(AppRoutes.CREATE_LISTING_STEP4) { entry ->
-                val parent = remember(entry) { navController.getBackStackEntry(AppRoutes.CREATE_LISTING_GRAPH) }
+                val parent = remember(entry) {
+                    navController.getBackStackEntry(AppRoutes.CREATE_LISTING_GRAPH)
+                }
                 val vm: CreateListingViewModel = viewModel(parent)
                 CreateListingStep4Screen(
                     viewModel = vm,
                     onBack = { navController.popBackStack() },
-                    onEditData = { navController.popBackStack(AppRoutes.CREATE_LISTING_STEP1, inclusive = false) },
-                    onEditContent = { navController.popBackStack(AppRoutes.CREATE_LISTING_STEP3, inclusive = false) },
+                    onEditData = {
+                        navController.popBackStack(AppRoutes.CREATE_LISTING_STEP1, inclusive = false)
+                    },
+                    onEditContent = {
+                        navController.popBackStack(AppRoutes.CREATE_LISTING_STEP3, inclusive = false)
+                    },
                     onContinue = { navController.navigate(AppRoutes.CREATE_LISTING_PREVIEW) },
                     onBottomTabSelected = onBottomTab
                 )
             }
             composable(AppRoutes.CREATE_LISTING_PREVIEW) { entry ->
-                val parent = remember(entry) { navController.getBackStackEntry(AppRoutes.CREATE_LISTING_GRAPH) }
+                val parent = remember(entry) {
+                    navController.getBackStackEntry(AppRoutes.CREATE_LISTING_GRAPH)
+                }
                 val vm: CreateListingViewModel = viewModel(parent)
                 CreateListingPreviewScreen(
                     viewModel = vm,
                     onBack = { navController.popBackStack() },
-                    onEdit = { navController.popBackStack(AppRoutes.CREATE_LISTING_STEP1, inclusive = false) },
+                    onEdit = {
+                        navController.popBackStack(AppRoutes.CREATE_LISTING_STEP1, inclusive = false)
+                    },
                     onFinished = {
                         vm.reset()
                         navController.navigate(AppRoutes.MY_LISTINGS) {
@@ -554,6 +589,164 @@ fun NearHouseApp() {
                     }
                 )
             }
+        }
+
+        // Flujo: Editar anuncio (mismas pantallas, ViewModel con datos precargados)
+        navigation(
+            route = AppRoutes.CREATE_LISTING_EDIT,
+            startDestination = AppRoutes.CREATE_LISTING_STEP1,
+            arguments = listOf(navArgument("listingId") { type = NavType.StringType })
+        ) {
+            composable(AppRoutes.CREATE_LISTING_STEP1) { entry ->
+                val canCreate = remember { canCreateListings(CurrentUserStore.roleOrNull()) }
+                LaunchedEffect(canCreate) {
+                    if (!canCreate) navController.popBackStack(AppRoutes.PROFILE, inclusive = false)
+                }
+                if (canCreate) {
+                    val parent = remember(entry) {
+                        navController.getBackStackEntry(AppRoutes.CREATE_LISTING_EDIT)
+                    }
+                    val vm: CreateListingViewModel = viewModel(parent)
+                    val listingId = parent.arguments?.getString("listingId")?.toIntOrNull()
+                    val ctx = LocalContext.current
+
+                    LaunchedEffect(listingId) {
+                        if (listingId != null) vm.loadForEdit(ctx, listingId)
+                    }
+
+                    val state by vm.state.collectAsState()
+                    when {
+                        state.loadingEdit -> {
+                            Box(
+                                Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator()
+                            }
+                        }
+                        state.loadEditError != null -> {
+                            Column(
+                                Modifier
+                                    .fillMaxSize()
+                                    .padding(24.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Text(state.loadEditError!!)
+                                Spacer(Modifier.height(12.dp))
+                                OutlinedButton(
+                                    onClick = {
+                                        navController.popBackStack(
+                                            AppRoutes.CREATE_LISTING_EDIT,
+                                            inclusive = true
+                                        )
+                                    }
+                                ) {
+                                    Text(stringResource(R.string.common_back))
+                                }
+                            }
+                        }
+                        else -> {
+                            CreateListingStep1Screen(
+                                viewModel = vm,
+                                onExit = {
+                                    navController.popBackStack(
+                                        AppRoutes.CREATE_LISTING_EDIT,
+                                        inclusive = true
+                                    )
+                                },
+                                onContinue = {
+                                    navController.navigate(AppRoutes.CREATE_LISTING_STEP2)
+                                },
+                                onBottomTabSelected = onBottomTab
+                            )
+                        }
+                    }
+                }
+            }
+
+            composable(AppRoutes.CREATE_LISTING_STEP2) { entry ->
+                val parent = remember(entry) {
+                    navController.getBackStackEntry(AppRoutes.CREATE_LISTING_EDIT)
+                }
+                val vm: CreateListingViewModel = viewModel(parent)
+                CreateListingStep2Screen(
+                    viewModel = vm,
+                    onBack = { navController.popBackStack() },
+                    onContinue = { navController.navigate(AppRoutes.CREATE_LISTING_STEP3) },
+                    onBottomTabSelected = onBottomTab
+                )
+            }
+
+            composable(AppRoutes.CREATE_LISTING_STEP3) { entry ->
+                val parent = remember(entry) {
+                    navController.getBackStackEntry(AppRoutes.CREATE_LISTING_EDIT)
+                }
+                val vm: CreateListingViewModel = viewModel(parent)
+                CreateListingStep3Screen(
+                    viewModel = vm,
+                    onBack = { navController.popBackStack() },
+                    onContinue = { navController.navigate(AppRoutes.CREATE_LISTING_STEP4) },
+                    onBottomTabSelected = onBottomTab
+                )
+            }
+
+            composable(AppRoutes.CREATE_LISTING_STEP4) { entry ->
+                val parent = remember(entry) {
+                    navController.getBackStackEntry(AppRoutes.CREATE_LISTING_EDIT)
+                }
+                val vm: CreateListingViewModel = viewModel(parent)
+                CreateListingStep4Screen(
+                    viewModel = vm,
+                    onBack = { navController.popBackStack() },
+                    onEditData = {
+                        navController.popBackStack(AppRoutes.CREATE_LISTING_STEP1, inclusive = false)
+                    },
+                    onEditContent = {
+                        navController.popBackStack(AppRoutes.CREATE_LISTING_STEP3, inclusive = false)
+                    },
+                    onContinue = { navController.navigate(AppRoutes.CREATE_LISTING_PREVIEW) },
+                    onBottomTabSelected = onBottomTab
+                )
+            }
+
+            composable(AppRoutes.CREATE_LISTING_PREVIEW) { entry ->
+                val parent = remember(entry) {
+                    navController.getBackStackEntry(AppRoutes.CREATE_LISTING_EDIT)
+                }
+                val vm: CreateListingViewModel = viewModel(parent)
+                CreateListingPreviewScreen(
+                    viewModel = vm,
+                    onBack = { navController.popBackStack() },
+                    onEdit = {
+                        navController.popBackStack(AppRoutes.CREATE_LISTING_STEP1, inclusive = false)
+                    },
+                    onFinished = {
+                        vm.reset()
+                        navController.navigate(AppRoutes.MY_LISTINGS) {
+                            popUpTo(AppRoutes.CREATE_LISTING_EDIT) { inclusive = true }
+                        }
+                    }
+                )
+            }
+        }
+
+        composable(
+            route = "${AppRoutes.PUBLICACION_DETAIL}/{publicacionId}",
+            arguments = listOf(navArgument("publicacionId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val publicacionId = backStackEntry.arguments?.getString("publicacionId") ?: ""
+
+            DetailPublicacionScreen(
+                publicacionId = publicacionId,
+                onBackClick = { navController.popBackStack() },
+                onReportClick = {
+                    navController.navigate("${AppRoutes.REPORT_GRAPH}/$publicacionId")
+                },
+                onEditClick = {
+                    navController.navigate("create_listing_edit/$publicacionId")
+                }
+            )
         }
 
         // Pantalla: Panel de administración
