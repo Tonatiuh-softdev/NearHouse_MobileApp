@@ -30,6 +30,8 @@ class HomeViewModel(
                 repository.observeAll().collect { list ->
                     allProperties = list
                     updateFilteredProperties()
+                    // Marcamos que finalizó la primera carga
+                    _uiState.update { it.copy(isLoading = false) }
                 }
             }
             launch {
@@ -49,9 +51,9 @@ class HomeViewModel(
 
             var filtered = allProperties.filter { property ->
                 val matchesSearch = query.isEmpty() ||
-                    property.title.contains(query, ignoreCase = true) ||
-                    property.location.contains(query, ignoreCase = true) ||
-                    property.colonia.contains(query, ignoreCase = true)
+                        property.title.contains(query, ignoreCase = true) ||
+                        property.location.contains(query, ignoreCase = true) ||
+                        property.colonia.contains(query, ignoreCase = true)
                 matchesSearch && property.matchesFilter(filter)
             }
 
