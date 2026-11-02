@@ -34,6 +34,7 @@ import com.equipo4.nearhome.R
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
 import com.equipo4.nearhome.ui.common.PropertyCard
 import com.equipo4.nearhome.ui.profile.UserRole
+import androidx.compose.ui.draw.alpha
 
 @Composable
 fun MyListingsScreen(
@@ -77,6 +78,10 @@ fun MyListingsScreen(
             onEdit = {
                 selected = null
                 onEditListingClick(item.property.id)
+            },
+            onToggleActive = {
+                selected = null
+                viewModel.setListingActive(item.property.id, activa = !item.isActive)
             },
             onDelete = {
                 selected = null
@@ -272,11 +277,19 @@ private fun HeaderSection(
 
 /** Tarjeta de un anuncio del vendedor: la misma del home, con su estado, el menú de tres puntos y, si lo rechazaron, el motivo. */
 @Composable
-private fun MyListingCard(item: MyListingItem, onClick: () -> Unit, onMenuClick: () -> Unit) {
+private fun MyListingCard(
+    item: MyListingItem,
+    onClick: () -> Unit,
+    onMenuClick: () -> Unit
+) {
+    val paused = !item.isActive
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 8.dp)
+            // Todo el anuncio se ve “apagado” si está pausado
+            .then(if (paused) Modifier.alpha(0.55f) else Modifier)
     ) {
         PropertyCard(
             property = item.property,
@@ -287,7 +300,11 @@ private fun MyListingCard(item: MyListingItem, onClick: () -> Unit, onMenuClick:
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    StatusChip(status = item.status)
+                    if (paused) {
+                        PausedChip()
+                    } else {
+                        StatusChip(status = item.status)
+                    }
                     Box(
                         modifier = Modifier
                             .size(32.dp)
@@ -320,6 +337,24 @@ private fun MyListingCard(item: MyListingItem, onClick: () -> Unit, onMenuClick:
                     .padding(10.dp)
             )
         }
+    }
+}
+
+@Composable
+private fun PausedChip(modifier: Modifier = Modifier) {
+    Surface(
+        color = Color(0xFF6B7280), // gris
+        shape = RoundedCornerShape(6.dp),
+        modifier = modifier
+    ) {
+        Text(
+            text = stringResource(R.string.status_paused),
+            color = Color.White,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
+            maxLines = 1,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+        )
     }
 }
 
@@ -472,6 +507,107 @@ private fun EmptyListingsMessage() {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
             lineHeight = 20.sp
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ManageListingSheet(
+    item: MyListingItem,
+    onDismiss: () -> Unit,
+    onEdit: () -> Unit,
+    onToggleActive: () -> Unit,
+    onDelete: () -> Unit
+) {
+    var confirmDelete by remember { mutableStateOf(false) }
+    val danger = Color(0xFFDC2626)
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    // Solo se puede pausar/reactivar si está publicado
+    val canToggleActive = item.status == ListingStatus.PUBLISHED
+
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = sheetState
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp)
+                .padding(bottom = 24.dp)
+                .navigationBarsPadding(),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.manage_listing_title),
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+            PropertyCard(
+                property = item.property,
+                onClick = {},
+                showSaveButton = false,
+                badge = { StatusChip(status = item.status) }
+            )
+            Button(
+                onClick = onEdit,
+                shape = RoundedCornerShape(10.dp),
+                modifier = Modifier.fillMaxWidth().height(48.dp)
+            ) {
+                Text(stringResource(R.string.manage_listing_edit))
+            }
+
+            OutlinedButton(
+                onClick = onToggleActive,
+                enabled = canToggleActive,
+                shape = RoundedCornerShape(10.dp),
+                modifier = Modifier.fillMaxWidth().height(48.dp)
+            ) {
+                Text(
+                    stringResource(
+                        if (item.isActive) R.string.manage_listing_pause
+                        else R.string.manage_listing_resume
+                    )
+                )
+            }
+
+            Button(
+                onClick = { confirmDelete = true },
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = danger,
+                    contentColor = Color.White
+                ),
+                modifier = Modifier.fillMaxWidth().height(48.dp)
+            ) {
+                Text(stringResource(R.string.manage_listing_delete))
+            }
+        }
+    }
+
+    if (confirmDelete) {
+        AlertDialog(
+            onDismissRequest = { confirmDelete = false },
+            title = { Text(stringResource(R.string.manage_listing_delete_question)) },
+            text = { Text(stringResource(R.string.manage_listing_delete_warning)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        confirmDelete = false
+                        onDelete()
+                    }
+                ) {
+                    Text(stringResource(R.string.manage_listing_confirm), color = danger)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmDelete = false }) {
+                    Text(stringResource(R.string.listing_action_cancel))
+                }
+            }
         )
     }
 }

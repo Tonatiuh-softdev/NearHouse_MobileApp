@@ -1023,6 +1023,11 @@
     <string name="edit_listing_sent_title">¡Cambios guardados!</string>
     <string name="edit_listing_sent_body">Tu anuncio volvió a revisión. Un administrador lo revisará de nuevo.</string>
 
+    <string name="manage_listing_pause_only_published">Solo se puede pausar o reactivar un anuncio publicado</string>
+    <string name="manage_listing_paused">Anuncio pausado</string>
+    <string name="manage_listing_resumed">Anuncio reactivado</string>
+    <string name="status_paused">Pausado</string>
+
     <!-- Verificación del teléfono por SMS (Firebase) -->
     <string name="phone_sms_wait_for_sms">Espera a que llegue el SMS o pide uno nuevo</string>
     <string name="phone_sms_enter_6">Escribe los 6 dígitos del código</string>

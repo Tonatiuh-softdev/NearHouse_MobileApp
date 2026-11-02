@@ -7,6 +7,9 @@ import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
 import retrofit2.Response
+import retrofit2.http.PATCH
+
+data class ActivaDto(val activa: Boolean)
 
 data class VendedorDto(
     val id: Int,
@@ -84,4 +87,11 @@ interface PublicacionesApi {
 
     @POST("api/v1/admin/publicaciones/{id}/rechazar")
     suspend fun rechazar(@Path("id") id: Int, @Body body: RechazarDto): PublicacionDto
+
+    /** Pausa (false) o reactiva (true) un anuncio propio ya publicado. */
+    @PATCH("api/v1/publicaciones/{id}/activa")
+    suspend fun cambiarActiva(
+        @Path("id") id: Int,
+        @Body body: ActivaDto
+    ): PublicacionDto
 }
