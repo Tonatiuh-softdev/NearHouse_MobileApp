@@ -73,7 +73,8 @@ class MyListingsViewModel(application: Application) : AndroidViewModel(applicati
                     _message.value = AppStrings.get(R.string.manage_listing_deleted)
                 }
                 .onFailure {
-                    _message.value = it.message ?: AppStrings.get(R.string.create_listing_error_generic)
+                    _message.value = it.message
+                        ?: AppStrings.get(R.string.create_listing_error_generic)
                 }
         }
     }

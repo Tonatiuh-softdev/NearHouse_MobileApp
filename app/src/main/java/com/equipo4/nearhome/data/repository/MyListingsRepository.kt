@@ -52,17 +52,33 @@ class MyListingsRepository(context: Context) {
     /** Elimina un anuncio de forma permanente. Si falla, el mensaje del error ya viene listo para mostrarse. */
     suspend fun delete(id: String): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            api.eliminar(id.toInt())
-            Result.success(Unit)
+            val respuesta = api.eliminar(id.toInt())
+            // 204 No Content = borrado OK (el servidor no manda cuerpo)
+            if (respuesta.isSuccessful || respuesta.code() == 204) {
+                Result.success(Unit)
+            } else {
+                val mensaje = when (respuesta.code()) {
+                    401 -> AppStrings.get(R.string.create_listing_error_session)
+                    else -> AppStrings.get(R.string.create_listing_error_generic)
+                }
+                Result.failure(PublicacionException(mensaje))
+            }
         } catch (e: CancellationException) {
             throw e
-        } catch (e: Exception) {
-            val mensaje = when {
-                e is HttpException && e.code() == 401 -> AppStrings.get(R.string.create_listing_error_session)
-                e is IOException -> AppStrings.get(R.string.create_listing_error_network)
-                else -> AppStrings.get(R.string.create_listing_error_generic)
+        } catch (e: HttpException) {
+            if (e.code() == 204) {
+                Result.success(Unit)
+            } else {
+                val mensaje = when (e.code()) {
+                    401 -> AppStrings.get(R.string.create_listing_error_session)
+                    else -> AppStrings.get(R.string.create_listing_error_generic)
+                }
+                Result.failure(PublicacionException(mensaje))
             }
-            Result.failure(PublicacionException(mensaje))
+        } catch (e: IOException) {
+            Result.failure(PublicacionException(AppStrings.get(R.string.create_listing_error_network)))
+        } catch (e: Exception) {
+            Result.failure(PublicacionException(AppStrings.get(R.string.create_listing_error_generic)))
         }
     }
 }

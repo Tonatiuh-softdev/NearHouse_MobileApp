@@ -6,6 +6,7 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
+import retrofit2.Response
 
 data class VendedorDto(
     val id: Int,
@@ -68,9 +69,10 @@ interface PublicacionesApi {
     @GET("api/v1/publicaciones/{id}")
     suspend fun obtener(@Path("id") id: Int): PublicacionDto
 
-    /** Elimina un anuncio del usuario con sesión, de forma permanente. Responde 204 sin cuerpo. */
+    /** Elimina un anuncio del usuario con sesión. Responde 204 sin cuerpo. */
     @DELETE("api/v1/publicaciones/{id}")
-    suspend fun eliminar(@Path("id") id: Int)
+    suspend fun eliminar(@Path("id") id: Int): Response<Unit>
+
 
     // ---- Administrador ----
 
