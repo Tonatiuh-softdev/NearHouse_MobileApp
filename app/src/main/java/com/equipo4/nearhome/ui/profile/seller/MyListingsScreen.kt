@@ -41,6 +41,7 @@ fun MyListingsScreen(
     onBackClick: () -> Unit = {},
     onEditProfileClick: () -> Unit = {},
     onCreateListingClick: () -> Unit = {},
+    onEditListingClick: (String) -> Unit = {},
     onPropertyClick: (String) -> Unit = {},
     onBottomTabSelected: (Int) -> Unit = {}
 ) {
@@ -73,6 +74,10 @@ fun MyListingsScreen(
         ManageListingSheet(
             item = item,
             onDismiss = { selected = null },
+            onEdit = {
+                selected = null
+                onEditListingClick(item.property.id)
+            },
             onDelete = {
                 selected = null
                 viewModel.deleteListing(item.property.id)
@@ -324,6 +329,7 @@ private fun MyListingCard(item: MyListingItem, onClick: () -> Unit, onMenuClick:
 private fun ManageListingSheet(
     item: MyListingItem,
     onDismiss: () -> Unit,
+    onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
     var confirmDelete by remember { mutableStateOf(false) }
@@ -356,10 +362,12 @@ private fun ManageListingSheet(
                 badge = { StatusChip(status = item.status) }
             )
             Button(
-                onClick = { /* pendiente: editar */ },
+                onClick = onEdit,
                 shape = RoundedCornerShape(10.dp),
                 modifier = Modifier.fillMaxWidth().height(48.dp)
-            ) { Text(stringResource(R.string.manage_listing_edit)) }
+            ) {
+                Text(stringResource(R.string.manage_listing_edit))
+            }
 
             OutlinedButton(
                 onClick = { /* pendiente: pausar o reactivar */ },
@@ -368,7 +376,8 @@ private fun ManageListingSheet(
             ) {
                 Text(
                     stringResource(
-                        if (item.isActive) R.string.manage_listing_pause else R.string.manage_listing_resume
+                        if (item.isActive) R.string.manage_listing_pause
+                        else R.string.manage_listing_resume
                     )
                 )
             }
@@ -380,7 +389,9 @@ private fun ManageListingSheet(
                     contentColor = Color.White
                 ),
                 modifier = Modifier.fillMaxWidth().height(48.dp)
-            ) { Text(stringResource(R.string.manage_listing_delete)) }
+            ) {
+                Text(stringResource(R.string.manage_listing_delete))
+            }
         }
     }
 
@@ -390,10 +401,12 @@ private fun ManageListingSheet(
             title = { Text(stringResource(R.string.manage_listing_delete_question)) },
             text = { Text(stringResource(R.string.manage_listing_delete_warning)) },
             confirmButton = {
-                TextButton(onClick = {
-                    confirmDelete = false
-                    onDelete()
-                }) {
+                TextButton(
+                    onClick = {
+                        confirmDelete = false
+                        onDelete()
+                    }
+                ) {
                     Text(stringResource(R.string.manage_listing_confirm), color = danger)
                 }
             },

@@ -4,7 +4,9 @@ import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.Multipart
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Part
+import retrofit2.http.Path
 
 /** Datos del anuncio que se mandan en el campo "datos" (JSON). Los null no se envían. */
 data class CrearPublicacionDto(
@@ -30,7 +32,10 @@ data class CrearPublicacionDto(
     val mascotas: Boolean,
     val elevador: Boolean,
     val patio: Boolean,
-    val usoSuelo: String?         // HABITACIONAL o AGRICOLA
+    val usoSuelo: String?,        // HABITACIONAL o AGRICOLA
+    // ---- Solo al editar ----
+    val fotosEliminar: List<Int> = emptyList(),
+    val reemplazaPortada: Boolean = false
 )
 
 data class PublicacionCreadaDto(
@@ -54,4 +59,13 @@ interface PublicacionApi {
         @Part datos: MultipartBody.Part,
         @Part fotos: List<MultipartBody.Part>
     ): Response<PublicacionCreadaDto>
+
+    /** PUT /api/v1/publicaciones/{id}: edita un anuncio propio; queda EN_REVISION. */
+    @Multipart
+    @PUT("api/v1/publicaciones/{id}")
+    suspend fun editar(
+        @Path("id") id: Int,
+        @Part datos: MultipartBody.Part,
+        @Part fotos: List<MultipartBody.Part>
+    ): Response<PublicacionDto>
 }

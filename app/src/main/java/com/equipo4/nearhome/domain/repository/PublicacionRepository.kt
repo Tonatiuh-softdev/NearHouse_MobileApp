@@ -7,6 +7,7 @@ import com.equipo4.nearhome.data.remote.CrearPublicacionDto
 import com.equipo4.nearhome.data.remote.ErrorDto
 import com.equipo4.nearhome.data.remote.PublicacionApi
 import com.equipo4.nearhome.data.remote.PublicacionCreadaDto
+import com.equipo4.nearhome.data.remote.PublicacionDto
 import com.equipo4.nearhome.di.NetworkModule
 import com.equipo4.nearhome.domain.model.PropertyType
 import com.equipo4.nearhome.ui.createlisting.CreateListingState
@@ -49,7 +50,6 @@ class PublicacionRepository(context: Context) {
                 "datos", null,
                 gson.toJson(state.toDto()).toRequestBody("text/plain; charset=utf-8".toMediaType())
             )
-            // La primera foto es la portada: el orden de la lista se respeta
             val fotos = state.photos.mapIndexed { i, ruta ->
                 MultipartBody.Part.createFormData(
                     "fotos", "foto_${i + 1}.jpg",
@@ -58,6 +58,40 @@ class PublicacionRepository(context: Context) {
             }
 
             val respuesta = api.crear(datos, fotos)
+            val cuerpo = respuesta.body()
+            if (respuesta.isSuccessful && cuerpo != null) {
+                Result.success(cuerpo)
+            } else {
+                Result.failure(PublicacionException(mensajeDeError(respuesta.code(), respuesta.errorBody()?.string())))
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: IOException) {
+            Result.failure(PublicacionException(AppStrings.get(R.string.create_listing_error_network)))
+        } catch (e: Exception) {
+            Result.failure(PublicacionException(AppStrings.get(R.string.create_listing_error_generic)))
+        }
+    }
+
+    /**
+     * Edita un anuncio propio. Solo sube fotos nuevas (rutas locales);
+     * las existentes se mantienen o se quitan con fotosEliminar / reemplazaPortada.
+     */
+    suspend fun editar(id: Int, state: CreateListingState): Result<PublicacionDto> = withContext(Dispatchers.IO) {
+        try {
+            val datos = MultipartBody.Part.createFormData(
+                "datos", null,
+                gson.toJson(state.toDto()).toRequestBody("text/plain; charset=utf-8".toMediaType())
+            )
+            // Solo archivos locales (cámara). Las URLs del servidor no se reenvían.
+            val fotos = state.photos.mapIndexed { i, ruta ->
+                MultipartBody.Part.createFormData(
+                    "fotos", "foto_${i + 1}.jpg",
+                    PhotoCompressor.compress(ruta).toRequestBody("image/jpeg".toMediaType())
+                )
+            }
+
+            val respuesta = api.editar(id, datos, fotos)
             val cuerpo = respuesta.body()
             if (respuesta.isSuccessful && cuerpo != null) {
                 Result.success(cuerpo)
@@ -88,6 +122,8 @@ class PublicacionRepository(context: Context) {
 
     private fun CreateListingState.toDto(): CrearPublicacionDto {
         val tipo = requireNotNull(propertyType)
+        // Si no quedan fotos del servidor y hay nuevas, la primera nueva es portada
+        val reemplaza = reemplazaPortada || (existingPhotos.isEmpty() && photos.isNotEmpty())
         return CrearPublicacionDto(
             titulo = title.trim(),
             descripcion = description.trim(),
@@ -101,7 +137,6 @@ class PublicacionRepository(context: Context) {
             codigoPostal = postalCode.ifBlank { null },
             latitud = requireNotNull(latitude),
             longitud = requireNotNull(longitude),
-            // La superficie solo se pide en terreno; en casa y departamento va dentro de la descripción
             superficie = if (tipo == PropertyType.TERRENO) area.toIntOrNull() else null,
             dormitorios = bedrooms,
             banos = bathrooms,
@@ -112,7 +147,9 @@ class PublicacionRepository(context: Context) {
             mascotas = petsAllowed,
             elevador = elevator,
             patio = garden,
-            usoSuelo = landUse?.name
+            usoSuelo = landUse?.name,
+            fotosEliminar = fotosEliminar,
+            reemplazaPortada = reemplaza
         )
     }
 }
