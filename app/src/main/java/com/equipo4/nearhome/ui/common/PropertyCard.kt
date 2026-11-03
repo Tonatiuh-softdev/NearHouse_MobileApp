@@ -315,6 +315,12 @@ private fun PropertyInfoContent(
                     )
                 }
             } else {
+                property.superficieSqM?.takeIf { it > 0 }?.let {
+                    FeatureItem(
+                        iconRes = R.drawable.ic_regla_medicion,
+                        text = "${it.toInt()} m²"
+                    )
+                }
                 property.bedrooms?.let {
                     FeatureItem(
                         iconRes = R.drawable.ic_habitaciones,

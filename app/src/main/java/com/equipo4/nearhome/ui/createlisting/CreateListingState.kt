@@ -77,8 +77,8 @@ data class CreateListingState(
 
     val fieldCount: Int
         get() = when (propertyType) {
-            PropertyType.DEPARTAMENTO -> if (isRent) 8 else 7
-            PropertyType.CASA -> if (isRent) 7 else 6
+            PropertyType.DEPARTAMENTO -> if (isRent) 9 else 8
+            PropertyType.CASA -> if (isRent) 8 else 7
             PropertyType.TERRENO -> 3
             null -> 0
         }
@@ -86,13 +86,13 @@ data class CreateListingState(
     val isStep1Valid: Boolean
         get() {
             if (listingType == null || propertyType == null) return false
-            if (!priceValid) return false
+            if (!priceValid || !areaValid) return false
             return when (propertyType) {
                 PropertyType.DEPARTAMENTO ->
                     bedrooms != null && bathrooms != null && parking != null && floor != null
                 PropertyType.CASA ->
                     bedrooms != null && bathrooms != null && parking != null && levels != null
-                PropertyType.TERRENO -> areaValid && landUse != null
+                PropertyType.TERRENO -> landUse != null
             }
         }
 

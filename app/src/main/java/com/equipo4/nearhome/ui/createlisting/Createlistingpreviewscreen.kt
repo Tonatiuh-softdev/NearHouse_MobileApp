@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.domain.model.PropertyType
+import com.equipo4.nearhome.ui.common.NearHomeDialog
 import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
@@ -51,6 +52,7 @@ fun CreateListingPreviewScreen(
         add(typeLabel)
         when (state.propertyType) {
             PropertyType.DEPARTAMENTO, PropertyType.CASA -> {
+                state.area.toIntOrNull()?.let { add("$it m²") }
                 state.bedrooms?.let { add("$it $bedroomsLabel") }
                 state.bathrooms?.let { add("$it $bathroomsLabel") }
                 state.parking?.let { add("$it $parkingLabel") }
@@ -68,27 +70,6 @@ fun CreateListingPreviewScreen(
         containerColor = cs.surface,
         topBar = {
             Column(Modifier.background(cs.surface)) {
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .background(cs.primaryContainer)
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Icon(
-                        Icons.Default.Visibility,
-                        null,
-                        tint = cs.primary,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Text(
-                        stringResource(R.string.create_listing_preview_banner),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = cs.primary,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
                 CenterAlignedTopAppBar(
                     title = {
                         Text(
@@ -109,6 +90,27 @@ fun CreateListingPreviewScreen(
                         containerColor = cs.surface
                     )
                 )
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .background(cs.primaryContainer)
+                        .padding(horizontal = 16.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        Icons.Default.Visibility,
+                        null,
+                        tint = cs.primary,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Text(
+                        stringResource(R.string.create_listing_preview_banner),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = cs.primary,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
             }
         },
         bottomBar = {
@@ -310,29 +312,18 @@ fun CreateListingPreviewScreen(
     }
 
     if (state.submitted) {
-        AlertDialog(
-            onDismissRequest = {},
-            title = {
-                Text(
-                    stringResource(
-                        if (state.isEditing) R.string.edit_listing_sent_title
-                        else R.string.create_listing_sent_title
-                    )
-                )
-            },
-            text = {
-                Text(
-                    stringResource(
-                        if (state.isEditing) R.string.edit_listing_sent_body
-                        else R.string.create_listing_sent_body
-                    )
-                )
-            },
-            confirmButton = {
-                TextButton(onClick = onFinished) {
-                    Text(stringResource(R.string.create_listing_sent_ok))
-                }
-            }
+        NearHomeDialog(
+            title = stringResource(
+                if (state.isEditing) R.string.edit_listing_sent_title
+                else R.string.create_listing_sent_title
+            ),
+            message = stringResource(
+                if (state.isEditing) R.string.edit_listing_sent_body
+                else R.string.create_listing_sent_body
+            ),
+            confirmText = stringResource(R.string.create_listing_sent_ok),
+            onConfirm = onFinished,
+            onDismiss = {}
         )
     }
 }

@@ -137,7 +137,7 @@ class PublicacionRepository(context: Context) {
             codigoPostal = postalCode.ifBlank { null },
             latitud = requireNotNull(latitude),
             longitud = requireNotNull(longitude),
-            superficie = if (tipo == PropertyType.TERRENO) area.toIntOrNull() else null,
+            superficie = area.toIntOrNull(),
             dormitorios = bedrooms,
             banos = bathrooms,
             cochera = parking,

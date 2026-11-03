@@ -459,7 +459,7 @@
     <string name="create_listing_preview_label">Your publication in the list</string>
     <string name="create_listing_preview_new">New</string>
     <string name="create_listing_preview_note">All set. Format, images, and layout adapt automatically to all devices.</string>
-    <string name="create_listing_confirm_publish">Confirm and publish</string>
+    <string name="create_listing_confirm_publish">Confirm and Submit</string>
     <string name="create_listing_back_to_edit">Back to edit</string>
     <string name="create_listing_sending">Sending…</string>
     <string name="create_listing_sent_title">Listing sent</string>
