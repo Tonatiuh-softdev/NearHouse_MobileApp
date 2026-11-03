@@ -29,6 +29,11 @@
     <string name="measure_applied_prefix">Measure applied: %s</string>
     <string name="closed_without_measure">Closed without applying measure</string>
     <string name="attended_date_prefix">Attended · %s</string>
+    <string name="report_error_duplicate">You already reported this listing; it is under review.</string>
+    <string name="report_error_limit">You reached today\'s report limit. Try again tomorrow.</string>
+    <string name="report_error_not_available">This listing is no longer available.</string>
+    <string name="report_error_own">You can\'t report your own listing.</string>
+    <string name="report_evidence_title">Upload up to 5 images as evidence (optional)</string>
 
     <plurals name="pending_reports_subtitle">
         <item quantity="one">1 pending to review</item>
@@ -961,7 +966,6 @@
     <!-- Description & Evidence Form -->
     <string name="report_description_title">Please complete the reason for the report</string>
     <string name="report_description_placeholder">Provide a detailed description of your issue so we can better help you resolve it</string>
-    <string name="report_evidence_title">Upload an image or video as evidence</string>
     <string name="report_add_evidence_cd">Add evidence</string>
     <string name="report_send">Send</string>
 
