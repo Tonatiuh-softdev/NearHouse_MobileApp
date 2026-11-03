@@ -1017,16 +1017,14 @@
     <string name="manage_listing_delete_warning">Esta acción no se puede deshacer.</string>
     <string name="manage_listing_confirm">Confirmar</string>
     <string name="manage_listing_options_cd">Opciones del anuncio</string>
-    <string name="manage_listing_deleted">Anuncio eliminado</string>
-
     <string name="edit_listing_save">Guardar cambios</string>
     <string name="edit_listing_sent_title">¡Cambios guardados!</string>
     <string name="edit_listing_sent_body">Tu anuncio volvió a revisión. Un administrador lo revisará de nuevo.</string>
-
     <string name="manage_listing_pause_only_published">Solo se puede pausar o reactivar un anuncio publicado</string>
     <string name="manage_listing_paused">Anuncio pausado</string>
     <string name="manage_listing_resumed">Anuncio reactivado</string>
     <string name="status_paused">Pausado</string>
+    <string name="manage_listing_deleted">Eliminación de publicación exitosa</string>
 
     <!-- Verificación del teléfono por SMS (Firebase) -->
     <string name="phone_sms_wait_for_sms">Espera a que llegue el SMS o pide uno nuevo</string>

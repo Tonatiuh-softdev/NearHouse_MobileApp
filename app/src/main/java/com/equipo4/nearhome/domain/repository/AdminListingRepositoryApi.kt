@@ -8,6 +8,7 @@ import com.equipo4.nearhome.data.remote.PublicacionDto
 import com.equipo4.nearhome.data.remote.PublicacionesApi
 import com.equipo4.nearhome.data.remote.RechazarDto
 import com.equipo4.nearhome.data.repository.PublicacionException
+import com.equipo4.nearhome.data.repository.Repositories
 import com.equipo4.nearhome.data.repository.fotoPublicacionUrl
 import com.equipo4.nearhome.di.NetworkModule
 import com.equipo4.nearhome.domain.model.AdminListing
@@ -64,11 +65,15 @@ class AdminListingRepositoryApi(context: Context) : AdminListingRepository {
     override suspend fun reject(id: String, reason: String, actor: String): Result<Unit> =
         revisar { api.rechazar(id.toInt(), RechazarDto(reason.trim())) }
 
-    /** Llama al API y, si sale bien, reemplaza el anuncio en la lista con el que regresó (ya con el estado nuevo). */
+    /**
+     * Llama al API y, si sale bien, reemplaza el anuncio en la lista con el que regresó (ya con el estado nuevo)
+     * y avisa al Home que vuelva a pedir los anuncios publicados.
+     */
     private suspend fun revisar(llamada: suspend () -> PublicacionDto): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             val actualizado = llamada().toAdminListing()
             _listings.update { lista -> lista.map { if (it.id == actualizado.id) actualizado else it } }
+            Repositories.propiedades.refresh()
             Result.success(Unit)
         } catch (e: CancellationException) {
             throw e
