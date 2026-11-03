@@ -35,6 +35,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
+import com.equipo4.nearhome.ui.common.ProfileHeaderSkeleton
 import kotlinx.coroutines.launch
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
@@ -115,7 +116,12 @@ fun ProfileContent(
                 .padding(innerPadding)
                 .verticalScroll(scrollState)
         ) {
-            ProfileHeader(uiState = uiState)
+            // Se muestra el Skeleton si uiState.isLoading es true
+            if (uiState.isLoading) {
+                ProfileHeaderSkeleton()
+            } else {
+                ProfileHeader(uiState = uiState)
+            }
 
             SectionHeader(stringResource(R.string.profile_section_profile))
             if (uiState.showMyListings) {
@@ -238,7 +244,6 @@ private fun ProfileHeader(uiState: ProfileUiState) {
                 color = MaterialTheme.colorScheme.onSurface
             )
             Spacer(Modifier.height(4.dp))
-            // El rol solo se muestra. No es clickable.
             Surface(
                 color = MaterialTheme.colorScheme.primaryContainer,
                 shape = RoundedCornerShape(10.dp)
