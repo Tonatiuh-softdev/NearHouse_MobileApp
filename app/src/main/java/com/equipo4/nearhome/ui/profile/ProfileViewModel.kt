@@ -28,6 +28,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
 
     private val _uiState = MutableStateFlow(
         ProfileUiState(
+            isLoading = true,
             language = run {
                 val tag = AppCompatDelegate.getApplicationLocales().get(0)?.language
                 when (tag) {
@@ -49,6 +50,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
             CurrentUserStore.user.collect { user ->
                 _uiState.update {
                     it.copy(
+                        isLoading = user == null,
                         userName = user?.let { u ->
                             listOfNotNull(u.nombre, u.primerApellido, u.segundoApellido).joinToString(" ")
                         }.orEmpty(),
@@ -75,7 +77,8 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                // Sin internet o servidor caído: no cerrar sesión
+                // Sin internet o servidor caído: desactiva el esqueleto de todas formas
+                _uiState.update { it.copy(isLoading = false) }
             }
         }
     }
