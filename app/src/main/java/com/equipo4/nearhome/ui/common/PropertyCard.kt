@@ -202,6 +202,7 @@ private fun PropertyImageCarousel(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun PropertyInfoContent(
     property: Property
@@ -288,10 +289,10 @@ private fun PropertyInfoContent(
         Spacer(modifier = Modifier.height(10.dp))
 
         // Fila 4: Características dinámicas
-        Row(
+        FlowRow(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             val (typeText, typeIcon) = when (property.type) {
                 PropertyType.DEPARTAMENTO -> stringResource(R.string.property_short_apartment) to R.drawable.ic_departamento
@@ -362,7 +363,9 @@ private fun FeatureItem(
         Text(
             text = text,
             fontSize = 12.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            softWrap = false
         )
     }
 }

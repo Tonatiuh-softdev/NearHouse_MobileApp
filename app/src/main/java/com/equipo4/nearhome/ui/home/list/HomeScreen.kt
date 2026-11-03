@@ -47,6 +47,7 @@ import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
 
+import kotlinx.coroutines.launch
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = viewModel(),
@@ -285,6 +286,7 @@ private fun FilterAndSortRow(
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surface)
             .padding(horizontal = 16.dp, vertical = 2.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         FilterChip(
             selected = hasFilters,
@@ -292,16 +294,17 @@ private fun FilterAndSortRow(
             modifier = Modifier.height(36.dp),
             label = {
                 Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(Icons.Outlined.FilterList, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = stringResource(R.string.home_filter_btn),
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium
                     )
                     if (hasFilters) {
+                        Spacer(modifier = Modifier.width(6.dp))
                         Box(
                             modifier = Modifier
                                 .size(18.dp)
@@ -316,6 +319,7 @@ private fun FilterAndSortRow(
                             )
                         }
                     }
+                    Spacer(modifier = Modifier.width(4.dp))
                     Icon(
                         Icons.Default.KeyboardArrowDown,
                         contentDescription = null,

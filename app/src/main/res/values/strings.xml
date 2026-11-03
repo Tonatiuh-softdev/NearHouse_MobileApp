@@ -29,6 +29,11 @@
     <string name="closed_without_measure">Cerrado sin aplicar medida</string>
     <string name="attended_date_prefix">Atendido · %s</string>
     <string name="default_web_client_id">424289712499-tcqb92huv82t8ggmnd1k8kcm2vaflu9g.apps.googleusercontent.com</string>
+    <string name="report_error_duplicate">Ya reportaste esta publicación; está en revisión.</string>
+    <string name="report_error_limit">Llegaste al límite de reportes por hoy. Intenta mañana.</string>
+    <string name="report_error_not_available">Esta publicación ya no está disponible.</string>
+    <string name="report_error_own">No puedes reportar tu propia publicación.</string>
+    <string name="report_evidence_title">Sube hasta 5 imágenes como evidencia (opcional)</string>
 
     <plurals name="pending_reports_subtitle">
         <item quantity="one">1 pendiente por revisar</item>
@@ -961,7 +966,6 @@
     <!-- Formulario de descripción y evidencia -->
     <string name="report_description_title">Por favor complete el motivo de la denuncia</string>
     <string name="report_description_placeholder">Proporcione una descripción detallada de su problema para que podamos ayudarlo a resolver el problema de la mejor manera</string>
-    <string name="report_evidence_title">Sube una imagen o un video como evidencia</string>
     <string name="report_add_evidence_cd">Agregar evidencia</string>
     <string name="report_send">Enviar</string>
 
