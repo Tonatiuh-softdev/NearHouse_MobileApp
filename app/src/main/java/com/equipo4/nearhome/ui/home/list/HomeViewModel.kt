@@ -111,4 +111,7 @@ class HomeViewModel(
     fun onTabSelected(index: Int) {
         _uiState.update { it.copy(selectedTab = index) }
     }
+
+    /** Se llama cada vez que el Home vuelve a primer plano: pide otra vez los anuncios. */
+    fun onScreenResumed() = repository.refresh()
 }

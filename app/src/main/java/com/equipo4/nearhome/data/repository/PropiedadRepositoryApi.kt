@@ -25,6 +25,7 @@ import kotlin.coroutines.cancellation.CancellationException
 
 /** URL de una foto del anuncio. Es pública: Coil la carga sin sesión. */
 fun fotoPublicacionUrl(fotoId: Int): String = "${NetworkModule.BASE_URL}api/v1/fotos/$fotoId"
+/** Vuelve a pedir los anuncios publicados al API (p. ej. al entrar al Home). */
 
 /**
  * Anuncios reales: lee del API los que están PUBLICADA. Cada vez que una pantalla empieza a observar
@@ -75,20 +76,28 @@ class PropiedadRepositoryApi(context: Context) : PropiedadRepository {
         prefs.edit().putStringSet(KEY_SAVED, next).apply()
         savedIds.update { next }
     }
+    @Volatile private var reloadPending = false
 
-    /** Pide la lista al API. Si ya hay una petición en curso no lanza otra. */
+    override fun refresh() = reload()
+
+    /** Pide la lista al API. Si ya hay una petición en curso, la vuelve a pedir al terminar en vez de perder el cambio. */
     private fun reload() {
-        if (loadJob?.isActive == true) return
+        if (loadJob?.isActive == true) {
+            reloadPending = true
+            return
+        }
         loadJob = scope.launch {
-            try {
-                val userId = session.getUserId()
-                remote.value = api.listar().map { it.toProperty(userId) }
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                // Si falla la red se conserva lo que ya estaba cargado
-                Log.w(TAG, "No se pudieron cargar los anuncios: ${e.message}")
-            }
+            do {
+                reloadPending = false
+                try {
+                    val userId = session.getUserId()
+                    remote.value = api.listar().map { it.toProperty(userId) }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Log.w(TAG, "No se pudieron cargar los anuncios: ${e.message}")
+                }
+            } while (reloadPending)
         }
     }
 

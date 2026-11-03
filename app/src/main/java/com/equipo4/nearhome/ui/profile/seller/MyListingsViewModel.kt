@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import com.equipo4.nearhome.data.repository.Repositories
 
 class MyListingsViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -67,6 +68,7 @@ class MyListingsViewModel(application: Application) : AndroidViewModel(applicati
         viewModelScope.launch {
             repository.setActiva(id, activa)
                 .onSuccess { updated ->
+                    Repositories.propiedades.refresh()
                     _uiState.update { state ->
                         state.copy(
                             listings = state.listings.map {
@@ -91,6 +93,7 @@ class MyListingsViewModel(application: Application) : AndroidViewModel(applicati
         viewModelScope.launch {
             repository.delete(id)
                 .onSuccess {
+                    Repositories.propiedades.refresh()
                     _uiState.update { state ->
                         state.copy(listings = state.listings.filterNot { it.property.id == id })
                     }
