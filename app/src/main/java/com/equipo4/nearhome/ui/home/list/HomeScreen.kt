@@ -44,6 +44,8 @@ import com.equipo4.nearhome.ui.theme.nearHouseColors
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 
 @Composable
 fun HomeScreen(
@@ -62,6 +64,10 @@ fun HomeScreen(
 
     LaunchedEffect(uiState.sortOption) {
         listState.scrollToItem(0)
+    }
+
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        viewModel.onScreenResumed()
     }
 
     Scaffold(
