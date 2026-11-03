@@ -4,6 +4,8 @@ import android.net.Uri
 import com.equipo4.nearhome.ui.profile.UserRole
 
 data class EditProfileUiState(
+    val isLoading: Boolean = true, // Controla el Skeleton de primera carga
+
     // Estado inicial de referencia
     val initialFirstName: String = "",
     val initialFirstLastName: String = "",

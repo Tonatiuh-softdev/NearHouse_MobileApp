@@ -50,9 +50,9 @@ class EditProfileViewModel(application: Application) : AndroidViewModel(applicat
                 if (user == null) return@collect
                 val fotoRemota = fotoRemotaDe(user)
                 _uiState.update { s ->
-                    // Si el usuario ya cambió algo, no se pisa lo que está editando
                     val pristine = !s.hasChanges
                     s.copy(
+                        isLoading = false, // Datos listos, ocultar Skeleton
                         initialFirstName = user.nombre,
                         initialFirstLastName = user.primerApellido,
                         initialSecondLastName = user.segundoApellido.orEmpty(),
