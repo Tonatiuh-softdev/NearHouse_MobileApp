@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.equipo4.nearhome.R
+import com.equipo4.nearhome.ui.common.AccountAdminSkeleton
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
 import com.equipo4.nearhome.ui.profile.UserRole
 
@@ -113,15 +114,9 @@ fun AccountAdminScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
+        // Carga inicial -> Muestra Skeleton de Administración de Cuenta
         if (uiState.isLoading || uiState.userData == null) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
+            AccountAdminSkeleton(modifier = Modifier.padding(paddingValues))
         } else {
             val userData = uiState.userData
 
