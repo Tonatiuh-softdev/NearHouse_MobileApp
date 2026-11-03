@@ -34,6 +34,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
@@ -44,8 +46,6 @@ import com.equipo4.nearhome.ui.theme.nearHouseColors
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LifecycleEventEffect
 
 @Composable
 fun HomeScreen(
@@ -126,10 +126,13 @@ fun HomeScreen(
                 if (!uiState.isLoading) {
                     Text(
                         text = stringResource(R.string.home_properties_count, formatNumber(uiState.properties.size)),
-                        fontSize = 11.sp,
+                        fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                            .padding(horizontal = 16.dp, vertical = 2.dp)
                     )
                 }
 
@@ -147,7 +150,12 @@ fun HomeScreen(
                         LazyColumn(
                             state = listState,
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                            contentPadding = PaddingValues(
+                                start = 16.dp,
+                                end = 16.dp,
+                                top = 12.dp,
+                                bottom = 16.dp
+                            ),
                             verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
                             items(
@@ -205,17 +213,17 @@ private fun HomeHeader(
         Row(
             modifier = Modifier
                 .weight(1f)
-                .height(46.dp)
-                .clip(RoundedCornerShape(23.dp))
+                .height(48.dp)
+                .clip(RoundedCornerShape(24.dp))
                 .background(MaterialTheme.nearHouseColors.searchBarBg)
-                .padding(horizontal = 14.dp),
+                .padding(horizontal = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 imageVector = Icons.Default.Search,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(22.dp)
             )
 
             Spacer(modifier = Modifier.width(8.dp))
@@ -227,8 +235,8 @@ private fun HomeHeader(
                 if (searchQuery.isEmpty()) {
                     Text(
                         text = stringResource(R.string.home_search_location),
-                        fontSize = 13.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 15.sp,
+                        color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1
                     )
                 }
@@ -237,7 +245,7 @@ private fun HomeHeader(
                     onValueChange = onQueryChange,
                     singleLine = true,
                     textStyle = TextStyle(
-                        fontSize = 13.sp,
+                        fontSize = 15.sp,
                         color = MaterialTheme.colorScheme.onSurface
                     ),
                     modifier = Modifier.fillMaxWidth()
@@ -289,7 +297,11 @@ private fun FilterAndSortRow(
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Icon(Icons.Outlined.FilterList, contentDescription = null, modifier = Modifier.size(16.dp))
-                    Text(stringResource(R.string.home_filter_btn))
+                    Text(
+                        text = stringResource(R.string.home_filter_btn),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium
+                    )
                     if (hasFilters) {
                         Box(
                             modifier = Modifier
@@ -305,6 +317,11 @@ private fun FilterAndSortRow(
                             )
                         }
                     }
+                    Icon(
+                        Icons.Default.KeyboardArrowDown,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp)
+                    )
                 }
             },
             shape = RoundedCornerShape(8.dp),

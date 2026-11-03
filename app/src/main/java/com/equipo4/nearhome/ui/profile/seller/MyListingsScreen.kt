@@ -35,6 +35,8 @@ import com.equipo4.nearhome.ui.common.NearHomeBottomBar
 import com.equipo4.nearhome.ui.common.PropertyCard
 import com.equipo4.nearhome.ui.profile.UserRole
 import androidx.compose.ui.draw.alpha
+import com.equipo4.nearhome.ui.common.DeleteListingDialog
+import com.equipo4.nearhome.ui.common.DangerSnackbarHost
 
 @Composable
 fun MyListingsScreen(
@@ -92,7 +94,7 @@ fun MyListingsScreen(
 
     Scaffold(
         bottomBar = { NearHomeBottomBar(selectedTab = 3, onTabSelected = onBottomTabSelected) },
-        snackbarHost = { SnackbarHost(snackbar) },
+        snackbarHost = { DangerSnackbarHost(snackbar) },
         containerColor = MaterialTheme.colorScheme.background // Adaptable a modo oscuro/claro
     ) { innerPadding ->
         LazyColumn(
@@ -493,24 +495,11 @@ private fun ManageListingSheet(
     }
 
     if (confirmDelete) {
-        AlertDialog(
-            onDismissRequest = { confirmDelete = false },
-            title = { Text(stringResource(R.string.manage_listing_delete_question)) },
-            text = { Text(stringResource(R.string.manage_listing_delete_warning)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        confirmDelete = false
-                        onDelete()
-                    }
-                ) {
-                    Text(stringResource(R.string.manage_listing_confirm), color = danger)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { confirmDelete = false }) {
-                    Text(stringResource(R.string.listing_action_cancel))
-                }
+        DeleteListingDialog(
+            onDismiss = { confirmDelete = false },
+            onConfirm = {
+                confirmDelete = false
+                onDelete()
             }
         )
     }
