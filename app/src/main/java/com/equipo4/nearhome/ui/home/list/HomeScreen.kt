@@ -194,9 +194,8 @@ private fun HomeHeader(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface)
             .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Image(
             painter = painterResource(id = R.drawable.ic_nearhouse_logo),
@@ -284,8 +283,8 @@ private fun FilterAndSortRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface)
             .padding(horizontal = 16.dp, vertical = 2.dp),
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         FilterChip(
             selected = hasFilters,

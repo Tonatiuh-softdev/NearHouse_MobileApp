@@ -211,15 +211,11 @@ private fun FieldsCard(state: CreateListingState, vm: CreateListingViewModel) {
             }
         }
 
-        // Precio (y superficie solo en Terreno)
-        if (state.propertyType == PropertyType.TERRENO) {
-            TwoColumns(
-                left = { PriceField(state, vm, isRent, required) },
-                right = { AreaField(state, vm, required) }
-            )
-        } else {
-            PriceField(state, vm, isRent, required)
-        }
+        // Precio y superficie (m²) para todos los tipos
+        TwoColumns(
+            left = { PriceField(state, vm, isRent, required) },
+            right = { AreaField(state, vm, required) }
+        )
 
         // La colonia ya no se elige aquí: se detecta con la ubicación de la foto (Paso 2)
 

@@ -115,14 +115,7 @@ fun CreateListingStep3Screen(
                     },
                     minLines = 4, maxLines = 8,
                     isError = state.isInvalid("description"),
-                    supportingText = {
-                        Column {
-                            if (state.propertyType != PropertyType.TERRENO) {
-                                Text(stringResource(R.string.create_listing_description_area_hint))
-                            }
-                            Text("${state.description.length}/$MAX_DESCRIPTION")
-                        }
-                    },
+                    supportingText = { Text("${state.description.length}/$MAX_DESCRIPTION") },
                     shape = RoundedCornerShape(10.dp),
                     modifier = Modifier.fillMaxWidth()
                 )
