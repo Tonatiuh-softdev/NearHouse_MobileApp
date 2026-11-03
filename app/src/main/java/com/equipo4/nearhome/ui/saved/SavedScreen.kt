@@ -30,6 +30,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
 import com.equipo4.nearhome.ui.common.PropertyCard
+import com.equipo4.nearhome.ui.common.PropertyListSkeleton
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -64,11 +65,12 @@ fun SavedScreen(
     ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
             when {
-                uiState.isLoading -> CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center),
-                    color = MaterialTheme.colorScheme.primary
-                )
+                // 1. Carga inicial -> Mostrar esqueleto de tarjetas
+                uiState.isLoading -> {
+                    PropertyListSkeleton(count = 3)
+                }
 
+                // 2. Estado de error
                 uiState.errorMessage != null -> Text(
                     uiState.errorMessage!!,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -77,8 +79,10 @@ fun SavedScreen(
                     textAlign = TextAlign.Center
                 )
 
+                // 3. Sin publicaciones guardadas
                 uiState.properties.isEmpty() -> EmptySavedState()
 
+                // 4. Lista de publicaciones guardadas
                 else -> LazyColumn(
                     state = listState,
                     modifier = Modifier.fillMaxSize(),
