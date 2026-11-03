@@ -30,8 +30,12 @@ class AccountAdminViewModel(application: Application) : AndroidViewModel(applica
     private val _uiState = MutableStateFlow(AccountAdminUiState(isLoading = true))
     val uiState: StateFlow<AccountAdminUiState> = _uiState.asStateFlow()
 
+    // En AccountAdminViewModel.kt
     init {
         viewModelScope.launch {
+            // Delay de prueba
+            kotlinx.coroutines.delay(2000)
+
             CurrentUserStore.user.collect { user ->
                 _uiState.update {
                     it.copy(isLoading = false, userData = user?.toAccountData())
