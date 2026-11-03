@@ -33,6 +33,8 @@ import coil.compose.AsyncImage
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
 import com.equipo4.nearhome.ui.common.PropertyCard
+import com.equipo4.nearhome.ui.common.PropertyListSkeleton
+import com.equipo4.nearhome.ui.common.MyListingsHeaderSkeleton
 import com.equipo4.nearhome.ui.profile.UserRole
 import androidx.compose.ui.draw.alpha
 import com.equipo4.nearhome.ui.common.DeleteListingDialog
@@ -103,40 +105,43 @@ fun MyListingsScreen(
                 .padding(innerPadding),
             contentPadding = PaddingValues(bottom = 24.dp)
         ) {
-            // Sección Encabezado
-            item {
-                HeaderSection(
-                    uiState = uiState,
-                    onBackClick = onBackClick,
-                    onEditProfileClick = onEditProfileClick,
-                    onCreateListingClick = onCreateListingClick
-                )
-            }
-
-            // Sección Lista, carga, error o Estado Vacío
-            when {
-                uiState.isLoading && uiState.listings.isEmpty() -> item {
-                    Box(
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 40.dp),
-                        contentAlignment = Alignment.Center
-                    ) { CircularProgressIndicator() }
+            // Carga inicial -> Muestra Skeleton de Encabezado y de Tarjetas
+            if (uiState.isLoading && uiState.listings.isEmpty()) {
+                item {
+                    MyListingsHeaderSkeleton()
                 }
-
-                uiState.loadError && uiState.listings.isEmpty() -> item {
-                    LoadErrorMessage(onRetry = viewModel::loadMyListings)
+                item {
+                    PropertyListSkeleton(count = 3)
                 }
-
-                uiState.listings.isEmpty() -> item { EmptyListingsMessage() }
-
-                else -> items(
-                    items = uiState.listings,
-                    key = { it.property.id }
-                ) { item ->
-                    MyListingCard(
-                        item = item,
-                        onClick = { onPropertyClick(item.property.id) },
-                        onMenuClick = { selected = item }
+            } else {
+                // Sección Encabezado Real
+                item {
+                    HeaderSection(
+                        uiState = uiState,
+                        onBackClick = onBackClick,
+                        onEditProfileClick = onEditProfileClick,
+                        onCreateListingClick = onCreateListingClick
                     )
+                }
+
+                // Sección Lista, error o Estado Vacío
+                when {
+                    uiState.loadError && uiState.listings.isEmpty() -> item {
+                        LoadErrorMessage(onRetry = viewModel::loadMyListings)
+                    }
+
+                    uiState.listings.isEmpty() -> item { EmptyListingsMessage() }
+
+                    else -> items(
+                        items = uiState.listings,
+                        key = { it.property.id }
+                    ) { item ->
+                        MyListingCard(
+                            item = item,
+                            onClick = { onPropertyClick(item.property.id) },
+                            onMenuClick = { selected = item }
+                        )
+                    }
                 }
             }
         }
@@ -290,7 +295,6 @@ private fun MyListingCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 8.dp)
-            // Todo el anuncio se ve “apagado” si está pausado
             .then(if (paused) Modifier.alpha(0.55f) else Modifier)
     ) {
         PropertyCard(
@@ -345,7 +349,7 @@ private fun MyListingCard(
 @Composable
 private fun PausedChip(modifier: Modifier = Modifier) {
     Surface(
-        color = Color(0xFF6B7280), // gris
+        color = Color(0xFF6B7280),
         shape = RoundedCornerShape(6.dp),
         modifier = modifier
     ) {
@@ -430,7 +434,6 @@ private fun ManageListingSheet(
     val danger = Color(0xFFDC2626)
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    // Solo se puede pausar/reactivar si está publicado
     val canToggleActive = item.status == ListingStatus.PUBLISHED
 
     ModalBottomSheet(
