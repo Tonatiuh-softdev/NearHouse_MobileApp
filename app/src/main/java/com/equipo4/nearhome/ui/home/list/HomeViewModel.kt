@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class HomeViewModel(
     private val repository: PropiedadRepository = Repositories.propiedades
@@ -26,18 +27,33 @@ class HomeViewModel(
 
     init {
         viewModelScope.launch {
+            // 1. Escuchar los cambios de la BD local
             launch {
                 repository.observeAll().collect { list ->
                     allProperties = list
                     updateFilteredProperties()
-                    // Marcamos que finalizó la primera carga
-                    _uiState.update { it.copy(isLoading = false) }
                 }
             }
+
+            // 2. Escuchar cambios en los filtros
             launch {
                 PropertyFilterManager.filterState.collect { filter ->
                     _uiState.update { it.copy(filterState = filter) }
                     updateFilteredProperties()
+                }
+            }
+
+            // 3. Ejecutar la sincronización/carga inicial de la BD/Red.
+            // HASTA que esta corrutina termine, se apaga el isLoading.
+            launch {
+                try {
+                    repository.refresh()
+                } finally {
+                    // Esperamos a que se procese el primer filtrado en background antes de ocultar el Skeleton
+                    withContext(Dispatchers.Default) {
+                        computeFilteredList()
+                    }
+                    _uiState.update { it.copy(isLoading = false) }
                 }
             }
         }
@@ -45,25 +61,28 @@ class HomeViewModel(
 
     private fun updateFilteredProperties() {
         viewModelScope.launch(Dispatchers.Default) {
-            val query = _uiState.value.searchQuery.trim()
-            val filter = _uiState.value.filterState
-            val sortOption = _uiState.value.sortOption
-
-            var filtered = allProperties.filter { property ->
-                val matchesSearch = query.isEmpty() ||
-                        property.title.contains(query, ignoreCase = true) ||
-                        property.location.contains(query, ignoreCase = true) ||
-                        property.colonia.contains(query, ignoreCase = true)
-                matchesSearch && property.matchesFilter(filter)
-            }
-
-            filtered = when (sortOption) {
-                SortOption.PRICE_LOW_TO_HIGH -> filtered.sortedBy { it.price }
-                SortOption.PRICE_HIGH_TO_LOW -> filtered.sortedByDescending { it.price }
-                SortOption.DEFAULT -> filtered
-            }
-
+            val filtered = computeFilteredList()
             _uiState.update { it.copy(properties = filtered, allProperties = allProperties) }
+        }
+    }
+
+    private fun computeFilteredList(): List<Property> {
+        val query = _uiState.value.searchQuery.trim()
+        val filter = _uiState.value.filterState
+        val sortOption = _uiState.value.sortOption
+
+        var filtered = allProperties.filter { property ->
+            val matchesSearch = query.isEmpty() ||
+                    property.title.contains(query, ignoreCase = true) ||
+                    property.location.contains(query, ignoreCase = true) ||
+                    property.colonia.contains(query, ignoreCase = true)
+            matchesSearch && property.matchesFilter(filter)
+        }
+
+        return when (sortOption) {
+            SortOption.PRICE_LOW_TO_HIGH -> filtered.sortedBy { it.price }
+            SortOption.PRICE_HIGH_TO_LOW -> filtered.sortedByDescending { it.price }
+            SortOption.DEFAULT -> filtered
         }
     }
 
@@ -112,6 +131,5 @@ class HomeViewModel(
         _uiState.update { it.copy(selectedTab = index) }
     }
 
-    /** Se llama cada vez que el Home vuelve a primer plano: pide otra vez los anuncios. */
     fun onScreenResumed() = repository.refresh()
 }
