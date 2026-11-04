@@ -1,15 +1,10 @@
 package com.equipo4.nearhome.ui.publicacion.report
 
-import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
-import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
-import android.provider.OpenableColumns
-import android.widget.MediaController
-import android.widget.VideoView
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -27,7 +22,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -41,22 +35,26 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
+import android.content.Context
 import com.equipo4.nearhome.R
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReportReasonScreen(
     viewModel: ReportViewModel,
+    publicacionId: String,
     onBackClick: () -> Unit,
     onReportSubmitted: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     var showDiscardDialog by remember { mutableStateOf(false) }
-
     var previewEvidence by remember { mutableStateOf<EvidenceFile?>(null) }
+
+    LaunchedEffect(publicacionId) { viewModel.initPublicacion(publicacionId) }
 
     fun handleBack() {
         if (uiState.hasUnsavedChanges) {
@@ -68,10 +66,11 @@ fun ReportReasonScreen(
 
     BackHandler { handleBack() }
 
+    // Solo imágenes
     val pickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri: Uri? ->
-        uri?.let { validateAndAddFile(context, it, viewModel) }
+        uri?.let { viewModel.addEvidence(EvidenceFile(it)) }
     }
 
     Scaffold(
@@ -121,7 +120,7 @@ fun ReportReasonScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // TARJETA 1: Motivos
+            // TARJETA 1: Motivos de la categoría elegida
             uiState.selectedCategory?.let { category ->
                 Surface(
                     shape = RoundedCornerShape(12.dp),
@@ -129,7 +128,6 @@ fun ReportReasonScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column {
-                        // Header gris superior adaptable
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -144,8 +142,7 @@ fun ReportReasonScreen(
                             )
                         }
 
-                        val reasons = ReportReason.entries.filter { it.category == category }
-                        reasons.forEach { reason ->
+                        ReportReason.entries.filter { it.category == category }.forEach { reason ->
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -161,7 +158,7 @@ fun ReportReasonScreen(
                                     modifier = Modifier.weight(1f)
                                 )
                                 RadioButton(
-                                    selected = (uiState.selectedReason == reason),
+                                    selected = uiState.selectedReason == reason,
                                     onClick = { viewModel.selectReason(reason) },
                                     colors = RadioButtonDefaults.colors(
                                         selectedColor = MaterialTheme.colorScheme.primary,
@@ -227,7 +224,7 @@ fun ReportReasonScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // TARJETA 3: Evidencia
+            // TARJETA 3: Evidencia (opcional, hasta 5 imágenes)
             Surface(
                 shape = RoundedCornerShape(12.dp),
                 color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
@@ -272,18 +269,11 @@ fun ReportReasonScreen(
                             Box(
                                 modifier = Modifier
                                     .size(64.dp)
-                                    .border(
-                                        width = 1.dp,
-                                        color = MaterialTheme.colorScheme.outlineVariant,
-                                        shape = RoundedCornerShape(10.dp)
-                                    )
-                                    .background(
-                                        MaterialTheme.colorScheme.surface,
-                                        RoundedCornerShape(10.dp)
-                                    )
+                                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(10.dp))
+                                    .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(10.dp))
                                     .clickable {
                                         pickerLauncher.launch(
-                                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo)
+                                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                                         )
                                     },
                                 contentAlignment = Alignment.Center
@@ -302,9 +292,10 @@ fun ReportReasonScreen(
 
             Spacer(modifier = Modifier.height(28.dp))
 
+            // Botón Enviar: se desactiva mientras envía
             Button(
-                onClick = { viewModel.submitReport() },
-                enabled = uiState.isSendEnabled,
+                onClick = { viewModel.submitReport(context) },
+                enabled = uiState.isSendEnabled && !uiState.isSending,
                 shape = RoundedCornerShape(10.dp),
                 modifier = Modifier
                     .fillMaxWidth()
@@ -314,21 +305,26 @@ fun ReportReasonScreen(
                     disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)
                 )
             ) {
-                Text(
-                    text = stringResource(R.string.report_send),
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onPrimary
-                )
+                if (uiState.isSending) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                } else {
+                    Text(
+                        text = stringResource(R.string.report_send),
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
             }
         }
     }
 
     previewEvidence?.let { file ->
-        EvidencePreviewModal(
-            file = file,
-            onDismiss = { previewEvidence = null }
-        )
+        EvidencePreviewModal(file = file, onDismiss = { previewEvidence = null })
     }
 
     uiState.errorMessage?.let { msg ->
@@ -337,7 +333,14 @@ fun ReportReasonScreen(
             title = { Text(text = stringResource(R.string.report_error_title)) },
             text = { Text(text = msg) },
             confirmButton = {
-                TextButton(onClick = { viewModel.clearErrorMessage() }) {
+                TextButton(
+                    onClick = {
+                        // Si la publicación ya no existe, se regresa al detalle
+                        val salir = uiState.publicacionNoDisponible
+                        viewModel.clearErrorMessage()
+                        if (salir) onBackClick()
+                    }
+                ) {
                     Text(text = stringResource(R.string.report_common_ok))
                 }
             }
@@ -373,6 +376,17 @@ fun ReportReasonScreen(
     }
 }
 
+/** Decodifica una imagen. [reduccion] = 4 para miniaturas; 1 para verla completa. */
+private fun cargarBitmap(context: Context, uri: Uri, reduccion: Int): Bitmap? =
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        ImageDecoder.decodeBitmap(ImageDecoder.createSource(context.contentResolver, uri)) { decoder, _, _ ->
+            if (reduccion > 1) decoder.setTargetSampleSize(reduccion)
+        }
+    } else {
+        @Suppress("DEPRECATION")
+        MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
+    }
+
 @Composable
 private fun EvidenceThumbnail(
     file: EvidenceFile,
@@ -380,34 +394,13 @@ private fun EvidenceThumbnail(
     onRemove: () -> Unit
 ) {
     val context = LocalContext.current
-
-    val bitmapState = remember(file.uri) {
-        mutableStateOf<Bitmap?>(null)
-    }
-
-    LaunchedEffect(file.uri) {
-        runCatching {
-            if (file.isVideo) {
-                val retriever = MediaMetadataRetriever()
-                retriever.setDataSource(context, file.uri)
-                val frame = retriever.getFrameAtTime(1_000_000)
-                retriever.release()
-                bitmapState.value = frame
-            } else {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    val source = ImageDecoder.createSource(context.contentResolver, file.uri)
-                    bitmapState.value = ImageDecoder.decodeBitmap(source)
-                } else {
-                    @Suppress("DEPRECATION")
-                    bitmapState.value = MediaStore.Images.Media.getBitmap(context.contentResolver, file.uri)
-                }
-            }
+    val bitmap by produceState<Bitmap?>(initialValue = null, file.uri) {
+        value = withContext(Dispatchers.IO) {
+            runCatching { cargarBitmap(context, file.uri, 4) }.getOrNull()
         }
     }
 
-    Box(
-        modifier = Modifier.size(64.dp)
-    ) {
+    Box(modifier = Modifier.size(64.dp)) {
         Surface(
             shape = RoundedCornerShape(10.dp),
             color = MaterialTheme.colorScheme.surfaceVariant,
@@ -415,44 +408,13 @@ private fun EvidenceThumbnail(
                 .fillMaxSize()
                 .clickable { onClick() }
         ) {
-            Box(contentAlignment = Alignment.Center) {
-                bitmapState.value?.let { bitmap ->
-                    Image(
-                        bitmap = bitmap.asImageBitmap(),
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
-
-                if (file.isVideo) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color.Black.copy(alpha = 0.35f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.PlayArrow,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(24.dp)
-                            )
-                            file.durationText?.let {
-                                Text(
-                                    text = it,
-                                    fontSize = 9.sp,
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
-                    }
-                }
+            bitmap?.let { b ->
+                Image(
+                    bitmap = b.asImageBitmap(),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
             }
         }
 
@@ -481,6 +443,11 @@ private fun EvidencePreviewModal(
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
+    val bitmap by produceState<Bitmap?>(initialValue = null, file.uri) {
+        value = withContext(Dispatchers.IO) {
+            runCatching { cargarBitmap(context, file.uri, 1) }.getOrNull()
+        }
+    }
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
@@ -490,60 +457,20 @@ private fun EvidencePreviewModal(
                 .fillMaxWidth()
                 .wrapContentHeight()
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(12.dp)
-            ) {
+            Box(modifier = Modifier.fillMaxWidth().padding(12.dp)) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .heightIn(min = 250.dp, max = 420.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    if (file.isVideo) {
-                        AndroidView(
-                            factory = { ctx ->
-                                VideoView(ctx).apply {
-                                    setVideoURI(file.uri)
-                                    val mediaController = MediaController(ctx)
-                                    mediaController.setAnchorView(this)
-                                    setMediaController(mediaController)
-                                    setOnPreparedListener { mp ->
-                                        mp.isLooping = true
-                                        start()
-                                    }
-                                }
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(300.dp)
+                    bitmap?.let { b ->
+                        Image(
+                            bitmap = b.asImageBitmap(),
+                            contentDescription = null,
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier.fillMaxWidth()
                         )
-                    } else {
-                        val bitmapState = remember(file.uri) {
-                            mutableStateOf<Bitmap?>(null)
-                        }
-
-                        LaunchedEffect(file.uri) {
-                            runCatching {
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                                    val source = ImageDecoder.createSource(context.contentResolver, file.uri)
-                                    bitmapState.value = ImageDecoder.decodeBitmap(source)
-                                } else {
-                                    @Suppress("DEPRECATION")
-                                    bitmapState.value = MediaStore.Images.Media.getBitmap(context.contentResolver, file.uri)
-                                }
-                            }
-                        }
-
-                        bitmapState.value?.let { bitmap ->
-                            Image(
-                                bitmap = bitmap.asImageBitmap(),
-                                contentDescription = null,
-                                contentScale = ContentScale.Fit,
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                        }
                     }
                 }
 
@@ -563,58 +490,5 @@ private fun EvidencePreviewModal(
                 }
             }
         }
-    }
-}
-
-private fun validateAndAddFile(
-    context: Context,
-    uri: Uri,
-    viewModel: ReportViewModel
-) {
-    val contentResolver = context.contentResolver
-    val mimeType = contentResolver.getType(uri) ?: ""
-    val isVideo = mimeType.startsWith("video/")
-
-    var fileSize: Long = 0
-    contentResolver.query(uri, null, null, null, null)?.use { cursor ->
-        val sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE)
-        if (cursor.moveToFirst() && sizeIndex != -1) {
-            fileSize = cursor.getLong(sizeIndex)
-        }
-    }
-
-    if (isVideo) {
-        val maxVideoBytes = 20 * 1024 * 1024
-        if (fileSize > maxVideoBytes) {
-            viewModel.setErrorMessage(context.getString(R.string.report_error_video_size))
-            return
-        }
-
-        var durationMs: Long = 0
-        try {
-            val retriever = MediaMetadataRetriever()
-            retriever.setDataSource(context, uri)
-            val time = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-            durationMs = time?.toLong() ?: 0
-            retriever.release()
-        } catch (_: Exception) { }
-
-        if (durationMs > 30_000) {
-            viewModel.setErrorMessage(context.getString(R.string.report_error_video_duration))
-            return
-        }
-
-        val seconds = (durationMs / 1000) % 60
-        val durationStr = "0:${String.format("%02d", seconds)}"
-
-        viewModel.addEvidence(EvidenceFile(uri = uri, isVideo = true, durationText = durationStr))
-    } else {
-        val maxImageBytes = 5 * 1024 * 1024
-        if (fileSize > maxImageBytes) {
-            viewModel.setErrorMessage(context.getString(R.string.report_error_image_size))
-            return
-        }
-
-        viewModel.addEvidence(EvidenceFile(uri = uri, isVideo = false))
     }
 }

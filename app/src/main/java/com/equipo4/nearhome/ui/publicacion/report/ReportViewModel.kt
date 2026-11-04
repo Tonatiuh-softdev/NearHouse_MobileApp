@@ -1,11 +1,17 @@
 package com.equipo4.nearhome.ui.publicacion.report
 
-import android.net.Uri
+import android.content.Context
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.equipo4.nearhome.R
+import com.equipo4.nearhome.data.repository.ReporteException
+import com.equipo4.nearhome.data.repository.ReporteRepository
+import com.equipo4.nearhome.util.AppStrings
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
 data class ReportUiState(
     val publicacionId: String = "",
@@ -14,6 +20,10 @@ data class ReportUiState(
     val description: String = "",
     val evidenceFiles: List<EvidenceFile> = emptyList(),
     val errorMessage: String? = null,
+    /** True mientras se envía. Desactiva el botón para que un doble toque no mande dos reportes. */
+    val isSending: Boolean = false,
+    /** True si el API dice que la publicación ya no existe: la pantalla regresa al detalle. */
+    val publicacionNoDisponible: Boolean = false,
     val isSubmitted: Boolean = false
 ) {
     val isSendEnabled: Boolean
@@ -33,14 +43,11 @@ class ReportViewModel : ViewModel() {
     }
 
     fun selectCategory(category: ReportCategory) {
-        _uiState.update { currentState ->
-            if (currentState.selectedCategory != category) {
-                currentState.copy(
-                    selectedCategory = category,
-                    selectedReason = null
-                )
+        _uiState.update { state ->
+            if (state.selectedCategory != category) {
+                state.copy(selectedCategory = category, selectedReason = null)
             } else {
-                currentState
+                state
             }
         }
     }
@@ -70,11 +77,47 @@ class ReportViewModel : ViewModel() {
     }
 
     fun clearErrorMessage() {
-        _uiState.update { it.copy(errorMessage = null) }
+        _uiState.update { it.copy(errorMessage = null, publicacionNoDisponible = false) }
     }
 
-    fun submitReport() {
-        _uiState.update { it.copy(isSubmitted = true) }
+    /**
+     * Manda el reporte al API. Si falla, no se borra nada de lo que capturó el usuario,
+     * así puede reintentar cuando vuelva la conexión.
+     */
+    fun submitReport(context: Context) {
+        val state = _uiState.value
+        if (state.isSending || state.isSubmitted || !state.isSendEnabled) return
+        val categoria = state.selectedCategory ?: return
+        val motivo = state.selectedReason ?: return
+        val publicacionId = state.publicacionId.toIntOrNull()
+        if (publicacionId == null) {
+            setErrorMessage(AppStrings.get(R.string.create_listing_error_generic))
+            return
+        }
+
+        // Se marca antes de lanzar la corrutina para que un segundo toque ya vea isSending = true
+        _uiState.update { it.copy(isSending = true, errorMessage = null) }
+
+        viewModelScope.launch {
+            ReporteRepository(context).reportar(
+                publicacionId = publicacionId,
+                categoria = categoria.name,
+                motivo = motivo.codigo,
+                descripcion = state.description,
+                fotos = state.evidenceFiles.map { it.uri }
+            ).onSuccess {
+                _uiState.update { it.copy(isSending = false, isSubmitted = true) }
+            }.onFailure { error ->
+                val codigo = (error as? ReporteException)?.codigoHttp
+                _uiState.update {
+                    it.copy(
+                        isSending = false,
+                        errorMessage = error.message,
+                        publicacionNoDisponible = codigo == 404
+                    )
+                }
+            }
+        }
     }
 
     fun dismissSuccessDialog() {
