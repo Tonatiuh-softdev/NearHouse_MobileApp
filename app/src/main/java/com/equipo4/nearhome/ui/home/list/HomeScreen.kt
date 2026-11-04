@@ -47,7 +47,6 @@ import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
 
-import kotlinx.coroutines.launch
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = viewModel(),
@@ -138,15 +137,15 @@ fun HomeScreen(
                 }
 
                 when {
-                    // 1. Primera Carga -> Mostrar Tarjetas Esqueleto
+                    // 1. Carga inicial en proceso -> Esqueleto indiscutible
                     uiState.isLoading -> {
                         PropertyListSkeleton(count = 3)
                     }
-                    // 2. Sin resultados -> Estado Vacío
+                    // 2. Carga finalizada y BD vacía -> Pantalla de sin publicaciones
                     uiState.properties.isEmpty() -> {
                         EmptyHomeState(onClearFilters = { viewModel.clearFilters() })
                     }
-                    // 3. Con resultados -> Lista de propiedades
+                    // 3. Carga finalizada con datos -> Lista de publicaciones
                     else -> {
                         LazyColumn(
                             state = listState,
