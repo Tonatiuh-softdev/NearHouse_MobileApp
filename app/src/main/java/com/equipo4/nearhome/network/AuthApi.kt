@@ -28,6 +28,25 @@ data class DesactivarCuentaRequest(
     val googleToken: String? = null
 )
 
+data class CodigoContrasenaResponse(
+    val correoOculto: String,
+    val tieneContrasena: Boolean
+)
+
+data class VerificarCodigoContrasenaRequest(
+    val codigo: String
+)
+
+data class VerificarCodigoContrasenaResponse(
+    val comprobante: String
+)
+
+data class CambiarContrasenaRequest(
+    val comprobante: String,
+    val contrasenaActual: String? = null,
+    val contrasenaNueva: String
+)
+
 data class LoginResponse(
     val token: String,
     val usuario: UsuarioDto
@@ -57,7 +76,8 @@ data class UsuarioMeDto(
     val fotoVersion: String? = null,
     val plan: PlanUsuarioDto? = null,
     val pruebaDisponible: Boolean = false,
-    val desactivada: Boolean = false
+    val desactivada: Boolean = false,
+    val tieneContrasena: Boolean = false
 )
 
 // --- Modelos para Registro y Verificación ---
@@ -170,6 +190,16 @@ interface AuthApi {
     // Desactivar cuenta
     @POST("api/v1/usuarios/me/desactivar")
     suspend fun desactivarCuenta(@Body request: DesactivarCuentaRequest): Response<Unit>
+
+    // Cambio / Creación de contraseña
+    @POST("api/v1/usuarios/me/contrasena/codigo")
+    suspend fun solicitarCodigoContrasena(): Response<CodigoContrasenaResponse>
+
+    @POST("api/v1/usuarios/me/contrasena/verificar")
+    suspend fun verificarCodigoContrasena(@Body request: VerificarCodigoContrasenaRequest): Response<VerificarCodigoContrasenaResponse>
+
+    @PUT("api/v1/usuarios/me/contrasena")
+    suspend fun cambiarOcrearContrasena(@Body request: CambiarContrasenaRequest): Response<LoginResponse>
 
     // Sube la foto de perfil (campo "foto")
     @Multipart

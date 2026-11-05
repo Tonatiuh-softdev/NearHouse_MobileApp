@@ -11,12 +11,34 @@ data class UserAccountData(
     val planStatus: String? = null,
     val planExpired: Boolean = false,
     val renewalDate: String? = null,
-    val isGoogleUser: Boolean = false
+    val isGoogleUser: Boolean = false,
+    val tieneContrasena: Boolean = true
 )
+
+enum class PasswordFlowStep {
+    NONE,
+    CONFIRM_SEND_CODE,
+    VERIFY_CODE,
+    NEW_PASSWORD
+}
 
 data class AccountAdminUiState(
     val isLoading: Boolean = false,
     val userData: UserAccountData? = null,
+    val passwordStep: PasswordFlowStep = PasswordFlowStep.NONE,
+    val maskedEmail: String = "",
+    val otpCode: List<String> = List(6) { "" },
+    val isOtpLoading: Boolean = false,
+    val otpErrorMessage: String? = null,
+    val resendCountdown: Int = 0,
+    val canResendCode: Boolean = false,
+    val currentPasswordInput: String = "",
+    val currentPasswordError: String? = null,
+    val newPasswordInput: String = "",
+    val confirmPasswordInput: String = "",
+    val isPasswordSaving: Boolean = false,
+    val passwordSaveError: String? = null,
+    val proofToken: String? = null,
     val showDeactivateDialog: Boolean = false,
     val deactivatePasswordInput: String = "",
     val deactivateError: String? = null,
@@ -24,17 +46,38 @@ data class AccountAdminUiState(
     val isDeactivatedSuccess: Boolean = false,
     val showDeleteDialog: Boolean = false,
     val deleteInputText: String = "",
-    @param:StringRes val userMessage: Int? = null
+    @param:StringRes val userMessage: Int? = null,
+    val snackbarSuccessMessage: String? = null
 ) {
     val isDeleteButtonEnabled: Boolean
         get() {
             val input = deleteInputText.trim().uppercase()
             return input == "ELIMINAR" || input == "DELETE"
         }
+
+    val isNewPasswordFormValid: Boolean
+        get() {
+            val hasMinLength = newPasswordInput.length >= 6
+            val isConfirmed = newPasswordInput == confirmPasswordInput
+            val hasCurrentPassword = userData?.tieneContrasena == true
+            val currentPasswordValid = if (hasCurrentPassword) currentPasswordInput.isNotBlank() else true
+            val isDifferentFromCurrent = if (hasCurrentPassword) newPasswordInput != currentPasswordInput else true
+            return hasMinLength && isConfirmed && currentPasswordValid && isDifferentFromCurrent && !isPasswordSaving
+        }
 }
 
 sealed interface AccountAdminUiEvent {
     data object OnOptionClick : AccountAdminUiEvent
+    data object OnPasswordOptionClick : AccountAdminUiEvent
+    data object OnRequestCodeConfirmed : AccountAdminUiEvent
+    data object OnPasswordFlowDismissed : AccountAdminUiEvent
+    data class OnOtpDigitChanged(val index: Int, val digit: String) : AccountAdminUiEvent
+    data object OnVerifyCodeSubmitted : AccountAdminUiEvent
+    data object OnResendCodeRequested : AccountAdminUiEvent
+    data class OnCurrentPasswordChanged(val text: String) : AccountAdminUiEvent
+    data class OnNewPasswordChanged(val text: String) : AccountAdminUiEvent
+    data class OnConfirmPasswordChanged(val text: String) : AccountAdminUiEvent
+    data object OnSaveNewPasswordSubmitted : AccountAdminUiEvent
     data object OnDeactivateRequested : AccountAdminUiEvent
     data class OnDeactivatePasswordChanged(val text: String) : AccountAdminUiEvent
     data class OnDeactivateConfirmed(val googleToken: String? = null) : AccountAdminUiEvent
@@ -44,4 +87,5 @@ sealed interface AccountAdminUiEvent {
     data object OnDeleteDismissed : AccountAdminUiEvent
     data class OnDeleteInputChanged(val text: String) : AccountAdminUiEvent
     data object OnUserMessageConsumed : AccountAdminUiEvent
+    data object OnSnackbarMessageConsumed : AccountAdminUiEvent
 }
