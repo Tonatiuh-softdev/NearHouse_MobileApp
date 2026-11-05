@@ -9,9 +9,15 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 class ReportsViewModel : ViewModel() {
     private val reportRepository = Repositories.reportes
+
+    init {
+        // Al abrir la lista se piden los reportes al API. Si falla, se muestra lo que ya estaba cargado.
+        viewModelScope.launch { reportRepository.refresh() }
+    }
 
     val reports: StateFlow<List<Report>> = reportRepository.observeReports()
         .stateIn(

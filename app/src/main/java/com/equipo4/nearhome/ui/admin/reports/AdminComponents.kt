@@ -189,7 +189,7 @@ fun ReportCardItem(
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(14.dp)
                     )
-                    val evidencesText = pluralStringResource(R.plurals.evidences_count, report.evidences.size, report.evidences.size)
+                    val evidencesText = pluralStringResource(R.plurals.evidences_count, report.evidenceCount, report.evidenceCount)
                     Text(
                         text = evidencesText,
                         fontSize = 12.sp,

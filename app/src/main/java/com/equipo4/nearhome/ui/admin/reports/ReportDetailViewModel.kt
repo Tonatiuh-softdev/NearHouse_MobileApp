@@ -11,10 +11,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import java.util.Calendar
-
-import com.equipo4.nearhome.util.AppStrings
-import com.equipo4.nearhome.R
 
 class ReportDetailViewModel(val reportId: String) : ViewModel() {
     private val reportRepository = Repositories.reportes
@@ -25,6 +21,14 @@ class ReportDetailViewModel(val reportId: String) : ViewModel() {
 
     private val _targetProperty = MutableStateFlow<Property?>(null)
     val targetProperty: StateFlow<Property?> = _targetProperty.asStateFlow()
+
+    /** True mientras se envía la resolución. Desactiva los botones. */
+    private val _sending = MutableStateFlow(false)
+    val sending: StateFlow<Boolean> = _sending.asStateFlow()
+
+    /** Mensaje de error del API, para mostrarlo una vez. */
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error.asStateFlow()
 
     init {
         loadReport()
@@ -40,29 +44,27 @@ class ReportDetailViewModel(val reportId: String) : ViewModel() {
         }
     }
 
-    suspend fun applyMeasure(onSuccess: (String) -> Unit) {
-        val r = _report.value ?: return
-        val measureResult = if (r.type == ReportType.PUBLICACION) {
-            AppStrings.get(R.string.report_measure_listing_deactivated)
-        } else {
-            AppStrings.get(R.string.report_measure_user_suspended)
+    /**
+     * estado: PROCEDENTE o DESCARTADO. Si sale bien, llama [onSuccess].
+     * Si falla (por ejemplo, ya fue resuelto por otro admin), muestra el error y vuelve a cargar el reporte.
+     */
+    fun resolver(estado: String, nota: String, retirarPublicacion: Boolean, onSuccess: () -> Unit) {
+        if (_sending.value) return
+        viewModelScope.launch {
+            _sending.value = true
+            val resultado = reportRepository.resolver(reportId, estado, nota, retirarPublicacion)
+            _sending.value = false
+            resultado
+                .onSuccess { onSuccess() }
+                .onFailure {
+                    _error.value = it.message
+                    loadReport()
+                }
         }
-        val dateStr = getCurrentDateFormatted()
-        reportRepository.applyMeasure(reportId, measureResult, dateStr)
-        onSuccess(measureResult)
     }
 
-    suspend fun closeWithoutMeasure(onSuccess: () -> Unit) {
-        val dateStr = getCurrentDateFormatted()
-        reportRepository.closeWithoutMeasure(reportId, dateStr)
-        onSuccess()
-    }
-
-    private fun getCurrentDateFormatted(): String {
-        val calendar = Calendar.getInstance()
-        val day = calendar.get(Calendar.DAY_OF_MONTH)
-        val month = java.text.DateFormatSymbols(AppStrings.locale()).shortMonths[calendar.get(Calendar.MONTH)].replace(".", "")
-        return AppStrings.get(R.string.attended_date_prefix, "$day $month")
+    fun clearError() {
+        _error.value = null
     }
 }
 
