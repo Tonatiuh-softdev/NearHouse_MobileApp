@@ -4,6 +4,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -73,7 +74,7 @@ fun HomeScreen(
     Scaffold(
         bottomBar = {
             NearHomeBottomBar(
-                selectedTab = 0, // Inicio
+                selectedTab = 0,
                 onTabSelected = { index ->
                     if (index == 0) {
                         viewModel.onSearchQueryChange("")
@@ -93,7 +94,6 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            // Encabezado superior
             HomeHeader(
                 searchQuery = uiState.searchQuery,
                 onQueryChange = viewModel::onSearchQueryChange,
@@ -106,7 +106,6 @@ fun HomeScreen(
                 }
             )
 
-            // Botones de filtro y ordenamiento
             FilterAndSortRow(
                 onFilterClick = onFilterClick,
                 hasFilters = hasFilters,
@@ -117,7 +116,6 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // SECCIÓN DE PROPIEDADES
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -137,15 +135,12 @@ fun HomeScreen(
                 }
 
                 when {
-                    // 1. Carga inicial en proceso -> Esqueleto indiscutible
                     uiState.isLoading -> {
                         PropertyListSkeleton(count = 3)
                     }
-                    // 2. Carga finalizada y BD vacía -> Pantalla de sin publicaciones
                     uiState.properties.isEmpty() -> {
                         EmptyHomeState(onClearFilters = { viewModel.clearFilters() })
                     }
-                    // 3. Carga finalizada con datos -> Lista de publicaciones
                     else -> {
                         LazyColumn(
                             state = listState,
@@ -213,6 +208,11 @@ private fun HomeHeader(
             modifier = Modifier
                 .weight(1f)
                 .height(48.dp)
+                .border(
+                    width = 1.dp,
+                    color = MaterialTheme.nearHouseColors.searchBarBorder,
+                    shape = RoundedCornerShape(24.dp)
+                )
                 .clip(RoundedCornerShape(24.dp))
                 .background(MaterialTheme.nearHouseColors.searchBarBg)
                 .padding(horizontal = 16.dp),

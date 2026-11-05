@@ -35,6 +35,7 @@ data class NearHouseCustomColors(
     val correoBtnBg: Color,
     val correoBtnText: Color,
     val searchBarBg: Color,
+    val searchBarBorder: Color,
     val filterChipBg: Color,
     val filterChipSelectedBg: Color,
     val cardBorder: Color
@@ -54,7 +55,8 @@ val LightNearHouseCustomColors = NearHouseCustomColors(
     whatsappBtnText = Color.White,
     correoBtnBg = Color(0xFF2B5B84),
     correoBtnText = Color.White,
-    searchBarBg = Color(0xFFF3F4F6),
+    searchBarBg = Color.White,
+    searchBarBorder = Color(0xFFE1E5EB),
     filterChipBg = Color.White,
     filterChipSelectedBg = Color(0xFFE0F2FE),
     cardBorder = Color(0xFFE5E7EB)
@@ -75,6 +77,7 @@ val DarkNearHouseCustomColors = NearHouseCustomColors(
     correoBtnBg = Color(0xFF16385C),
     correoBtnText = Color.White,
     searchBarBg = Color(0xFF1E2630),
+    searchBarBorder = Color.Transparent,
     filterChipBg = Color(0xFF1E2630),
     filterChipSelectedBg = Color(0xFF1E3A5F),
     cardBorder = Color(0xFF2A3441)
@@ -132,7 +135,7 @@ private val LightColorScheme = lightColorScheme(
 @Composable
 fun NearHomeTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = false, // Apagado siempre según requerimiento
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -152,7 +155,6 @@ fun NearHomeTheme(
             val window = (view.context as? Activity)?.window
             if (window != null) {
                 val insetsController = WindowCompat.getInsetsController(window, view)
-                // Íconos claros de la barra de estado en modo oscuro, oscuros en modo claro
                 insetsController.isAppearanceLightStatusBars = !darkTheme
                 insetsController.isAppearanceLightNavigationBars = !darkTheme
             }
