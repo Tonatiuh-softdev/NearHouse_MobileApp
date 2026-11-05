@@ -47,6 +47,17 @@ data class CambiarContrasenaRequest(
     val contrasenaNueva: String
 )
 
+data class SolicitarCodigoCambioCorreoRequest(
+    val correoNuevo: String,
+    val contrasena: String? = null,
+    val googleToken: String? = null
+)
+
+data class ConfirmarCambioCorreoRequest(
+    val correoNuevo: String,
+    val codigo: String
+)
+
 data class LoginResponse(
     val token: String,
     val usuario: UsuarioDto
@@ -122,7 +133,7 @@ data class PlanDto(
     val duracionDias: Int,
     val limiteAnuncios: Int? = null,
     val nivelVisibilidad: Int,
-    val diasPrueba: Int,
+    val diasPrueba: Int = 0,
     val destacado: Boolean
 )
 
@@ -200,6 +211,13 @@ interface AuthApi {
 
     @PUT("api/v1/usuarios/me/contrasena")
     suspend fun cambiarOcrearContrasena(@Body request: CambiarContrasenaRequest): Response<LoginResponse>
+
+    // Cambio de correo
+    @POST("api/v1/usuarios/me/correo/solicitar-codigo")
+    suspend fun solicitarCodigoCambioCorreo(@Body request: SolicitarCodigoCambioCorreoRequest): Response<Unit>
+
+    @POST("api/v1/usuarios/me/correo/confirmar")
+    suspend fun confirmarCambioCorreo(@Body request: ConfirmarCambioCorreoRequest): Response<UsuarioMeDto>
 
     // Sube la foto de perfil (campo "foto")
     @Multipart
