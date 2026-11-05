@@ -124,7 +124,7 @@ fun ReportReasonScreen(
             uiState.selectedCategory?.let { category ->
                 Surface(
                     shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    color = MaterialTheme.colorScheme.surface,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column {
@@ -176,7 +176,7 @@ fun ReportReasonScreen(
             // TARJETA 2: Descripción
             Surface(
                 shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                color = MaterialTheme.colorScheme.surface,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
@@ -204,9 +204,9 @@ fun ReportReasonScreen(
                             .height(120.dp),
                         shape = RoundedCornerShape(10.dp),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = MaterialTheme.colorScheme.surface,
-                            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                            focusedBorderColor = MaterialTheme.colorScheme.outline,
+                            focusedContainerColor = MaterialTheme.colorScheme.background,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.background,
+                            focusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
                             unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
                         )
                     )
@@ -227,7 +227,7 @@ fun ReportReasonScreen(
             // TARJETA 3: Evidencia (opcional, hasta 5 imágenes)
             Surface(
                 shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                color = MaterialTheme.colorScheme.surface,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
@@ -292,7 +292,7 @@ fun ReportReasonScreen(
 
             Spacer(modifier = Modifier.height(28.dp))
 
-            // Botón Enviar: se desactiva mientras envía
+            // Botón Enviar
             Button(
                 onClick = { viewModel.submitReport(context) },
                 enabled = uiState.isSendEnabled && !uiState.isSending,
@@ -335,7 +335,6 @@ fun ReportReasonScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        // Si la publicación ya no existe, se regresa al detalle
                         val salir = uiState.publicacionNoDisponible
                         viewModel.clearErrorMessage()
                         if (salir) onBackClick()
@@ -376,7 +375,6 @@ fun ReportReasonScreen(
     }
 }
 
-/** Decodifica una imagen. [reduccion] = 4 para miniaturas; 1 para verla completa. */
 private fun cargarBitmap(context: Context, uri: Uri, reduccion: Int): Bitmap? =
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
         ImageDecoder.decodeBitmap(ImageDecoder.createSource(context.contentResolver, uri)) { decoder, _, _ ->
