@@ -1,7 +1,7 @@
 package com.equipo4.nearhome.ui.admin.reports
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -109,7 +109,7 @@ fun ReportsScreen(
                         }
                     )
                 }
-                HorizontalDivider(color = MaterialTheme.colorScheme.outline, thickness = 1.dp)
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 1.dp)
             }
         },
         bottomBar = { NearHomeBottomBar(selectedTab = 3, onTabSelected = onBottomTabSelected) },
