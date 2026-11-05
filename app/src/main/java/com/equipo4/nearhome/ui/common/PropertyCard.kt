@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -57,7 +59,8 @@ fun PropertyCard(
             .clickable { onClick() },
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+        border = BorderStroke(1.dp, MaterialTheme.nearHouseColors.cardBorder),
+        elevation = CardDefaults.cardElevation(defaultElevation = MaterialTheme.nearHouseColors.cardElevation)
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             PropertyImageCarousel(
@@ -92,14 +95,12 @@ private fun PropertyImageCarousel(
 ) {
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(12.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant)
     ) {
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.fillMaxSize()
         ) { page ->
-            // La foto puede ser una URL del API (String) o un recurso de los datos de prueba (Int)
             val image = property.images.getOrNull(page)
             if (image != null) {
                 AsyncImage(
@@ -108,20 +109,22 @@ private fun PropertyImageCarousel(
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
                 )
-            } else Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        if (property.type == PropertyType.TERRENO) Color(0xFF53624E)
-                        else Color(0xFF7A7265)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = stringResource(R.string.property_image_format, page + 1),
-                    color = Color.White.copy(alpha = 0.7f),
-                    fontSize = 15.sp
-                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            if (property.type == PropertyType.TERRENO) Color(0xFF53624E)
+                            else Color(0xFF7A7265)
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = stringResource(R.string.property_image_format, page + 1),
+                        color = Color.White.copy(alpha = 0.7f),
+                        fontSize = 15.sp
+                    )
+                }
             }
         }
 
@@ -202,7 +205,6 @@ private fun PropertyImageCarousel(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun PropertyInfoContent(
     property: Property
@@ -271,9 +273,9 @@ private fun PropertyInfoContent(
             modifier = Modifier.fillMaxWidth()
         ) {
             Icon(
-                painter = painterResource(id = R.drawable.ic_pin_localizacion),
+                imageVector = Icons.Outlined.LocationOn,
                 contentDescription = null,
-                tint = Color.Unspecified,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(16.dp)
             )
             Spacer(modifier = Modifier.width(4.dp))
@@ -288,57 +290,93 @@ private fun PropertyInfoContent(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // Fila 4: Características dinámicas
-        FlowRow(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            val (typeText, typeIcon) = when (property.type) {
-                PropertyType.DEPARTAMENTO -> stringResource(R.string.property_short_apartment) to R.drawable.ic_departamento
-                PropertyType.CASA -> stringResource(R.string.property_short_house) to R.drawable.ic_casa_relleno_abajo
-                PropertyType.TERRENO -> stringResource(R.string.property_short_land) to R.drawable.ic_terreno
-            }
+        // Fila 4: Características en 2x2 (Column de 2 Rows)
+        val (typeText, typeIcon) = when (property.type) {
+            PropertyType.DEPARTAMENTO -> stringResource(R.string.property_short_apartment) to Icons.Outlined.Apartment
+            PropertyType.CASA -> stringResource(R.string.property_short_house) to Icons.Outlined.Home
+            PropertyType.TERRENO -> stringResource(R.string.property_short_land) to Icons.Outlined.Landscape
+        }
 
-            FeatureItem(iconRes = typeIcon, text = typeText)
+        if (property.type == PropertyType.TERRENO) {
+            // TERRENO: Una sola fila
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                FeatureItem(
+                    icon = typeIcon,
+                    text = typeText,
+                    modifier = Modifier.weight(1f)
+                )
 
-            if (property.type == PropertyType.TERRENO) {
-                if (property.frontMeters != null && property.depthMeters != null) {
-                    FeatureItem(
-                        iconRes = R.drawable.ic_regla_medicion,
-                        text = "${property.frontMeters.toInt()}x${property.depthMeters.toInt()} m"
-                    )
+                val areaText = if (property.frontMeters != null && property.depthMeters != null) {
+                    "${property.frontMeters.toInt()}x${property.depthMeters.toInt()} m"
                 } else if (property.areaSqM > 0) {
-                    // Los terrenos del API traen los m², no frente y fondo
+                    "${property.areaSqM} m²"
+                } else null
+
+                if (areaText != null) {
                     FeatureItem(
-                        iconRes = R.drawable.ic_regla_medicion,
-                        text = "${property.areaSqM} m²"
+                        icon = Icons.Outlined.SquareFoot,
+                        text = areaText,
+                        modifier = Modifier.weight(1f)
                     )
+                } else {
+                    Spacer(modifier = Modifier.weight(1f))
                 }
-            } else {
-                property.superficieSqM?.takeIf { it > 0 }?.let {
+            }
+        } else {
+            // CASA / DEPARTAMENTO: Cuadrícula rígida de 2x2
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                // Fila 1: Tipo | Recámaras
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     FeatureItem(
-                        iconRes = R.drawable.ic_regla_medicion,
-                        text = "${it.toInt()} m²"
+                        icon = typeIcon,
+                        text = typeText,
+                        modifier = Modifier.weight(1f)
                     )
+
+                    if (property.bedrooms != null) {
+                        FeatureItem(
+                            icon = Icons.Outlined.Bed,
+                            text = stringResource(R.string.property_bedrooms_format, property.bedrooms),
+                            modifier = Modifier.weight(1f)
+                        )
+                    } else {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
                 }
-                property.bedrooms?.let {
-                    FeatureItem(
-                        iconRes = R.drawable.ic_habitaciones,
-                        text = stringResource(R.string.property_bedrooms_format, it)
-                    )
-                }
-                property.bathrooms?.let {
-                    FeatureItem(
-                        iconRes = R.drawable.ic_bathrooms,
-                        text = stringResource(R.string.property_bathrooms_format, it)
-                    )
-                }
-                property.garages?.let {
-                    FeatureItem(
-                        iconRes = R.drawable.ic_cocheras,
-                        text = stringResource(R.string.property_garages_format, it)
-                    )
+
+                // Fila 2: Baños | Cocheras
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (property.bathrooms != null) {
+                        FeatureItem(
+                            icon = Icons.Outlined.Bathtub,
+                            text = stringResource(R.string.property_bathrooms_format, property.bathrooms),
+                            modifier = Modifier.weight(1f)
+                        )
+                    } else {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
+
+                    if (property.garages != null) {
+                        FeatureItem(
+                            icon = Icons.Outlined.Garage,
+                            text = stringResource(R.string.property_garages_format, property.garages),
+                            modifier = Modifier.weight(1f)
+                        )
+                    } else {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
                 }
             }
         }
@@ -347,25 +385,28 @@ private fun PropertyInfoContent(
 
 @Composable
 private fun FeatureItem(
-    iconRes: Int,
-    text: String
+    icon: ImageVector,
+    text: String,
+    modifier: Modifier = Modifier
 ) {
     Row(
+        modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
+        horizontalArrangement = Arrangement.Start
     ) {
         Icon(
-            painter = painterResource(id = iconRes),
+            imageVector = icon,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(15.dp)
+            modifier = Modifier.size(16.dp)
         )
+        Spacer(modifier = Modifier.width(6.dp))
         Text(
             text = text,
             fontSize = 12.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 1,
-            softWrap = false
+            overflow = TextOverflow.Ellipsis
         )
     }
 }
