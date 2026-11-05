@@ -93,7 +93,7 @@ fun ReportCategoryScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Recuadro informativo (primaryContainer en modo claro/oscuro)
+            // Recuadro informativo (se queda igual)
             Surface(
                 shape = RoundedCornerShape(12.dp),
                 color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
@@ -131,10 +131,10 @@ fun ReportCategoryScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Tarjeta de categorías adaptable
+            // Tarjeta de categorías en surface
             Surface(
                 shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                color = MaterialTheme.colorScheme.surface,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column {
@@ -148,7 +148,7 @@ fun ReportCategoryScreen(
                         )
                         if (index < ReportCategory.entries.size - 1) {
                             HorizontalDivider(
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                                color = MaterialTheme.colorScheme.outlineVariant,
                                 thickness = 1.dp
                             )
                         }

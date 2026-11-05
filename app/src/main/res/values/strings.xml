@@ -1042,4 +1042,46 @@
     <string name="phone_sms_error_restart">Se perdieron los datos del registro. Vuelve a empezar</string>
     <string name="listings_load_error">No se pudieron cargar los anuncios. Revisa tu conexión e inténtalo de nuevo.</string>
     <string name="listings_retry">Reintentar</string>
+
+    <!-- Reportes pantalla de administracion -->
+    <string name="report_action_procede">Procede</string>
+    <string name="report_note_label">Nota del administrador</string>
+    <string name="report_note_seller_notice">El vendedor verá esta nota si retiras la publicación. No menciones a quien reportó.</string>
+    <string name="report_remove_listing">Retirar la publicación</string>
+    <string name="report_remove_confirm_title">¿Retirar la publicación?</string>
+    <string name="report_remove_confirm_body">La publicación dejará de verse en Inicio y en el mapa, y el vendedor la verá como rechazada.</string>
+    <string name="report_measure_listing_removed">Medida aplicada: publicación retirada</string>
+    <string name="report_account_deleted">Cuenta eliminada</string>
+    <string name="report_reporter_title">Reportado por</string>
+
+    <!-- Pantalla Notificaciones -->
+    <string name="notifications_title">Notificaciones</string>
+    <string name="notifications_empty">Sin notificaciones</string>
+    <string name="notifications_error">No se pudieron cargar tus notificaciones</string>
+    <string name="notifications_retry">Reintentar</string>
+
+    <!-- Títulos y Textos con Marcadores -->
+    <string name="notif_title_in_review">Publicación en revisión</string>
+    <string name="notif_body_in_review">Hola, tu propiedad \"%1$s\" está en revisión. Te avisaremos en cuanto sea aprobada.</string>
+
+    <string name="notif_title_approved">¡Tu publicación fue aprobada! \u2705</string>
+    <string name="notif_body_approved">Tu propiedad \"%1$s\" ya pasó la revisión y está publicada. A partir de ahora los interesados podrán verla y contactarte.</string>
+
+    <string name="notif_title_rejected">Publicación rechazada \u274C</string>
+    <string name="notif_body_rejected">Tu propiedad \"%1$s\" no fue aprobada. Motivo: \"%2$s\". Puedes corregirla y volver a enviarla.</string>
+
+    <string name="notif_title_payment">¡Gracias por tu pago! \u5890</string> <!-- 🙌 -->
+    <string name="notif_body_payment">Hola, %1$s, confirmamos tu pago del plan %2$s.</string>
+
+    <string name="notif_title_welcome">¡Bienvenido como vendedor! \uF389</string> <!-- 🎉 -->
+    <string name="notif_body_welcome">Hola, %1$s, ya puedes empezar a publicar tus propiedades.</string>
+
+    <string name="notif_title_search_updates">¡Hay novedades en tu búsqueda! \uF50D</string> <!-- 🔍 -->
+    <string name="notif_body_search_updates">Esta propiedad recién publicada coincide con tus filtros de búsqueda.</string>
+
+    <string name="notif_title_found_for_you">Encontramos algo para ti \uF3E1</string> <!-- 🏡 -->
+    <string name="notif_body_found_for_you">Encontramos una propiedad que coincide con tu búsqueda de \"%1$s\". ¡Échale un vistazo!</string>
+
+    <string name="notif_title_recently_published">Propiedades recién publicadas \uF195</string> <!-- 🆕 -->
+    <string name="notif_body_recently_published">Basado en tu búsqueda, creemos que esta propiedad te va a gustar.</string>
 </resources>

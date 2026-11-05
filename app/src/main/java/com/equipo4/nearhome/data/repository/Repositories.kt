@@ -5,6 +5,7 @@ import com.equipo4.nearhome.domain.repository.AdminListingRepository
 import com.equipo4.nearhome.domain.repository.AdminListingRepositoryApi
 import com.equipo4.nearhome.domain.repository.PropiedadRepository
 import com.equipo4.nearhome.domain.repository.ReportRepository
+import com.equipo4.nearhome.domain.repository.ReportRepositoryApi
 import com.equipo4.nearhome.domain.repository.UserRepository
 
 object Repositories {
@@ -20,7 +21,7 @@ object Repositories {
     }
 
     val propiedades: PropiedadRepository by lazy { PropiedadRepositoryApi(ctx()) }
-    val reportes: ReportRepository by lazy { ReportRepositoryFake() }
+    val reportes: ReportRepository by lazy { ReportRepositoryApi(ctx()) }
     val anuncios: AdminListingRepository by lazy { AdminListingRepositoryApi(ctx()) }
     val users: UserRepository by lazy { UserRepositoryFake() }
 }

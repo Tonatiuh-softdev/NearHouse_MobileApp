@@ -24,6 +24,8 @@ import com.equipo4.nearhome.R
 import com.equipo4.nearhome.domain.model.Report
 import com.equipo4.nearhome.domain.model.ReportStatus
 import com.equipo4.nearhome.domain.model.ReportType
+import androidx.compose.foundation.BorderStroke
+import com.equipo4.nearhome.ui.theme.nearHouseColors
 
 @Composable
 fun ReportTypeTag(type: ReportType) {
@@ -108,8 +110,9 @@ fun ReportCardItem(
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp),
+        // Blanco de la superficie, sin borde y con sombra para que se separe del fondo
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
             modifier = Modifier
@@ -186,7 +189,7 @@ fun ReportCardItem(
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(14.dp)
                     )
-                    val evidencesText = pluralStringResource(R.plurals.evidences_count, report.evidences.size, report.evidences.size)
+                    val evidencesText = pluralStringResource(R.plurals.evidences_count, report.evidenceCount, report.evidenceCount)
                     Text(
                         text = evidencesText,
                         fontSize = 12.sp,

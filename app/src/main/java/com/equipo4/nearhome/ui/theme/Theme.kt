@@ -17,6 +17,8 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 
 @Immutable
@@ -35,9 +37,11 @@ data class NearHouseCustomColors(
     val correoBtnBg: Color,
     val correoBtnText: Color,
     val searchBarBg: Color,
+    val searchBarBorder: Color,
     val filterChipBg: Color,
     val filterChipSelectedBg: Color,
-    val cardBorder: Color
+    val cardBorder: Color,
+    val cardElevation: Dp
 )
 
 val LightNearHouseCustomColors = NearHouseCustomColors(
@@ -54,10 +58,12 @@ val LightNearHouseCustomColors = NearHouseCustomColors(
     whatsappBtnText = Color.White,
     correoBtnBg = Color(0xFF2B5B84),
     correoBtnText = Color.White,
-    searchBarBg = Color(0xFFF3F4F6),
+    searchBarBg = Color.White,
+    searchBarBorder = Color(0xFFE1E5EB), // Misma tonalidad suave de outlineVariant
     filterChipBg = Color.White,
     filterChipSelectedBg = Color(0xFFE0F2FE),
-    cardBorder = Color(0xFFE5E7EB)
+    cardBorder = Color.Transparent,
+    cardElevation = 2.dp
 )
 
 val DarkNearHouseCustomColors = NearHouseCustomColors(
@@ -75,9 +81,11 @@ val DarkNearHouseCustomColors = NearHouseCustomColors(
     correoBtnBg = Color(0xFF16385C),
     correoBtnText = Color.White,
     searchBarBg = Color(0xFF1E2630),
+    searchBarBorder = Color.Transparent,
     filterChipBg = Color(0xFF1E2630),
     filterChipSelectedBg = Color(0xFF1E3A5F),
-    cardBorder = Color(0xFF2A3441)
+    cardBorder = Color(0xFF334155), // Misma tonalidad sutil de outlineVariant en oscuro
+    cardElevation = 0.dp
 )
 
 val LocalNearHouseCustomColors = staticCompositionLocalOf {

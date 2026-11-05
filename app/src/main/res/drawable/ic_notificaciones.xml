@@ -1,0 +1,64 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="160dp"
+    android:height="160dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+
+  <!-- Base / Fondo circular -->
+  <path
+      android:fillColor="#E0E0E0"
+      android:pathData="M100,100m-90,0a90,90 0 1,1 180,0a90,90 0 1,1 -180,0" />
+
+  <!-- Estructura del Buzón -->
+  <path
+      android:fillColor="#757575"
+      android:pathData="M65,75 C65,60 80,50 100,50 C120,50 135,60 135,75 L135,115 L65,115 Z" />
+
+  <!-- Apertura / Interior del buzón -->
+  <path
+      android:fillColor="#E0E0E0"
+      android:pathData="M100,60 C115,60 125,68 125,78 L125,110 L100,110 Z" />
+
+  <!-- Tapa del buzón -->
+  <path
+      android:strokeColor="#757575"
+      android:strokeWidth="4"
+      android:pathData="M100,110 L135,130 C135,130 145,110 125,90" />
+
+  <!-- Bandeja / Soporte del buzón -->
+  <path
+      android:fillColor="#757575"
+      android:pathData="M92,115 L108,115 L108,160 L92,160 Z" />
+
+  <!-- Base inferior -->
+  <path
+      android:fillColor="#757575"
+      android:pathData="M75,155 L125,155 L140,170 L60,170 Z" />
+
+  <!-- Banderola de aviso -->
+  <path
+      android:fillColor="#757575"
+      android:pathData="M85,60 L100,60 L100,85 L93,85 L93,68 L85,68 Z" />
+
+  <!-- Detalle Telaraña -->
+  <path
+      android:strokeColor="#757575"
+      android:strokeWidth="2"
+      android:pathData="M67,77 Q80,82 82,95 M67,90 Q75,93 76,102 M76,76 L85,98" />
+
+  <!-- Detalle Araña colgando -->
+  <path
+      android:strokeColor="#757575"
+      android:strokeWidth="2"
+      android:pathData="M142,125 L142,145" />
+
+  <path
+      android:fillColor="#757575"
+      android:pathData="M142,150m-6,0a6,6 0 1,1 12,0a6,6 0 1,1 -12,0" />
+
+  <!-- Patas de la araña -->
+  <path
+      android:strokeColor="#757575"
+      android:strokeWidth="1.5"
+      android:pathData="M136,146 Q130,144 132,150 M148,146 Q154,144 152,150 M136,150 Q129,150 131,155 M148,150 Q155,150 153,155" />
+</vector>

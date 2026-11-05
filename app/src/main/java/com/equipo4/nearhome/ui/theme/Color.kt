@@ -10,6 +10,8 @@ val Purple40 = Color(0xFF6650a4)
 val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
 
+val NotificationIconGreen = Color(0xFF4CAF50)
+
 // Reportes y Panel Admin Colores (Naranja, Azul, Verde definidos una sola vez)
 val ReportOrangeBg = Color(0xFFFFF7ED)
 val ReportOrangeText = Color(0xFFC2410C)
