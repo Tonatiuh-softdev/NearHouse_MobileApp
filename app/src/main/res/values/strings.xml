@@ -262,6 +262,36 @@
     <string name="listing_history_by_format">Por %1$s</string>
     <string name="listing_history_reason_format">Motivo: %1$s</string>
 
+    <!-- Detalle de publicación -->
+    <string name="detail_back_cd">Regresar</string>
+    <string name="detail_save_cd">Guardar</string>
+    <string name="detail_type_house">Casa</string>
+    <string name="detail_type_apartment">Departamento</string>
+    <string name="detail_type_land">Terreno</string>
+    <string name="detail_area_format">%1$d m²</string>
+    <string name="detail_dimensions_format">%1$d x %2$d m</string>
+    <string name="detail_section_features">Características</string>
+    <string name="detail_section_description">Descripción</string>
+    <string name="detail_section_details">Más detalles</string>
+    <string name="detail_read_less">Leer menos</string>
+    <string name="detail_seller_fallback">Anunciante</string>
+    <string name="detail_seller_owner">Tu anuncio</string>
+    <string name="detail_seller_profile">Ver perfil del anunciante</string>
+    <string name="detail_whatsapp">WhatsApp</string>
+    <string name="detail_yes">Sí</string>
+    <string name="detail_no">No</string>
+    <string name="detail_floor">Piso</string>
+    <string name="detail_ground_floor">Planta baja</string>
+    <string name="detail_furnished">Amueblado</string>
+    <string name="detail_elevator">Elevador</string>
+    <string name="detail_levels">Niveles</string>
+    <string name="detail_garden_patio">Jardín / patio</string>
+    <string name="detail_land_use">Uso de suelo</string>
+    <string name="detail_pets">Mascotas</string>
+    <string name="detail_pets_allowed">Permitidas</string>
+    <string name="detail_pets_not_allowed">No se permiten</string>
+    <string name="detail_rules">Reglas</string>
+
     <!-- Botones de acción -->
     <string name="listing_action_approve">Aprobar</string>
     <string name="listing_action_reject">Rechazar</string>

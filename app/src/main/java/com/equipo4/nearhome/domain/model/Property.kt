@@ -42,6 +42,8 @@ data class Property(
     // ---- Datos que solo trae el API (null en los datos de prueba) ----
     val description: String? = null,
     val rules: String? = null,
+    /** Id del vendedor. Sirve para abrir su perfil desde el detalle. */
+    val sellerId: Int? = null,
     val sellerName: String? = null,
     val sellerEmail: String? = null,
     val sellerPhone: String? = null,
