@@ -1040,4 +1040,15 @@
     <string name="phone_sms_error_restart">The sign-up data was lost. Please start again</string>
     <string name="listings_load_error">Failed to load listings. Check your connection and try again.</string>
     <string name="listings_retry">Retry</string>
+
+    <!-- Reports admin screen -->
+    <string name="report_action_procede">Proceed</string>
+    <string name="report_note_label">Administrator note</string>
+    <string name="report_note_seller_notice">The seller will see this note if you remove the listing. Do not mention who reported it.</string>
+    <string name="report_remove_listing">Remove the listing</string>
+    <string name="report_remove_confirm_title">Remove the listing?</string>
+    <string name="report_remove_confirm_body">The listing will stop showing on Home and on the map, and the seller will see it as rejected.</string>
+    <string name="report_measure_listing_removed">Measure applied: listing removed</string>
+    <string name="report_account_deleted">Deleted account</string>
+    <string name="report_reporter_title">Reported by</string>
 </resources>
