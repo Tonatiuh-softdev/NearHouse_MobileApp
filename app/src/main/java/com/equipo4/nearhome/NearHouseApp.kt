@@ -56,6 +56,9 @@ import com.equipo4.nearhome.ui.home.map.MapScreen
 import com.equipo4.nearhome.ui.home.filter.SearchFiltersScreen
 import com.equipo4.nearhome.ui.legal.PoliticaPrivacidadScreen
 import com.equipo4.nearhome.ui.legal.TerminosCondicionesScreen
+import com.equipo4.nearhome.ui.notifications.NotificationsScreen
+import com.equipo4.nearhome.ui.notifications.NotificationsViewModel
+import com.equipo4.nearhome.data.repository.NotificacionesRepositoryFalso
 import com.equipo4.nearhome.ui.profile.ProfileScreen
 import com.equipo4.nearhome.ui.profile.UserRole
 import com.equipo4.nearhome.ui.profile.account.AccountAdminRoute
@@ -102,6 +105,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import com.equipo4.nearhome.R
 
 object AppRoutes {
@@ -116,6 +121,7 @@ object AppRoutes {
     const val MAP = "home_map"
     const val SEARCH_FILTERS = "search_filters"
     const val SAVED = "saved"
+    const val NOTIFICATIONS = "notifications"
     const val PROFILE = "profile"
     const val ACCOUNT_ADMIN = "account_admin"
     const val MY_LISTINGS = "my_listings"
@@ -393,6 +399,14 @@ fun NearHouseApp() {
                     launchSingleTop = true
                     restoreState = true
                 }
+                2 -> navController.navigate(AppRoutes.NOTIFICATIONS) {
+                    popUpTo(AppRoutes.HOME) {
+                        inclusive = false
+                        saveState = true
+                    }
+                    launchSingleTop = true
+                    restoreState = true
+                }
                 3 -> navController.navigate(AppRoutes.PROFILE) {
                     popUpTo(AppRoutes.HOME) {
                         inclusive = false
@@ -401,7 +415,7 @@ fun NearHouseApp() {
                     launchSingleTop = true
                     restoreState = true
                 }
-                else -> Unit // 2 Notificaciones: aún sin pantalla
+                else -> Unit
             }
         }
 
@@ -425,6 +439,39 @@ fun NearHouseApp() {
             SavedScreen(
                 onPropertyClick = { propertyId ->
                     navController.navigate("${AppRoutes.PUBLICACION_DETAIL}/$propertyId")
+                },
+                onBottomTabSelected = onBottomTab
+            )
+        }
+
+        // Pantalla: Notificaciones
+        composable(AppRoutes.NOTIFICATIONS) {
+            val notificationsRepository = remember { NotificacionesRepositoryFalso() }
+            val viewModel: NotificationsViewModel = viewModel(
+                factory = object : ViewModelProvider.Factory {
+                    @Suppress("UNCHECKED_CAST")
+                    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                        return NotificationsViewModel(notificationsRepository) as T
+                    }
+                }
+            )
+            NotificationsScreen(
+                viewModel = viewModel,
+                onNavigate = { route ->
+                    when {
+                        route == "account_management/current_plan" -> {
+                            navController.navigate(AppRoutes.ACCOUNT_ADMIN)
+                        }
+                        route.startsWith("publication_detail/") -> {
+                            val id = route.removePrefix("publication_detail/")
+                            if (id.isNotEmpty()) {
+                                navController.navigate("${AppRoutes.PUBLICACION_DETAIL}/$id")
+                            }
+                        }
+                        else -> {
+                            navController.navigate(route)
+                        }
+                    }
                 },
                 onBottomTabSelected = onBottomTab
             )

@@ -1051,4 +1051,35 @@
     <string name="report_measure_listing_removed">Measure applied: listing removed</string>
     <string name="report_account_deleted">Deleted account</string>
     <string name="report_reporter_title">Reported by</string>
+
+    <!-- Notifications Screen -->
+    <string name="notifications_title">Notifications</string>
+    <string name="notifications_empty">No notifications</string>
+    <string name="notifications_error">Could not load your notifications</string>
+    <string name="notifications_retry">Retry</string>
+
+    <!-- Titles and Bodies -->
+    <string name="notif_title_in_review">Listing under review</string>
+    <string name="notif_body_in_review">Hello, your property \"%1$s\" is under review. We will notify you once it is approved.</string>
+
+    <string name="notif_title_approved">Your listing was approved! \u2705</string>
+    <string name="notif_body_approved">Your property \"%1$s\" passed review and is now published. Interested users can view and contact you.</string>
+
+    <string name="notif_title_rejected">Listing rejected \u274C</string>
+    <string name="notif_body_rejected">Your property \"%1$s\" was not approved. Reason: \"%2$s\". You can edit and resubmit it.</string>
+
+    <string name="notif_title_payment">Thank you for your payment! \u5890</string>
+    <string name="notif_body_payment">Hello %1$s, we confirmed your payment for the %2$s plan.</string>
+
+    <string name="notif_title_welcome">Welcome as a seller! \uF389</string>
+    <string name="notif_body_welcome">Hello %1$s, you can now start publishing your properties.</string>
+
+    <string name="notif_title_search_updates">Search updates! \uF50D</string>
+    <string name="notif_body_search_updates">This recently published property matches your search filters.</string>
+
+    <string name="notif_title_found_for_you">We found something for you \uF3E1</string>
+    <string name="notif_body_found_for_you">We found a property matching your search for \"%1$s\". Check it out!</string>
+
+    <string name="notif_title_recently_published">Recently published properties \uF195</string>
+    <string name="notif_body_recently_published">Based on your search, we think you will like this property.</string>
 </resources>
