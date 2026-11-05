@@ -143,40 +143,59 @@ fun AccountAdminScreen(
                 // ==================== DATOS DE ACCESO ====================
                 SectionHeader(title = stringResource(id = R.string.section_access_data))
 
-                OptionRowItem(
-                    icon = Icons.Outlined.Email,
-                    title = stringResource(id = R.string.label_email),
-                    subtitle = userData.email,
-                    onClick = { onEvent(AccountAdminUiEvent.OnOptionClick) }
-                )
-                HorizontalDivider(
-                    modifier = Modifier.padding(start = 56.dp, end = 16.dp),
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
-                    thickness = 0.8.dp
-                )
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.surface
+                ) {
+                    Column {
+                        OptionRowItem(
+                            icon = Icons.Outlined.Email,
+                            title = stringResource(id = R.string.label_email),
+                            subtitle = userData.email,
+                            useIconContainer = true,
+                            iconBackgroundColor = MaterialTheme.colorScheme.surfaceVariant,
+                            iconTintColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            onClick = { onEvent(AccountAdminUiEvent.OnOptionClick) }
+                        )
+                        HorizontalDivider(
+                            modifier = Modifier.padding(start = 72.dp, end = 16.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                            thickness = 0.8.dp
+                        )
 
-                OptionRowItem(
-                    icon = Icons.Outlined.Smartphone,
-                    title = stringResource(id = R.string.label_phone),
-                    subtitle = userData.phone,
-                    onClick = { onEvent(AccountAdminUiEvent.OnOptionClick) }
-                )
-                HorizontalDivider(
-                    modifier = Modifier.padding(start = 56.dp, end = 16.dp),
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
-                    thickness = 0.8.dp
-                )
+                        OptionRowItem(
+                            icon = Icons.Outlined.Smartphone,
+                            title = stringResource(id = R.string.label_phone),
+                            subtitle = userData.phone,
+                            useIconContainer = true,
+                            iconBackgroundColor = MaterialTheme.colorScheme.surfaceVariant,
+                            iconTintColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            onClick = { onEvent(AccountAdminUiEvent.OnOptionClick) }
+                        )
+                        HorizontalDivider(
+                            modifier = Modifier.padding(start = 72.dp, end = 16.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                            thickness = 0.8.dp
+                        )
 
-                OptionRowItem(
-                    icon = Icons.Outlined.Lock,
-                    title = stringResource(id = R.string.label_password),
-                    subtitle = if (userData.tieneContrasena) {
-                        stringResource(id = R.string.masked_password)
-                    } else {
-                        "Entras con Google. Crea una contraseña para entrar también con tu correo."
-                    },
-                    onClick = { onEvent(AccountAdminUiEvent.OnPasswordOptionClick) }
-                )
+                        OptionRowItem(
+                            icon = Icons.Outlined.Lock,
+                            title = stringResource(id = R.string.label_password),
+                            subtitle = if (userData.tieneContrasena) {
+                                stringResource(id = R.string.masked_password)
+                            } else {
+                                "Entras con Google. Crea una contraseña para entrar también con tu correo."
+                            },
+                            useIconContainer = true,
+                            iconBackgroundColor = MaterialTheme.colorScheme.surfaceVariant,
+                            iconTintColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            onClick = { onEvent(AccountAdminUiEvent.OnPasswordOptionClick) }
+                        )
+                    }
+                }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -188,9 +207,9 @@ fun AccountAdminScreen(
                 Surface(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 6.dp),
+                        .padding(horizontal = 16.dp),
                     shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    color = MaterialTheme.colorScheme.surface
                 ) {
                     OptionRowItem(
                         icon = Icons.Outlined.PublishedWithChanges,
@@ -224,31 +243,41 @@ fun AccountAdminScreen(
                 if (userData.role != UserRole.SUPER_ADMIN) {
                     SectionHeader(title = stringResource(id = R.string.section_account_management))
 
-                    OptionRowItem(
-                        icon = Icons.Outlined.PowerSettingsNew,
-                        title = stringResource(id = R.string.deactivate_account_title),
-                        subtitle = stringResource(id = R.string.deactivate_account_subtitle),
-                        useIconContainer = true,
-                        iconBackgroundColor = MaterialTheme.colorScheme.surfaceVariant,
-                        iconTintColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        onClick = { onEvent(AccountAdminUiEvent.OnDeactivateRequested) }
-                    )
-                    HorizontalDivider(
-                        modifier = Modifier.padding(start = 72.dp, end = 16.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
-                        thickness = 0.8.dp
-                    )
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.surface
+                    ) {
+                        Column {
+                            OptionRowItem(
+                                icon = Icons.Outlined.PowerSettingsNew,
+                                title = stringResource(id = R.string.deactivate_account_title),
+                                subtitle = stringResource(id = R.string.deactivate_account_subtitle),
+                                useIconContainer = true,
+                                iconBackgroundColor = MaterialTheme.colorScheme.surfaceVariant,
+                                iconTintColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                onClick = { onEvent(AccountAdminUiEvent.OnDeactivateRequested) }
+                            )
+                            HorizontalDivider(
+                                modifier = Modifier.padding(start = 72.dp, end = 16.dp),
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                                thickness = 0.8.dp
+                            )
 
-                    OptionRowItem(
-                        icon = Icons.Outlined.Delete,
-                        title = stringResource(id = R.string.delete_account_title),
-                        subtitle = stringResource(id = R.string.delete_account_subtitle),
-                        titleColor = MaterialTheme.colorScheme.error,
-                        useIconContainer = true,
-                        iconBackgroundColor = MaterialTheme.colorScheme.surfaceVariant,
-                        iconTintColor = MaterialTheme.colorScheme.error,
-                        onClick = { onEvent(AccountAdminUiEvent.OnDeleteRequested) }
-                    )
+                            OptionRowItem(
+                                icon = Icons.Outlined.Delete,
+                                title = stringResource(id = R.string.delete_account_title),
+                                subtitle = stringResource(id = R.string.delete_account_subtitle),
+                                titleColor = MaterialTheme.colorScheme.error,
+                                useIconContainer = true,
+                                iconBackgroundColor = MaterialTheme.colorScheme.surfaceVariant,
+                                iconTintColor = MaterialTheme.colorScheme.error,
+                                onClick = { onEvent(AccountAdminUiEvent.OnDeleteRequested) }
+                            )
+                        }
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
@@ -489,8 +518,7 @@ fun AccountAdminScreen(
                         onValueChange = { onEvent(AccountAdminUiEvent.OnConfirmPasswordChanged(it)) },
                         label = { Text("Confirmar nueva contraseña") },
                         singleLine = true,
-                        enabled = !uiState.isPasswordSaving,
-                        visualTransformation = if (isConfirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        enabled = !uiState.isPasswordSaving,                        visualTransformation = if (isConfirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         trailingIcon = {
                             IconButton(onClick = { isConfirmPasswordVisible = !isConfirmPasswordVisible }) {
                                 Icon(
