@@ -20,12 +20,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 
-/**
- * Galería de fotos que se desliza, con contador. Se usa en el detalle de publicación y en el
- * detalle de anuncios del administrador. [overlay] permite poner etiquetas encima.
- *
- * [images] acepta URLs (String) del API o recursos (Int) de los datos de prueba.
- */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PhotoGallery(
@@ -34,18 +28,27 @@ fun PhotoGallery(
     counterSeparator: String = "/",
     overlay: @Composable BoxScope.() -> Unit = {}
 ) {
-    val pagerState = rememberPagerState(pageCount = { images.size })
+    // Nunca menos de 1 página: un pager con 0 páginas puede fallar
+    val pageCount = images.size.coerceAtLeast(1)
+    val pagerState = rememberPagerState(pageCount = { pageCount })
+
     Box(modifier = modifier.background(MaterialTheme.colorScheme.surfaceVariant)) {
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.fillMaxSize()
         ) { page ->
-            AsyncImage(
-                model = images[page],
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
-            )
+            val image = images.getOrNull(page)
+            if (image != null) {
+                AsyncImage(
+                    model = image,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                // Sin foto: fondo gris para que el detalle no se rompa
+                Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceVariant))
+            }
         }
 
         if (images.isNotEmpty()) {

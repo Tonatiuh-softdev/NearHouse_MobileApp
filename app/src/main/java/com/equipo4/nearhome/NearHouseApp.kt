@@ -521,8 +521,7 @@ fun NearHouseApp() {
                 onBackClick = { navController.popBackStack() },
                 onEditProfileClick = { navController.navigate(AppRoutes.EDIT_PROFILE) },
                 onCreateListingClick = { navController.navigate(AppRoutes.CREATE_LISTING_GRAPH) },
-                onEditListingClick = { id -> navController.navigate("create_listing_edit/$id")
-                },
+                onEditListingClick = { id -> navController.navigate("create_listing_edit/$id") },
                 onPropertyClick = { propertyId ->
                     navController.navigate("${AppRoutes.PUBLICACION_DETAIL}/$propertyId")
                 },
@@ -778,6 +777,7 @@ fun NearHouseApp() {
             }
         }
 
+        // Pantalla: Detalle de publicación (única ruta)
         composable(
             route = "${AppRoutes.PUBLICACION_DETAIL}/{publicacionId}",
             arguments = listOf(navArgument("publicacionId") { type = NavType.StringType })
@@ -796,6 +796,9 @@ fun NearHouseApp() {
                 },
                 onEditClick = {
                     navController.navigate("create_listing_edit/$publicacionId")
+                },
+                onSellerClick = { sellerId ->
+                    // TODO: pantalla de perfil del anunciante (sellerId)
                 }
             )
         }
@@ -1026,7 +1029,7 @@ fun NearHouseApp() {
             }
         }
 
-        // Pantalla 6b: Home (Mapa de inmuebles)
+        // Pantalla: Mapa de inmuebles
         composable(AppRoutes.MAP) {
             MapScreen(
                 onToggleToList = {
@@ -1053,27 +1056,6 @@ fun NearHouseApp() {
             )
         }
 
-        // Pantalla 7: Detalle de Publicación
-        composable(
-            route = "${AppRoutes.PUBLICACION_DETAIL}/{publicacionId}",
-            arguments = listOf(navArgument("publicacionId") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val publicacionId = backStackEntry.arguments?.getString("publicacionId") ?: ""
-
-            DetailPublicacionScreen(
-                publicacionId = publicacionId,
-                onBackClick = {
-                    navController.popBackStack()
-                },
-                onReportClick = {
-                    navController.navigate("${AppRoutes.REPORT_GRAPH}/$publicacionId")
-                },
-                onEditClick = {
-                }
-            )
-        }
-
-        // Flujo: Reportar Publicación (Sub-gráfico de navegación con ViewModel compartido)
         // Flujo: Reportar publicación (el ViewModel se comparte entre las dos pantallas)
         navigation(
             route = "${AppRoutes.REPORT_GRAPH}/{publicacionId}",
