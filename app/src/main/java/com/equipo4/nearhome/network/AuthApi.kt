@@ -58,6 +58,28 @@ data class ConfirmarCambioCorreoRequest(
     val codigo: String
 )
 
+data class SolicitarCodigoRecuperarRequest(
+    val correo: String
+)
+
+data class SolicitarCodigoRecuperarResponse(
+    val mensaje: String = "Si el correo está registrado, te enviamos un código"
+)
+
+data class VerificarCodigoRecuperarRequest(
+    val correo: String,
+    val codigo: String
+)
+
+data class VerificarCodigoRecuperarResponse(
+    val comprobante: String
+)
+
+data class NuevaContrasenaRecuperarRequest(
+    val comprobante: String,
+    val contrasenaNueva: String
+)
+
 data class LoginResponse(
     val token: String,
     val usuario: UsuarioDto
@@ -218,6 +240,16 @@ interface AuthApi {
 
     @POST("api/v1/usuarios/me/correo/confirmar")
     suspend fun confirmarCambioCorreo(@Body request: ConfirmarCambioCorreoRequest): Response<UsuarioMeDto>
+
+    // Recuperar contraseña
+    @POST("api/v1/auth/recuperar/solicitar-codigo")
+    suspend fun solicitarCodigoRecuperar(@Body request: SolicitarCodigoRecuperarRequest): Response<SolicitarCodigoRecuperarResponse>
+
+    @POST("api/v1/auth/recuperar/verificar")
+    suspend fun verificarCodigoRecuperar(@Body request: VerificarCodigoRecuperarRequest): Response<VerificarCodigoRecuperarResponse>
+
+    @POST("api/v1/auth/recuperar/nueva-contrasena")
+    suspend fun guardarNuevaContrasenaRecuperar(@Body request: NuevaContrasenaRecuperarRequest): Response<Unit>
 
     // Sube la foto de perfil (campo "foto")
     @Multipart

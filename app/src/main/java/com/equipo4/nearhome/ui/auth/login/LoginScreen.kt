@@ -42,7 +42,7 @@ import com.equipo4.nearhome.R
 fun LoginScreen(
     viewModel: LoginViewModel = viewModel(),
     onNavigateToRegister: () -> Unit = {},
-    onNavigateToForgotPassword: () -> Unit = {},
+    onNavigateToForgotPassword: (String) -> Unit = {},
     onLoginSuccess: () -> Unit = {},
     onGoogleAuthTokenReceived: (String) -> Unit = {}
 ) {
@@ -96,7 +96,7 @@ fun LoginScreen(
                 onGoogleAuthTokenReceived(token)
             }
         },
-        onForgotPasswordClick = onNavigateToForgotPassword,
+        onForgotPasswordClick = { onNavigateToForgotPassword(uiState.email) },
         onRegisterClick = onNavigateToRegister
     )
 }
