@@ -2,74 +2,73 @@ package com.equipo4.nearhome.ui.splash
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.equipo4.nearhome.data.local.SessionManager
-import com.equipo4.nearhome.ui.common.nearHouseLogoPainter
+import com.equipo4.nearhome.ui.common.nearHouseLogoLayers
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * Pantalla de carga con animación de entrada única usando el logo adaptable según el tema.
- *
- * @param onFinished true si hay sesión iniciada (ir a Home), false si no (ir a Login).
+ * Splash con la animación original (casa+pin con "pop" y luego el trazo dibujándose de
+ * izquierda a derecha), aplicada al logo nuevo. Fondo y logo salen del tema (claro/oscuro).
+ * Tiempos tomados de nearhouse_splash.json (60 fps).
  */
 @Composable
 fun SplashScreen(onFinished: (isLoggedIn: Boolean) -> Unit) {
     val context = LocalContext.current
     val session = remember { SessionManager(context) }
+    val (baseLogo, swooshLogo) = nearHouseLogoLayers()
 
-    // Animaciones de entrada para el logo único
-    val alpha = remember { Animatable(0f) }
-    val scale = remember { Animatable(0.65f) }
-    val translateY = remember { Animatable(30f) }
+    // Casa + pin
+    val baseAlpha = remember { Animatable(0f) }
+    val baseScale = remember { Animatable(0.8f) }
+    val baseRise = remember { Animatable(1f) }   // 1 = abajo, 0 = en su lugar
+    // Trazo
+    val swooshReveal = remember { Animatable(0f) } // 0 = oculto, 1 = totalmente dibujado
 
     LaunchedEffect(Unit) {
-        // Ejecutar las animaciones de aparición del logo único
-        launch {
-            alpha.animateTo(
-                targetValue = 1f,
-                animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing),
-            )
+        coroutineScope {
+            launch { baseAlpha.animateTo(1f, tween(400, easing = FastOutSlowInEasing)) }
+            launch {
+                baseScale.animateTo(1f, keyframes {
+                    durationMillis = 630
+                    0.8f at 0
+                    1.03f at 400 using FastOutSlowInEasing
+                    1f at 630 using FastOutSlowInEasing
+                })
+            }
+            launch { baseRise.animateTo(0f, tween(600, easing = FastOutSlowInEasing)) }
+            launch {
+                delay(550)
+                swooshReveal.animateTo(1f, tween(750, easing = FastOutSlowInEasing))
+            }
         }
-        launch {
-            scale.animateTo(
-                targetValue = 1f,
-                animationSpec = spring(
-                    dampingRatio = Spring.DampingRatioMediumBouncy,
-                    stiffness = Spring.StiffnessLow,
-                ),
-            )
-        }
-        launch {
-            translateY.animateTo(
-                targetValue = 0f,
-                animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing),
-            )
-        }
-
-        val isLoggedIn = withContext(Dispatchers.IO) {
-            session.isLoggedIn()
-        }
-
-        delay(1800) // Duración de la animación en pantalla
+        val isLoggedIn = withContext(Dispatchers.IO) { session.isLoggedIn() }
+        delay(700)
         onFinished(isLoggedIn)
     }
 
@@ -79,17 +78,43 @@ fun SplashScreen(onFinished: (isLoggedIn: Boolean) -> Unit) {
             .background(MaterialTheme.colorScheme.background),
         contentAlignment = Alignment.Center,
     ) {
-        Image(
-            painter = nearHouseLogoPainter(),
-            contentDescription = "NearHouse Logo",
-            modifier = Modifier
-                .size(240.dp)
-                .graphicsLayer {
-                    this.alpha = alpha.value
-                    this.scaleX = scale.value
-                    this.scaleY = scale.value
-                    this.translationY = translateY.value
-                },
-        )
+        Box(modifier = Modifier.width(220.dp).aspectRatio(768f / 862f)) {
+            Image(
+                painter = baseLogo,
+                contentDescription = "NearHouse Logo",
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        alpha = baseAlpha.value
+                        scaleX = baseScale.value
+                        scaleY = baseScale.value
+                        translationY = baseRise.value * size.height * 0.047f
+                    },
+            )
+            Image(
+                painter = swooshLogo,
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxSize()
+                    // El trazo se "dibuja" en su lugar, de izquierda a derecha, con borde suave
+                    .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+                    .drawWithContent {
+                        drawContent()
+                        val feather = 0.3f
+                        val p = swooshReveal.value
+                        val a = (p * (1f + feather) - feather).coerceIn(0f, 1f)
+                        val b = (p * (1f + feather)).coerceIn(0f, 1f)
+                        drawRect(
+                            brush = Brush.horizontalGradient(
+                                0f to Color.Black,
+                                a to Color.Black,
+                                b to Color.Transparent,
+                                1f to Color.Transparent,
+                            ),
+                            blendMode = BlendMode.DstIn,
+                        )
+                    },
+            )
+        }
     }
 }

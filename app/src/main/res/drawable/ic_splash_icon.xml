@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Ícono del splash nativo (Android 12+): el sistema lo recorta con una máscara circular,
-     por eso se deja un margen alrededor del logo. -->
-<inset xmlns:android="http://schemas.android.com/apk/res/android"
-    android:drawable="@drawable/ic_nearhouse_logo"
-    android:insetLeft="28%"
-    android:insetTop="28%"
-    android:insetRight="28%"
-    android:insetBottom="28%" />
+<!-- Ícono del splash nativo: transparente a propósito. El splash nativo solo muestra el fondo
+     del tema; el logo lo anima SplashScreen.kt sobre ese mismo fondo (sin salto ni 2 pantallas). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24" />
