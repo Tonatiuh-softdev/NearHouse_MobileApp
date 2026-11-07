@@ -24,6 +24,7 @@ data class PublicacionDetail(
     val estaGuardado: Boolean = false,
     val sellerId: Int?,
     val sellerName: String,
+    val sellerPhotoUrl: String? = null,
     val telefonoVendedor: String,
     val emailVendedor: String,
     /** Reglas del inmueble. Solo existen en renta; en venta siempre es null. */

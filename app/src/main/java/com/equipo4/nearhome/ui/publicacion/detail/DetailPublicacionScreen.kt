@@ -53,6 +53,8 @@ import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberMarkerState
 import kotlin.math.roundToInt
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -494,7 +496,7 @@ private fun SellerCard(pub: PublicacionDetail, onClick: () -> Unit) {
             modifier = Modifier.padding(14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            InitialsAvatar(name = name, size = 44.dp)
+            SellerAvatar(name = name, photoUrl = pub.sellerPhotoUrl, size = 44.dp)
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
@@ -523,7 +525,7 @@ private fun SellerCard(pub: PublicacionDetail, onClick: () -> Unit) {
 }
 
 @Composable
-private fun InitialsAvatar(name: String, size: Dp) {
+private fun SellerAvatar(name: String, photoUrl: String?, size: Dp) {
     Box(
         modifier = Modifier
             .size(size)
@@ -531,12 +533,21 @@ private fun InitialsAvatar(name: String, size: Dp) {
             .background(MaterialTheme.colorScheme.primary),
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = initials(name),
-            color = MaterialTheme.colorScheme.onPrimary,
-            fontWeight = FontWeight.Bold,
-            fontSize = (size.value * 0.36f).sp
-        )
+        if (photoUrl != null) {
+            AsyncImage(
+                model = photoUrl,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+        } else {
+            Text(
+                text = initials(name),
+                color = MaterialTheme.colorScheme.onPrimary,
+                fontWeight = FontWeight.Bold,
+                fontSize = (size.value * 0.36f).sp
+            )
+        }
     }
 }
 
