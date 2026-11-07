@@ -1,5 +1,6 @@
 package com.equipo4.nearhome.ui.home.map
 
+import com.equipo4.nearhome.ui.common.nearHouseLogoPainter
 import android.content.Context
 import android.graphics.Bitmap
 import androidx.annotation.DrawableRes
@@ -315,7 +316,7 @@ private fun MapHeader(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Image(
-            painter = painterResource(R.drawable.ic_nearhouse_logo),
+            painter = nearHouseLogoPainter(),
             contentDescription = stringResource(R.string.logo_cd),
             modifier = Modifier.size(40.dp).clip(CircleShape)
         )
