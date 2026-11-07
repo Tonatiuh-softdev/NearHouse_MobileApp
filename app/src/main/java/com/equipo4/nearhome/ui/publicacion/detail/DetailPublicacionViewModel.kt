@@ -61,10 +61,7 @@ private fun Property.toDetail(): PublicacionDetail {
     val esReal = description != null
 
     val descripcionFinal = if (esReal) {
-        buildString {
-            append(description)
-            if (!rules.isNullOrBlank()) append("\n\n${AppStrings.get(R.string.create_listing_ad_rules)}: $rules")
-        }
+        description.orEmpty()
     } else {
         "Exclusivo inmueble de ${areaSqM}m² ubicado en una de las mejores zonas de Manzanillo. " +
                 "Cuenta con una distribución ideal para disfrutar del confort y recibir invitados. " +
@@ -119,6 +116,7 @@ private fun Property.toDetail(): PublicacionDetail {
         sellerId = sellerId,
         sellerName = sellerName.orEmpty(),
         telefonoVendedor = if (esReal) whatsappNumber(sellerPhone) else "523121234567",
+        reglas = if (esReal && listingType == ListingType.RENTA) rules?.takeIf { it.isNotBlank() } else null,
         emailVendedor = sellerEmail ?: "vendedor@ejemplo.com"
     )
 }

@@ -5,8 +5,8 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.net.Uri
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -18,9 +18,13 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -37,20 +41,18 @@ import com.equipo4.nearhome.ui.common.DetailPublicacionSkeleton
 import com.equipo4.nearhome.ui.common.FakeMapPreview
 import com.equipo4.nearhome.ui.theme.nearHouseColors
 import com.equipo4.nearhome.util.AppStrings
+import com.google.android.gms.maps.MapsInitializer
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.ComposeMapColorScheme
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberMarkerState
 import kotlin.math.roundToInt
-import androidx.compose.foundation.background
-import com.google.android.gms.maps.MapsInitializer
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -101,6 +103,12 @@ fun DetailPublicacionScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
+        },
+        bottomBar = {
+            val state = uiState
+            if (state is DetailPublicacionUiState.Success) {
+                ContactBar(pub = state.publicacion)
+            }
         }
     ) { innerPadding ->
         Box(
@@ -160,7 +168,6 @@ fun DetailPublicacionScreen(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun DetailContent(
     pub: PublicacionDetail,
@@ -169,8 +176,10 @@ private fun DetailContent(
 ) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
-    var isExpandedDescription by remember { mutableStateOf(false) }
-    var selectedTab by remember { mutableStateOf(0) }
+    var expanded by rememberSaveable { mutableStateOf(false) }
+    var canExpand by remember { mutableStateOf(false) }
+
+    val hasSpecs = pub.metrosCuadrados > 0 || pub.recamaras > 0 || pub.banos > 0 || pub.cocheras > 0
 
     Column(
         modifier = Modifier
@@ -181,6 +190,7 @@ private fun DetailContent(
         // --- GALERÍA ---
         PhotoGallery(
             images = pub.imagenes,
+            showDots = true,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(260.dp)
@@ -203,44 +213,93 @@ private fun DetailContent(
             }
         }
 
-        // --- CONTROL SEGMENTADO ---
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp)
-                .background(MaterialTheme.colorScheme.surface)
-        ) {
-            TabIcon(
-                icon = Icons.Outlined.PhotoCamera,
-                description = stringResource(R.string.detail_photos_cd),
-                selected = selectedTab == 0,
-                modifier = Modifier.weight(1f).clickable { selectedTab = 0 }
-            )
-            TabIcon(
-                icon = Icons.Outlined.LocationOn,
-                description = stringResource(R.string.search_filters_location),
-                selected = selectedTab == 1,
-                modifier = Modifier.weight(1f).clickable { selectedTab = 1 }
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // --- PRECIO Y TIPO ---
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-            if (pub.esPropietario) {
-                TipoPropiedadSection(pub.tipoPropiedad)
-                Spacer(modifier = Modifier.height(4.dp))
-                PrecioSection(pub.precio, pub.esRenta)
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // 1. TÍTULO
+            Text(
+                text = pub.titulo.uppercase(),
+                fontWeight = FontWeight.Bold,
+                fontSize = 17.sp,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // 2. PRECIO
+            PrecioSection(pub.precio, pub.esRenta)
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            // 3. TIPO (con su icono)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    painter = painterResource(id = tipoIcon(pub.tipo)),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = pub.tipoPropiedad,
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            // Especificaciones, sin tarjeta
+            if (hasSpecs) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    if (pub.metrosCuadrados > 0) {
+                        FeatureItem(iconRes = R.drawable.ic_regla_medicion, label = "${pub.metrosCuadrados} m²")
+                    }
+                    if (pub.recamaras > 0) {
+                        FeatureItem(iconRes = R.drawable.ic_habitaciones, label = stringResource(R.string.property_bedrooms_format, pub.recamaras))
+                    }
+                    if (pub.banos > 0) {
+                        FeatureItem(iconRes = R.drawable.ic_bathrooms, label = stringResource(R.string.property_bathrooms_format, pub.banos))
+                    }
+                    if (pub.cocheras > 0) {
+                        FeatureItem(iconRes = R.drawable.ic_cocheras, label = stringResource(R.string.property_garages_format, pub.cocheras))
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // 4. MAPA (toca para abrir Google Maps)
+            val lat = pub.latitud
+            val lng = pub.longitud
+            if (lat != null && lng != null) {
+                LocationMap(
+                    lat = lat,
+                    lng = lng,
+                    type = pub.tipo,
+                    onClick = { openInMaps(context, lat, lng, pub.direccion) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                )
             } else {
-                PrecioSection(pub.precio, pub.esRenta)
-                Spacer(modifier = Modifier.height(4.dp))
-                TipoPropiedadSection(pub.tipoPropiedad)
+                FakeMapPreview(
+                    propertyType = pub.tipo,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(160.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                )
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // --- DIRECCIÓN ---
+            // 5. UBICACIÓN (dirección escrita)
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Outlined.LocationOn,
@@ -258,93 +317,41 @@ private fun DetailContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // --- TARJETA DEL ANUNCIANTE ---
+            // 6. PERFIL DEL ANUNCIANTE
             SellerCard(pub = pub, onClick = onSellerClick)
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // --- MAPA (real si hay coordenadas, si no el de prueba) ---
-            val lat = pub.latitud
-            val lng = pub.longitud
-            if (lat != null && lng != null) {
-                LocationMap(
-                    lat = lat,
-                    lng = lng,
-                    type = pub.tipo,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(180.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                )
-            } else {
-                FakeMapPreview(
-                    propertyType = pub.tipo,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(160.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // --- ESPECIFICACIONES ---
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                if (pub.metrosCuadrados > 0) {
-                    FeatureItem(iconRes = R.drawable.ic_regla_medicion, label = "${pub.metrosCuadrados} m²")
-                }
-                if (pub.recamaras > 0) {
-                    FeatureItem(iconRes = R.drawable.ic_habitaciones, label = stringResource(R.string.property_bedrooms_format, pub.recamaras))
-                }
-                if (pub.banos > 0) {
-                    FeatureItem(iconRes = R.drawable.ic_bathrooms, label = stringResource(R.string.property_bathrooms_format, pub.banos))
-                }
-                if (pub.cocheras > 0) {
-                    FeatureItem(iconRes = R.drawable.ic_cocheras, label = stringResource(R.string.property_garages_format, pub.cocheras))
-                }
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // --- TÍTULO Y DESCRIPCIÓN ---
-            Text(
-                text = pub.titulo.uppercase(),
-                fontWeight = FontWeight.Bold,
-                fontSize = 15.sp,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-
-            Spacer(modifier = Modifier.height(6.dp))
-
+            // 7. DESCRIPCIÓN
             Text(
                 text = pub.descripcion,
                 fontSize = 13.sp,
                 lineHeight = 20.sp,
                 color = MaterialTheme.colorScheme.onSurface,
-                maxLines = if (isExpandedDescription || pub.esPropietario) Int.MAX_VALUE else 3,
-                overflow = TextOverflow.Ellipsis
+                maxLines = if (expanded || pub.esPropietario) Int.MAX_VALUE else 3,
+                overflow = TextOverflow.Ellipsis,
+                onTextLayout = { result ->
+                    if (!expanded) canExpand = result.hasVisualOverflow
+                }
             )
 
-            if (!pub.esPropietario) {
+            if (!pub.esPropietario && (canExpand || expanded)) {
                 Text(
                     text = stringResource(
-                        if (isExpandedDescription) R.string.detail_read_less else R.string.detail_read_more
+                        if (expanded) R.string.detail_read_less else R.string.detail_read_more
                     ),
                     color = MaterialTheme.colorScheme.primary,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Medium,
                     modifier = Modifier
-                        .clickable { isExpandedDescription = !isExpandedDescription }
+                        .clickable { expanded = !expanded }
                         .padding(vertical = 4.dp)
                 )
             }
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // --- MÁS DETALLES ---
+            // 8. MÁS DETALLES
             Text(
                 text = stringResource(R.string.detail_more_details),
                 fontWeight = FontWeight.Bold,
@@ -354,22 +361,34 @@ private fun DetailContent(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            Row(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.weight(1f)) {
-                    pub.caracteristicasColumna1.forEach { item ->
-                        Text(text = item, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            val detalles = pub.caracteristicasColumna1 + pub.caracteristicasColumna2
+            detalles.chunked(2).forEach { par ->
+                Row(modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp)) {
+                    par.forEach { item ->
+                        Text(
+                            text = item,
+                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.weight(1f)
+                        )
                     }
+                    if (par.size == 1) Spacer(modifier = Modifier.weight(1f))
                 }
-                Column(modifier = Modifier.weight(1f)) {
-                    pub.caracteristicasColumna2.forEach { item ->
-                        Text(text = item, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                }
+            }
+
+            // 9. REGLAS (solo renta, al final)
+            pub.reglas?.let { reglas ->
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = "${stringResource(R.string.detail_rules)}: $reglas",
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // --- REPORTE (solo comprador) ---
+            // Reporte (solo comprador)
             if (!pub.esPropietario) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -389,55 +408,68 @@ private fun DetailContent(
                         modifier = Modifier.clickable { onReportClick() }
                     )
                 }
-                Spacer(modifier = Modifier.height(16.dp))
+            }
+        }
+    }
+}
+
+// ---------- Botones de contacto fijos abajo ----------
+
+@Composable
+private fun ContactBar(pub: PublicacionDetail) {
+    val context = LocalContext.current
+
+    Surface(
+        color = MaterialTheme.colorScheme.surface,
+        shadowElevation = 8.dp
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Button(
+                onClick = {
+                    val intent = Intent(Intent.ACTION_VIEW).apply {
+                        data = Uri.parse(
+                            "https://api.whatsapp.com/send?phone=${pub.telefonoVendedor}" +
+                                    "&text=${Uri.encode(AppStrings.get(R.string.detail_whatsapp_message))}"
+                        )
+                    }
+                    context.startActivity(intent)
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.nearHouseColors.whatsappBtnBg,
+                    contentColor = MaterialTheme.nearHouseColors.whatsappBtnText
+                ),
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier.weight(1f).height(50.dp)
+            ) {
+                Icon(Icons.Default.Phone, contentDescription = null, tint = MaterialTheme.nearHouseColors.whatsappBtnText)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("WhatsApp", color = MaterialTheme.nearHouseColors.whatsappBtnText, fontWeight = FontWeight.Bold)
             }
 
-            // --- CONTACTO ---
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            Button(
+                onClick = {
+                    val intent = Intent(Intent.ACTION_SENDTO).apply {
+                        data = Uri.parse("mailto:${pub.emailVendedor}")
+                        putExtra(Intent.EXTRA_SUBJECT, AppStrings.get(R.string.detail_email_subject, pub.titulo))
+                    }
+                    context.startActivity(intent)
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.nearHouseColors.correoBtnBg,
+                    contentColor = MaterialTheme.nearHouseColors.correoBtnText
+                ),
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier.weight(1f).height(50.dp)
             ) {
-                Button(
-                    onClick = {
-                        val intent = Intent(Intent.ACTION_VIEW).apply {
-                            data = Uri.parse(
-                                "https://api.whatsapp.com/send?phone=${pub.telefonoVendedor}" +
-                                        "&text=${Uri.encode(AppStrings.get(R.string.detail_whatsapp_message))}"
-                            )
-                        }
-                        context.startActivity(intent)
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.nearHouseColors.whatsappBtnBg,
-                        contentColor = MaterialTheme.nearHouseColors.whatsappBtnText
-                    ),
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Icon(Icons.Default.Phone, contentDescription = null, tint = MaterialTheme.nearHouseColors.whatsappBtnText)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("WhatsApp", color = MaterialTheme.nearHouseColors.whatsappBtnText, fontWeight = FontWeight.Bold)
-                }
-
-                Button(
-                    onClick = {
-                        val intent = Intent(Intent.ACTION_SENDTO).apply {
-                            data = Uri.parse("mailto:${pub.emailVendedor}")
-                            putExtra(Intent.EXTRA_SUBJECT, AppStrings.get(R.string.detail_email_subject, pub.titulo))
-                        }
-                        context.startActivity(intent)
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.nearHouseColors.correoBtnBg,
-                        contentColor = MaterialTheme.nearHouseColors.correoBtnText
-                    ),
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Icon(Icons.Default.Email, contentDescription = null, tint = MaterialTheme.nearHouseColors.correoBtnText)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(stringResource(R.string.detail_email), color = MaterialTheme.nearHouseColors.correoBtnText, fontWeight = FontWeight.Bold)
-                }
+                Icon(Icons.Default.Email, contentDescription = null, tint = MaterialTheme.nearHouseColors.correoBtnText)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(stringResource(R.string.detail_email), color = MaterialTheme.nearHouseColors.correoBtnText, fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -508,17 +540,30 @@ private fun InitialsAvatar(name: String, size: Dp) {
     }
 }
 
-// ---------- Mapa real ----------
+private fun tipoIcon(tipo: PropertyType): Int = when (tipo) {
+    PropertyType.CASA -> R.drawable.ic_casa_relleno_abajo
+    PropertyType.DEPARTAMENTO -> R.drawable.ic_departamento
+    PropertyType.TERRENO -> R.drawable.ic_terreno
+}
+
+// ---------- Mapa ----------
 
 @Composable
-private fun LocationMap(lat: Double, lng: Double, type: PropertyType, modifier: Modifier = Modifier) {
+private fun LocationMap(
+    lat: Double,
+    lng: Double,
+    type: PropertyType,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     val context = LocalContext.current
     val latLng = LatLng(lat, lng)
+    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
     val cameraState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(latLng, 15f)
     }
 
-    // Se inicializa el SDK de Maps antes de crear cualquier BitmapDescriptor
+    // El SDK debe inicializarse antes de crear cualquier BitmapDescriptor
     var mapsReady by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         MapsInitializer.initialize(context.applicationContext, MapsInitializer.Renderer.LATEST) { _ ->
@@ -536,11 +581,14 @@ private fun LocationMap(lat: Double, lng: Double, type: PropertyType, modifier: 
         return
     }
 
-    val icon = remember(type, mapsReady) { pinIcon(context, type) }
+    val icon = remember(type) { pinIcon(context, type) }
 
     GoogleMap(
         modifier = modifier,
         cameraPositionState = cameraState,
+        // Sigue el tema de la app, no el del sistema
+        mapColorScheme = if (isDark) ComposeMapColorScheme.DARK else ComposeMapColorScheme.LIGHT,
+        onMapClick = { onClick() },
         uiSettings = MapUiSettings(
             zoomControlsEnabled = false,
             scrollGesturesEnabled = false,
@@ -550,48 +598,30 @@ private fun LocationMap(lat: Double, lng: Double, type: PropertyType, modifier: 
             mapToolbarEnabled = false
         )
     ) {
-        Marker(state = rememberMarkerState(position = latLng), icon = icon)
+        Marker(
+            state = rememberMarkerState(position = latLng),
+            icon = icon,
+            onClick = {
+                onClick()
+                true
+            }
+        )
     }
+}
+
+/** Abre la ubicación en la app de Google Maps (o en la que tenga el teléfono). */
+private fun openInMaps(context: Context, lat: Double, lng: Double, label: String) {
+    val uri = Uri.parse("geo:$lat,$lng?q=$lat,$lng(${Uri.encode(label)})")
+    context.startActivity(Intent(Intent.ACTION_VIEW, uri))
 }
 
 // ---------- Piezas reutilizadas ----------
 
 @Composable
-private fun TabIcon(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    description: String,
-    selected: Boolean,
-    modifier: Modifier = Modifier
-) {
-    Box(modifier = modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(
-                imageVector = icon,
-                contentDescription = description,
-                tint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            if (selected) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(2.dp)
-                        .background(MaterialTheme.colorScheme.primary)
-                )
-            }
-        }
-    }
-}
-
-@Composable
 private fun PrecioSection(precio: Double, esRenta: Boolean) {
     Row(verticalAlignment = Alignment.Bottom) {
         Text(
-            text = if (esRenta) {
-                stringResource(R.string.detail_rent_price_format, String.format("%,.0f", precio))
-            } else {
-                stringResource(R.string.property_price_format, String.format("%,.0f", precio))
-            },
+            text = stringResource(R.string.property_price_format, String.format("%,.0f", precio)),
             fontWeight = FontWeight.Bold,
             fontSize = 18.sp,
             color = MaterialTheme.colorScheme.onSurface
@@ -674,7 +704,7 @@ private fun HerramientasBottomSheet(
 }
 
 @Composable
-private fun SheetRow(icon: androidx.compose.ui.graphics.vector.ImageVector, text: String, onClick: () -> Unit) {
+private fun SheetRow(icon: ImageVector, text: String, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
