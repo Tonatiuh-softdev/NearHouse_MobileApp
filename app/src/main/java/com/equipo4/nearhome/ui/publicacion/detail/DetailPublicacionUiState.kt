@@ -13,7 +13,7 @@ data class PublicacionDetail(
     val direccion: String,
     val latitud: Double?,
     val longitud: Double?,
-    val imagenes: List<Any>, // URLs del API (o R.drawable en los datos de prueba)
+    val imagenes: List<Any>,
     val metrosCuadrados: Int,
     val recamaras: Int,
     val banos: Int,
@@ -25,7 +25,9 @@ data class PublicacionDetail(
     val sellerId: Int?,
     val sellerName: String,
     val telefonoVendedor: String,
-    val emailVendedor: String
+    val emailVendedor: String,
+    /** Reglas del inmueble. Solo existen en renta; en venta siempre es null. */
+    val reglas: String? = null
 )
 
 sealed interface DetailPublicacionUiState {
