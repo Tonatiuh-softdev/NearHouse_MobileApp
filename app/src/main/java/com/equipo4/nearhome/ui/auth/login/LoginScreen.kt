@@ -139,8 +139,9 @@ private fun LoginContent(
             Text(
                 text = "¡BIENVENIDO A NEARHOUSE!",
                 fontSize = 20.sp,
-                fontWeight = FontWeight.Normal,
-                fontFamily = FontFamily.Serif,
+                fontWeight = FontWeight.Bold,
+                fontFamily = FontFamily.Default,
+                letterSpacing = 0.5.sp,
                 color = cs.onSurface
             )
 

@@ -19,7 +19,7 @@ fun isNearHouseDark(): Boolean {
 /** Logo completo según el modo actual. */
 @Composable
 fun nearHouseLogoPainter(): Painter =
-    painterResource(if (isNearHouseDark()) R.drawable.ic_nearhouse_logo_dark else R.drawable.ic_nearhouse_logo)
+    painterResource(if (isNearHouseDark()) R.drawable.ic_nearhouse_logo_dark else R.drawable.ic_nearhouse_logo_light)
 
 /** Capas del logo para animarlo: (casa + pin, trazo) según el modo actual. */
 @Composable
