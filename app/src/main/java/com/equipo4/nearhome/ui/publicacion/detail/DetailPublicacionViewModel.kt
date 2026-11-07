@@ -115,6 +115,7 @@ private fun Property.toDetail(): PublicacionDetail {
         estaGuardado = isSaved,
         sellerId = sellerId,
         sellerName = sellerName.orEmpty(),
+        sellerPhotoUrl = sellerPhotoUrl,
         telefonoVendedor = if (esReal) whatsappNumber(sellerPhone) else "523121234567",
         reglas = if (esReal && listingType == ListingType.RENTA) rules?.takeIf { it.isNotBlank() } else null,
         emailVendedor = sellerEmail ?: "vendedor@ejemplo.com"

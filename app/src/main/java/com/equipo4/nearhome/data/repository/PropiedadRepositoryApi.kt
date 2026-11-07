@@ -26,6 +26,10 @@ import kotlin.coroutines.cancellation.CancellationException
 /** URL de una foto del anuncio. Es pública: Coil la carga sin sesión. */
 fun fotoPublicacionUrl(fotoId: Int): String = "${NetworkModule.BASE_URL}api/v1/fotos/$fotoId"
 
+/** Foto de perfil de cualquier usuario. La versión cambia cuando el usuario sube otra, así Coil no muestra la vieja. */
+fun fotoUsuarioUrl(userId: Int, version: Long): String =
+    "${NetworkModule.BASE_URL}api/v1/usuarios/$userId/foto?v=$version"
+
 /**
  * Anuncios reales: lee del API los que están PUBLICADA. Cada vez que una pantalla empieza a observar
  * se vuelve a pedir la lista, así un anuncio recién aprobado aparece sin reiniciar la app.
@@ -140,6 +144,9 @@ internal fun PublicacionDto.toProperty(userId: Int?): Property {
         rules = reglas,
         sellerId = vendedor.id,
         sellerName = vendedor.nombre,
+        sellerPhotoUrl = if (vendedor.tieneFoto && vendedor.fotoVersion != null) {
+            fotoUsuarioUrl(vendedor.id, vendedor.fotoVersion)
+        } else null,
         sellerEmail = vendedor.correo,
         sellerPhone = vendedor.telefono,
         isOwner = userId != null && vendedor.id == userId,
