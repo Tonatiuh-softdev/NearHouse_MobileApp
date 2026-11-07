@@ -38,7 +38,7 @@ class MyListingsViewModel(application: Application) : AndroidViewModel(applicati
                         userEmail = user?.correo.orEmpty(),
                         userPhone = user?.telefono?.takeIf { it.isNotBlank() } ?: "",
                         userPhotoUrl = user?.takeIf { it.tieneFoto && it.fotoVersion != null }
-                            ?.let { NetworkModule.fotoPerfilUrl(it.fotoVersion!!) },
+                            ?.let { NetworkModule.fotoPerfilUrl(it.id, it.fotoVersion.toString()) },
                         role = UserRole.fromDb(user?.rol)
                     )
                 }
