@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
@@ -69,16 +70,35 @@ fun LoginScreen(
     if (uiState.showReactivateDialog) {
         AlertDialog(
             onDismissRequest = { viewModel.onDismissReactivateDialog() },
-            title = { Text("Cuenta Desactivada") },
-            text = { Text("Tu cuenta está desactivada. ¿Quieres reactivarla?") },
+            title = {
+                Text(
+                    stringResource(
+                        if (uiState.reactivateIsDeletion) R.string.login_keep_title else R.string.login_reactivate_title
+                    )
+                )
+            },
+            text = {
+                // Si está por eliminarse, el mensaje de la API trae la fecha
+                Text(
+                    if (uiState.reactivateIsDeletion) {
+                        uiState.reactivateMessage ?: stringResource(R.string.login_keep_title)
+                    } else {
+                        stringResource(R.string.login_reactivate_text)
+                    }
+                )
+            },
             confirmButton = {
                 Button(onClick = { viewModel.onConfirmReactivate() }) {
-                    Text("Reactivar")
+                    Text(
+                        stringResource(
+                            if (uiState.reactivateIsDeletion) R.string.login_keep_confirm else R.string.login_reactivate_confirm
+                        )
+                    )
                 }
             },
             dismissButton = {
                 TextButton(onClick = { viewModel.onDismissReactivateDialog() }) {
-                    Text("Cancelar")
+                    Text(stringResource(R.string.cancel))
                 }
             }
         )

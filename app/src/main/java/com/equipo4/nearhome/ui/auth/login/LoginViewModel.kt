@@ -103,7 +103,11 @@ class LoginViewModel(
                         it.copy(
                             isLoading = false,
                             isSuccess = true,
-                            reactivateSuccessMessage = if (reactivar) "Tu cuenta está activa otra vez" else null
+                            reactivateSuccessMessage = if (reactivar) {
+                                AppStrings.get(
+                                    if (currentState.reactivateIsDeletion) R.string.login_kept_msg else R.string.login_reactivated_msg
+                                )
+                            } else null
                         )
                     }
                 } else {
@@ -112,12 +116,19 @@ class LoginViewModel(
                     } catch (e: Exception) {
                         null
                     }
-                    val isDeactivated = response.code() == 409 || (rawError?.contains("CUENTA_DESACTIVADA", ignoreCase = true) == true) || (rawError?.contains("desactivada", ignoreCase = true) == true)
+                    // 409 = cuenta desactivada (CUENTA_DESACTIVADA) o por eliminarse (CUENTA_EN_ELIMINACION)
+                    val errorJson = try { JSONObject(rawError ?: "") } catch (e: Exception) { null }
+                    val codigo = errorJson?.optString("codigo").orEmpty()
+                    val esEliminacion = codigo == "CUENTA_EN_ELIMINACION"
+                    val isDeactivated = esEliminacion || codigo == "CUENTA_DESACTIVADA" || response.code() == 409 ||
+                        (rawError?.contains("desactivada", ignoreCase = true) == true)
                     if (isDeactivated) {
                         _uiState.update {
                             it.copy(
                                 isLoading = false,
-                                showReactivateDialog = true
+                                showReactivateDialog = true,
+                                reactivateIsDeletion = esEliminacion,
+                                reactivateMessage = errorJson?.optString("error")?.takeIf { m -> m.isNotBlank() }
                             )
                         }
                     } else {

@@ -23,7 +23,12 @@ sealed class GoogleAuthState {
     object Loading : GoogleAuthState()
     object SessionSuccess : GoogleAuthState()
     data class RequiresRegistration(val proofData: GoogleProofResponse) : GoogleAuthState()
-    data class RequiresReactivation(val idToken: String) : GoogleAuthState()
+    /** Cuenta desactivada, o por eliminarse ([esEliminacion]); [mensaje] es el de la API (trae la fecha). */
+    data class RequiresReactivation(
+        val idToken: String,
+        val mensaje: String? = null,
+        val esEliminacion: Boolean = false
+    ) : GoogleAuthState()
     data class Error(val mensaje: String) : GoogleAuthState()
 }
 
@@ -57,7 +62,13 @@ class GoogleAuthViewModel(
                         _uiState.value = GoogleAuthState.SessionSuccess
                     }
                 } else if (response.code() == 409) {
-                    _uiState.value = GoogleAuthState.RequiresReactivation(idToken)
+                    // CUENTA_DESACTIVADA o CUENTA_EN_ELIMINACION
+                    val (mensaje, codigo) = leerErrorConCodigo(response.errorBody()?.string())
+                    _uiState.value = GoogleAuthState.RequiresReactivation(
+                        idToken = idToken,
+                        mensaje = mensaje,
+                        esEliminacion = codigo == "CUENTA_EN_ELIMINACION"
+                    )
                 } else {
                     val mensajeError = extraerMensajeError(response.errorBody()?.string())
                     if (mensajeError.contains("CUENTA_DESACTIVADA", ignoreCase = true) || mensajeError.contains("desactivada", ignoreCase = true)) {
@@ -148,6 +159,16 @@ class GoogleAuthViewModel(
         } catch (_: Exception) {
             "Error al procesar la solicitud"
         }
+    }
+
+    /** Mensaje ("error") y código ("codigo") de una respuesta de error de la API. */
+    private fun leerErrorConCodigo(errorJson: String?): Pair<String?, String?> = try {
+        val json = gson.fromJson(errorJson, JsonObject::class.java)
+        val mensaje = json?.get("error")?.takeIf { !it.isJsonNull }?.asString
+        val codigo = json?.get("codigo")?.takeIf { !it.isJsonNull }?.asString
+        mensaje to codigo
+    } catch (_: Exception) {
+        null to null
     }
 
     fun reiniciarEstado() {

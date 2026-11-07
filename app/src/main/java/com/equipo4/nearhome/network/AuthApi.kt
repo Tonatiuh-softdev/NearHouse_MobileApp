@@ -28,6 +28,13 @@ data class DesactivarCuentaRequest(
     val googleToken: String? = null
 )
 
+/** Respuesta de POST /usuarios/me/eliminar: cuándo se borrará la cuenta. */
+data class EliminarCuentaResponse(
+    val fechaEliminacion: String,
+    /** Lista para mostrar, por ejemplo "5 de diciembre de 2026". */
+    val fechaEliminacionTexto: String
+)
+
 data class CodigoContrasenaResponse(
     val correoOculto: String,
     val tieneContrasena: Boolean
@@ -190,6 +197,10 @@ interface AuthApi {
     // Desactivar cuenta
     @POST("api/v1/usuarios/me/desactivar")
     suspend fun desactivarCuenta(@Body request: DesactivarCuentaRequest): Response<Unit>
+
+    // Eliminar cuenta: queda desactivada y se borra en 30 días si no vuelve a iniciar sesión
+    @POST("api/v1/usuarios/me/eliminar")
+    suspend fun eliminarCuenta(@Body request: DesactivarCuentaRequest): Response<EliminarCuentaResponse>
 
     // Cambio / Creación de contraseña
     @POST("api/v1/usuarios/me/contrasena/codigo")

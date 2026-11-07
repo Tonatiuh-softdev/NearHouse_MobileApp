@@ -57,6 +57,14 @@ fun AccountAdminRoute(
         }
     }
 
+    LaunchedEffect(uiState.deletionScheduledDate) {
+        uiState.deletionScheduledDate?.let { fecha ->
+            val msg = context.getString(R.string.acc_delete_scheduled_msg, fecha)
+            Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+            onNavigateToLogin(msg)
+        }
+    }
+
     LaunchedEffect(uiState.snackbarSuccessMessage) {
         uiState.snackbarSuccessMessage?.let { msg ->
             Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
@@ -69,7 +77,8 @@ fun AccountAdminRoute(
         onEvent = viewModel::onEvent,
         onNavigateBack = onNavigateBack,
         onNavigateToPlans = onNavigateToPlans,
-        onBottomTabSelected = onBottomTabSelected
+        onBottomTabSelected = onBottomTabSelected,
+        onConfirmWithGoogle = { eliminar -> viewModel.confirmarConGoogle(context, eliminar) }
     )
 }
 
@@ -80,10 +89,13 @@ fun AccountAdminScreen(
     onEvent: (AccountAdminUiEvent) -> Unit,
     onNavigateBack: () -> Unit,
     onNavigateToPlans: () -> Unit,
-    onBottomTabSelected: (Int) -> Unit = {}
+    onBottomTabSelected: (Int) -> Unit = {},
+    /** Cuentas sin contraseña (Google): confirma con Google antes de desactivar (false) o eliminar (true). */
+    onConfirmWithGoogle: (eliminar: Boolean) -> Unit = {}
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     var isCurrentPasswordVisible by remember { mutableStateOf(false) }
+    var isDeletePasswordVisible by remember { mutableStateOf(false) }
     var isNewPasswordVisible by remember { mutableStateOf(false) }
     var isConfirmPasswordVisible by remember { mutableStateOf(false) }
 
@@ -240,7 +252,7 @@ fun AccountAdminScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // ==================== GESTIÓN DE LA CUENTA ====================
-                if (userData.role != UserRole.SUPER_ADMIN) {
+                if (userData.role != UserRole.SUPER_ADMIN && userData.role != UserRole.ADMIN) {
                     SectionHeader(title = stringResource(id = R.string.section_account_management))
 
                     Surface(
@@ -569,9 +581,11 @@ fun AccountAdminScreen(
 
     // ==================== DIÁLOGOS DE DESACTIVACIÓN Y ELIMINACIÓN ====================
     if (uiState.showDeactivateDialog) {
+        val deactivateHasPass = uiState.userData?.tieneContrasena == true
+        val deactivateBusy = uiState.isDeactivating || uiState.isGoogleConfirming
         AlertDialog(
             onDismissRequest = {
-                if (!uiState.isDeactivating) {
+                if (!deactivateBusy) {
                     onEvent(AccountAdminUiEvent.OnDeactivateDismissed)
                 }
             },
@@ -580,24 +594,32 @@ fun AccountAdminScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(text = stringResource(id = R.string.dialog_deactivate_text))
 
-                    OutlinedTextField(
-                        value = uiState.deactivatePasswordInput,
-                        onValueChange = { onEvent(AccountAdminUiEvent.OnDeactivatePasswordChanged(it)) },
-                        label = { Text("Contraseña actual") },
-                        singleLine = true,
-                        enabled = !uiState.isDeactivating,
-                        visualTransformation = if (isCurrentPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                        trailingIcon = {
-                            IconButton(onClick = { isCurrentPasswordVisible = !isCurrentPasswordVisible }) {
-                                Icon(
-                                    imageVector = if (isCurrentPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                                    contentDescription = "Mostrar u ocultar contraseña"
-                                )
-                            }
-                        },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                    if (deactivateHasPass) {
+                        OutlinedTextField(
+                            value = uiState.deactivatePasswordInput,
+                            onValueChange = { onEvent(AccountAdminUiEvent.OnDeactivatePasswordChanged(it)) },
+                            label = { Text(stringResource(id = R.string.acc_current_password)) },
+                            singleLine = true,
+                            enabled = !deactivateBusy,
+                            visualTransformation = if (isCurrentPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                            trailingIcon = {
+                                IconButton(onClick = { isCurrentPasswordVisible = !isCurrentPasswordVisible }) {
+                                    Icon(
+                                        imageVector = if (isCurrentPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                                        contentDescription = stringResource(id = R.string.acc_toggle_password_cd)
+                                    )
+                                }
+                            },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    } else {
+                        Text(
+                            text = stringResource(id = R.string.acc_google_hint),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 14.sp
+                        )
+                    }
 
                     if (uiState.deactivateError != null) {
                         Text(
@@ -610,27 +632,37 @@ fun AccountAdminScreen(
             },
             confirmButton = {
                 Button(
-                    enabled = uiState.deactivatePasswordInput.isNotBlank() && !uiState.isDeactivating,
+                    enabled = (!deactivateHasPass || uiState.deactivatePasswordInput.isNotBlank()) && !deactivateBusy,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.error,
                         contentColor = MaterialTheme.colorScheme.onError
                     ),
-                    onClick = { onEvent(AccountAdminUiEvent.OnDeactivateConfirmed()) }
+                    onClick = {
+                        if (deactivateHasPass) {
+                            onEvent(AccountAdminUiEvent.OnDeactivateConfirmed())
+                        } else {
+                            onConfirmWithGoogle(false)
+                        }
+                    }
                 ) {
-                    if (uiState.isDeactivating) {
+                    if (deactivateBusy) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(18.dp),
                             color = MaterialTheme.colorScheme.onError,
                             strokeWidth = 2.dp
                         )
                     } else {
-                        Text(text = stringResource(id = R.string.confirm_deactivate))
+                        Text(
+                            text = stringResource(
+                                id = if (deactivateHasPass) R.string.confirm_deactivate else R.string.acc_confirm_google
+                            )
+                        )
                     }
                 }
             },
             dismissButton = {
                 TextButton(
-                    enabled = !uiState.isDeactivating,
+                    enabled = !deactivateBusy,
                     onClick = { onEvent(AccountAdminUiEvent.OnDeactivateDismissed) }
                 ) {
                     Text(text = stringResource(id = R.string.cancel))
@@ -640,6 +672,8 @@ fun AccountAdminScreen(
     }
 
     if (uiState.showDeleteDialog) {
+        val deleteHasPass = uiState.userData?.tieneContrasena == true
+        val deleteBusy = uiState.isDeleting || uiState.isGoogleConfirming
         AlertDialog(
             onDismissRequest = { onEvent(AccountAdminUiEvent.OnDeleteDismissed) },
             title = {
@@ -658,8 +692,44 @@ fun AccountAdminScreen(
                         },
                         placeholder = { Text(text = stringResource(id = R.string.dialog_delete_placeholder)) },
                         singleLine = true,
+                        enabled = !deleteBusy,
                         modifier = Modifier.fillMaxWidth()
                     )
+
+                    if (deleteHasPass) {
+                        OutlinedTextField(
+                            value = uiState.deletePasswordInput,
+                            onValueChange = { onEvent(AccountAdminUiEvent.OnDeletePasswordChanged(it)) },
+                            label = { Text(stringResource(id = R.string.acc_current_password)) },
+                            singleLine = true,
+                            enabled = !deleteBusy,
+                            visualTransformation = if (isDeletePasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                            trailingIcon = {
+                                IconButton(onClick = { isDeletePasswordVisible = !isDeletePasswordVisible }) {
+                                    Icon(
+                                        imageVector = if (isDeletePasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                                        contentDescription = stringResource(id = R.string.acc_toggle_password_cd)
+                                    )
+                                }
+                            },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    } else {
+                        Text(
+                            text = stringResource(id = R.string.acc_google_hint),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 14.sp
+                        )
+                    }
+
+                    if (uiState.deleteError != null) {
+                        Text(
+                            text = uiState.deleteError,
+                            color = MaterialTheme.colorScheme.error,
+                            fontSize = 13.sp
+                        )
+                    }
                 }
             },
             confirmButton = {
@@ -669,13 +739,34 @@ fun AccountAdminScreen(
                         containerColor = MaterialTheme.colorScheme.error,
                         contentColor = MaterialTheme.colorScheme.onError
                     ),
-                    onClick = { onEvent(AccountAdminUiEvent.OnDeleteConfirmed) }
+                    onClick = {
+                        if (deleteHasPass) {
+                            onEvent(AccountAdminUiEvent.OnDeleteConfirmed())
+                        } else {
+                            onConfirmWithGoogle(true)
+                        }
+                    }
                 ) {
-                    Text(text = stringResource(id = R.string.confirm_delete))
+                    if (deleteBusy) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            color = MaterialTheme.colorScheme.onError,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text(
+                            text = stringResource(
+                                id = if (deleteHasPass) R.string.confirm_delete else R.string.acc_confirm_google
+                            )
+                        )
+                    }
                 }
             },
             dismissButton = {
-                TextButton(onClick = { onEvent(AccountAdminUiEvent.OnDeleteDismissed) }) {
+                TextButton(
+                    enabled = !deleteBusy,
+                    onClick = { onEvent(AccountAdminUiEvent.OnDeleteDismissed) }
+                ) {
                     Text(text = stringResource(id = R.string.cancel))
                 }
             }

@@ -98,7 +98,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
@@ -226,6 +229,43 @@ fun NearHouseApp() {
             }
             else -> {}
         }
+    }
+
+    // Entró con Google a una cuenta desactivada o por eliminarse: se pregunta antes de entrar
+    (googleAuthState as? GoogleAuthState.RequiresReactivation)?.let { estado ->
+        AlertDialog(
+            onDismissRequest = { googleAuthViewModel.reiniciarEstado() },
+            title = {
+                Text(
+                    stringResource(
+                        if (estado.esEliminacion) R.string.login_keep_title else R.string.login_reactivate_title
+                    )
+                )
+            },
+            text = {
+                Text(
+                    if (estado.esEliminacion) {
+                        estado.mensaje ?: stringResource(R.string.login_keep_title)
+                    } else {
+                        stringResource(R.string.login_reactivate_text)
+                    }
+                )
+            },
+            confirmButton = {
+                Button(onClick = { googleAuthViewModel.procesarTokenGoogle(estado.idToken, reactivar = true) }) {
+                    Text(
+                        stringResource(
+                            if (estado.esEliminacion) R.string.login_keep_confirm else R.string.login_reactivate_confirm
+                        )
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { googleAuthViewModel.reiniciarEstado() }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
     }
 
     NavHost(

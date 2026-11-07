@@ -22,6 +22,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.json.JSONObject
+import android.content.Context
+import com.equipo4.nearhome.data.remote.GoogleAuthManager
 import java.io.IOException
 
 class AccountAdminViewModel(application: Application) : AndroidViewModel(application) {
@@ -137,18 +139,25 @@ class AccountAdminViewModel(application: Application) : AndroidViewModel(applica
                 desactivarCuenta(event.googleToken)
             }
             AccountAdminUiEvent.OnDeleteRequested -> {
-                _uiState.update { it.copy(showDeleteDialog = true, deleteInputText = "") }
+                _uiState.update {
+                    it.copy(showDeleteDialog = true, deleteInputText = "", deletePasswordInput = "", deleteError = null)
+                }
             }
             AccountAdminUiEvent.OnDeleteDismissed -> {
-                _uiState.update { it.copy(showDeleteDialog = false, deleteInputText = "") }
+                if (!_uiState.value.isDeleting && !_uiState.value.isGoogleConfirming) {
+                    _uiState.update {
+                        it.copy(showDeleteDialog = false, deleteInputText = "", deletePasswordInput = "", deleteError = null)
+                    }
+                }
             }
             is AccountAdminUiEvent.OnDeleteInputChanged -> {
-                _uiState.update { it.copy(deleteInputText = event.text) }
+                _uiState.update { it.copy(deleteInputText = event.text, deleteError = null) }
             }
-            AccountAdminUiEvent.OnDeleteConfirmed -> {
-                _uiState.update {
-                    it.copy(showDeleteDialog = false, deleteInputText = "", userMessage = R.string.coming_soon)
-                }
+            is AccountAdminUiEvent.OnDeletePasswordChanged -> {
+                _uiState.update { it.copy(deletePasswordInput = event.text, deleteError = null) }
+            }
+            is AccountAdminUiEvent.OnDeleteConfirmed -> {
+                eliminarCuenta(event.googleToken)
             }
             AccountAdminUiEvent.OnUserMessageConsumed -> {
                 _uiState.update { it.copy(userMessage = null) }
@@ -378,11 +387,87 @@ class AccountAdminViewModel(application: Application) : AndroidViewModel(applica
         }
     }
 
+    /**
+     * Abre la ventana de Google para que una cuenta sin contraseña confirme que es suya,
+     * y con ese token desactiva ([eliminar] = false) o programa la eliminación ([eliminar] = true).
+     */
+    fun confirmarConGoogle(context: Context, eliminar: Boolean) {
+        if (_uiState.value.isGoogleConfirming || _uiState.value.isDeactivating || _uiState.value.isDeleting) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isGoogleConfirming = true, deactivateError = null, deleteError = null) }
+            val resultado = GoogleAuthManager(context).getFirebaseIdToken()
+            _uiState.update { it.copy(isGoogleConfirming = false) }
+            resultado.fold(
+                onSuccess = { token ->
+                    // token == null: cerró la ventana de Google sin elegir cuenta; no se muestra error
+                    if (token != null) {
+                        if (eliminar) eliminarCuenta(token) else desactivarCuenta(token)
+                    }
+                },
+                onFailure = { error ->
+                    val msg = error.message ?: "No se pudo confirmar con Google. Inténtalo de nuevo"
+                    _uiState.update {
+                        if (eliminar) it.copy(deleteError = msg) else it.copy(deactivateError = msg)
+                    }
+                }
+            )
+        }
+    }
+
+    private fun eliminarCuenta(googleToken: String?) {
+        val currentState = _uiState.value
+        if (currentState.isDeleting) return
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isDeleting = true, deleteError = null) }
+            try {
+                val request = DesactivarCuentaRequest(
+                    contrasena = currentState.deletePasswordInput.takeIf { it.isNotBlank() },
+                    googleToken = googleToken
+                )
+                val response = authApi.eliminarCuenta(request)
+                val body = response.body()
+                if (response.isSuccessful && body != null) {
+                    sessionManager.clearSession()
+                    // La fecha en el idioma de la app ("5 de diciembre de 2026" / "December 5, 2026")
+                    val locale = getApplication<Application>().resources.configuration.locales[0]
+                    val fecha = runCatching { PlanDates.formatear(body.fechaEliminacion, locale) }
+                        .getOrDefault(body.fechaEliminacionTexto)
+                    _uiState.update {
+                        it.copy(
+                            isDeleting = false,
+                            showDeleteDialog = false,
+                            deletePasswordInput = "",
+                            deletionScheduledDate = fecha
+                        )
+                    }
+                } else {
+                    val rawError = response.errorBody()?.string()
+                    val errorMsg = parseErrorMessage(rawError, "No se pudo eliminar la cuenta. Inténtalo de nuevo")
+                    _uiState.update { it.copy(isDeleting = false, deleteError = errorMsg) }
+                }
+            } catch (_: IOException) {
+                _uiState.update {
+                    it.copy(
+                        isDeleting = false,
+                        deleteError = "No se pudo conectar con el servidor. Revisa tu conexión a internet e inténtalo de nuevo"
+                    )
+                }
+            } catch (_: Exception) {
+                _uiState.update {
+                    it.copy(isDeleting = false, deleteError = "Ocurrió un error inesperado. Inténtalo de nuevo")
+                }
+            }
+        }
+    }
+
+    /** Mensaje de error de la API: primero el detalle (más claro), si no, el error general. */
     private fun parseErrorMessage(rawError: String?, defaultMsg: String): String {
         if (rawError.isNullOrBlank()) return defaultMsg
         return try {
             val json = JSONObject(rawError)
-            json.optString("error", defaultMsg)
+            val detalle = json.optJSONArray("detalles")?.optString(0).orEmpty()
+            detalle.ifBlank { json.optString("error", defaultMsg) }
         } catch (_: Exception) {
             defaultMsg
         }

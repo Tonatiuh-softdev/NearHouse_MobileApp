@@ -46,13 +46,23 @@ data class AccountAdminUiState(
     val isDeactivatedSuccess: Boolean = false,
     val showDeleteDialog: Boolean = false,
     val deleteInputText: String = "",
+    val deletePasswordInput: String = "",
+    val deleteError: String? = null,
+    val isDeleting: Boolean = false,
+    /** Fecha en que se borrará la cuenta, cuando la eliminación ya quedó programada. */
+    val deletionScheduledDate: String? = null,
+    /** Se está abriendo la ventana de Google para confirmar desactivar o eliminar. */
+    val isGoogleConfirming: Boolean = false,
     @param:StringRes val userMessage: Int? = null,
     val snackbarSuccessMessage: String? = null
 ) {
     val isDeleteButtonEnabled: Boolean
         get() {
             val input = deleteInputText.trim().uppercase()
-            return input == "ELIMINAR" || input == "DELETE"
+            val textoCorrecto = input == "ELIMINAR" || input == "DELETE"
+            // Con contraseña hay que escribirla; las cuentas de Google confirman con Google al tocar el botón
+            val identidadLista = userData?.tieneContrasena != true || deletePasswordInput.isNotBlank()
+            return textoCorrecto && identidadLista && !isDeleting && !isGoogleConfirming
         }
 
     val isNewPasswordFormValid: Boolean
@@ -83,7 +93,8 @@ sealed interface AccountAdminUiEvent {
     data class OnDeactivateConfirmed(val googleToken: String? = null) : AccountAdminUiEvent
     data object OnDeactivateDismissed : AccountAdminUiEvent
     data object OnDeleteRequested : AccountAdminUiEvent
-    data object OnDeleteConfirmed : AccountAdminUiEvent
+    data class OnDeleteConfirmed(val googleToken: String? = null) : AccountAdminUiEvent
+    data class OnDeletePasswordChanged(val text: String) : AccountAdminUiEvent
     data object OnDeleteDismissed : AccountAdminUiEvent
     data class OnDeleteInputChanged(val text: String) : AccountAdminUiEvent
     data object OnUserMessageConsumed : AccountAdminUiEvent
