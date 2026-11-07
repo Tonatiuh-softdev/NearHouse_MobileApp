@@ -1114,4 +1114,62 @@
 
     <string name="notif_title_recently_published">Propiedades recién publicadas \uF195</string> <!-- 🆕 -->
     <string name="notif_body_recently_published">Basado en tu búsqueda, creemos que esta propiedad te va a gustar.</string>
+
+    <!-- Panel de usuarios -->
+    <string name="admin_users_title">Usuarios</string>
+    <string name="admin_users_total_accounts">%1$d cuentas registradas</string>
+    <string name="admin_users_results">%1$d resultados</string>
+    <string name="admin_users_showing">Mostrando %1$d usuarios</string>
+    <string name="admin_users_search_hint">Buscar por nombre, correo o teléfono</string>
+    <string name="admin_users_clear_search">Limpiar búsqueda</string>
+    <string name="admin_users_role_all">Rol: Todos</string>
+    <string name="admin_users_status_all">Estatus: Todos</string>
+    <string name="admin_users_all">Todos</string>
+    <string name="admin_users_filters">Filtros</string>
+    <string name="admin_users_empty_title">No encontramos usuarios</string>
+    <string name="admin_users_empty_body">No hay cuentas que coincidan con la búsqueda y los filtros actuales.</string>
+    <string name="admin_users_clear_filters">Limpiar búsqueda y filtros</string>
+    <string name="admin_users_error">No se pudieron cargar los usuarios</string>
+    <string name="admin_users_retry">Reintentar</string>
+    <string name="admin_users_forbidden">Solo los administradores pueden ver esta sección.</string>
+    <string name="admin_users_not_found">El usuario no existe.</string>
+    <string name="admin_user_status_active">Activo</string>
+    <string name="admin_user_status_suspended">Suspendido</string>
+    <string name="admin_user_status_deactivated">Desactivado</string>
+
+    <!-- Detalle de usuario -->
+    <string name="admin_user_detail_title">Detalle de usuario</string>
+    <string name="admin_user_section_account">Cuenta</string>
+    <string name="admin_user_section_name">Nombre</string>
+    <string name="admin_user_section_plan">Plan</string>
+    <string name="admin_user_section_activity">Publicaciones y reportes</string>
+    <string name="admin_user_label_email">Correo</string>
+    <string name="admin_user_label_phone">Teléfono</string>
+    <string name="admin_user_label_role">Rol</string>
+    <string name="admin_user_label_status">Estatus</string>
+    <string name="admin_user_label_registered">Registro</string>
+    <string name="admin_user_label_name">Nombre(s)</string>
+    <string name="admin_user_label_first_surname">Primer apellido</string>
+    <string name="admin_user_label_second_surname">Segundo apellido</string>
+    <string name="admin_user_label_plan">Plan actual</string>
+    <string name="admin_user_label_expires">Vence</string>
+    <string name="admin_user_label_review">En revisión</string>
+    <string name="admin_user_label_published">Publicadas</string>
+    <string name="admin_user_label_rejected">Rechazadas</string>
+    <string name="admin_user_label_pending_reports">Reportes pendientes</string>
+    <string name="admin_user_no_plan">Sin plan</string>
+
+    <string name="admin_user_action_suspend">Suspender cuenta</string>
+    <string name="admin_user_action_unsuspend">Quitar suspensión</string>
+    <string name="admin_user_action_delete">Eliminar cuenta</string>
+    <string name="admin_user_suspend_title">Suspender cuenta</string>
+    <string name="admin_user_suspend_body">%1$s no podrá entrar a NearHouse mientras dure la suspensión. Sus anuncios dejarán de verse.</string>
+    <string name="admin_user_suspend_duration">Duración</string>
+    <string name="admin_user_suspend_days_format">%1$d días</string>
+    <string name="admin_user_suspend_indefinite">Indefinida</string>
+    <string name="admin_user_suspend_reason">Motivo (se le mostrará al usuario)</string>
+    <string name="admin_user_suspend_confirm">Suspender</string>
+    <string name="admin_user_delete_title">¿Eliminar esta cuenta?</string>
+    <string name="admin_user_delete_body">Se borrarán la cuenta de %1$s, sus publicaciones, sus fotos y sus reportes. No se puede deshacer.</string>
+    <string name="admin_user_delete_confirm">Eliminar</string>
 </resources>

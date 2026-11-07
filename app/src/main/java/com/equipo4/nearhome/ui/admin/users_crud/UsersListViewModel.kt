@@ -6,10 +6,25 @@ import com.equipo4.nearhome.data.repository.Repositories
 import com.equipo4.nearhome.domain.model.User
 import com.equipo4.nearhome.domain.model.UserAccountRole
 import com.equipo4.nearhome.domain.model.UserAccountStatus
+import com.equipo4.nearhome.domain.repository.UserFilters
+import com.equipo4.nearhome.domain.repository.UserRepository
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 
-class UsersListViewModel : ViewModel() {
-    private val userRepository = Repositories.users
+data class UsersListUiState(
+    val users: List<User> = emptyList(),
+    val totalAccounts: Int = 0,
+    val totalResults: Int = 0,
+    val page: Int = 0,
+    val hasMore: Boolean = false,
+    val isLoading: Boolean = true,
+    val isLoadingMore: Boolean = false,
+    val errorMessage: String? = null
+)
+
+class UsersListViewModel(
+    private val repository: UserRepository = Repositories.users
+) : ViewModel() {
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
@@ -20,99 +35,102 @@ class UsersListViewModel : ViewModel() {
     private val _selectedStatus = MutableStateFlow<UserAccountStatus?>(null)
     val selectedStatus: StateFlow<UserAccountStatus?> = _selectedStatus.asStateFlow()
 
-    private val _selectedRolesFilter = MutableStateFlow<Set<UserAccountRole>>(emptySet())
-    val selectedRolesFilter: StateFlow<Set<UserAccountRole>> = _selectedRolesFilter.asStateFlow()
+    private val _uiState = MutableStateFlow(UsersListUiState())
+    val uiState: StateFlow<UsersListUiState> = _uiState.asStateFlow()
 
-    private val _selectedStatusesFilter = MutableStateFlow<Set<UserAccountStatus>>(emptySet())
-    val selectedStatusesFilter: StateFlow<Set<UserAccountStatus>> = _selectedStatusesFilter.asStateFlow()
+    /** Filtros con los que se cargó la lista. Si cambian mientras llega una página, esa página se descarta. */
+    private var filtrosActuales = UserFilters()
 
-    val users: StateFlow<List<User>> = userRepository.observeUsers()
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
-
-    val totalCount: StateFlow<Int> = users.map { it.size }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = 0
-        )
-
-    val activeFiltersCount: StateFlow<Int> = combine(
-        _selectedRole,
-        _selectedStatus,
-        _selectedRolesFilter,
-        _selectedStatusesFilter
-    ) { r1, s1, rSet, sSet ->
-        (if (r1 != null) 1 else 0) + (if (s1 != null) 1 else 0) + rSet.size + sSet.size
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = 0
-    )
-
-    val filteredUsers: StateFlow<List<User>> = combine(
-        users,
-        _searchQuery,
-        _selectedRole,
-        _selectedStatus,
-        combine(_selectedRolesFilter, _selectedStatusesFilter) { r, s -> Pair(r, s) }
-    ) { allUsers, query, role, status, filtersPair ->
-        val rolesFilter = filtersPair.first
-        val statusesFilter = filtersPair.second
-
-        allUsers.filter { user ->
-            val matchesQuery = if (query.isBlank()) {
-                true
-            } else {
-                val cleanQuery = query.trim().lowercase()
-                val cleanName = user.name.lowercase()
-                val cleanEmail = user.email.lowercase()
-                val cleanPhone = user.phone.replace(" ", "").lowercase()
-                val queryWithoutSpaces = cleanQuery.replace(" ", "")
-
-                cleanName.contains(cleanQuery) ||
-                        cleanEmail.contains(cleanQuery) ||
-                        cleanPhone.contains(queryWithoutSpaces)
+    init {
+        viewModelScope.launch {
+            combine(
+                // La búsqueda espera 500 ms después de la última letra; rol y estatus cambian al instante
+                _searchQuery.debounce(SEARCH_DEBOUNCE_MS).map { it.trim() }.distinctUntilChanged(),
+                _selectedRole,
+                _selectedStatus
+            ) { texto, rol, estatus ->
+                UserFilters(buscar = texto, rol = rol, estatus = estatus)
             }
-
-            val matchesRole = (role == null || user.role == role) &&
-                    (rolesFilter.isEmpty() || user.role in rolesFilter)
-            val matchesStatus = (status == null || user.status == status) &&
-                    (statusesFilter.isEmpty() || user.status in statusesFilter)
-
-            matchesQuery && matchesRole && matchesStatus
+                .distinctUntilChanged()
+                .collectLatest { filtros -> cargarPrimeraPagina(filtros) }
         }
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList()
-    )
-
-    fun onSearchQueryChanged(query: String) {
-        _searchQuery.value = query
     }
 
-    fun onRoleSelected(role: UserAccountRole?) {
-        _selectedRole.value = role
+    private suspend fun cargarPrimeraPagina(filtros: UserFilters) {
+        filtrosActuales = filtros
+        _uiState.update { it.copy(isLoading = true, isLoadingMore = false, errorMessage = null) }
+        repository.listar(filtros, pagina = 1)
+            .onSuccess { pagina ->
+                _uiState.value = UsersListUiState(
+                    users = pagina.users,
+                    totalAccounts = pagina.totalAccounts,
+                    totalResults = pagina.totalResults,
+                    page = pagina.page,
+                    hasMore = pagina.hasMore,
+                    isLoading = false
+                )
+            }
+            .onFailure { error ->
+                _uiState.update { it.copy(isLoading = false, errorMessage = error.message.orEmpty()) }
+            }
     }
 
-    fun onStatusSelected(status: UserAccountStatus?) {
-        _selectedStatus.value = status
+    /** Carga la siguiente página. La pantalla lo llama al acercarse al final de la lista. */
+    fun cargarMas() {
+        val estado = _uiState.value
+        if (!estado.hasMore || estado.isLoading || estado.isLoadingMore) return
+
+        val filtros = filtrosActuales
+        val siguiente = estado.page + 1
+        _uiState.update { it.copy(isLoadingMore = true) }
+
+        viewModelScope.launch {
+            repository.listar(filtros, pagina = siguiente)
+                .onSuccess { pagina ->
+                    _uiState.update { actual ->
+                        if (filtros != filtrosActuales) {
+                            // Cambiaron los filtros mientras llegaba la página: se descarta
+                            actual.copy(isLoadingMore = false)
+                        } else {
+                            actual.copy(
+                                users = actual.users + pagina.users,
+                                page = siguiente,
+                                hasMore = pagina.hasMore,
+                                totalResults = pagina.totalResults,
+                                isLoadingMore = false
+                            )
+                        }
+                    }
+                }
+                .onFailure {
+                    _uiState.update { it.copy(isLoadingMore = false) }
+                }
+        }
     }
 
-    fun applyFilters(roles: Set<UserAccountRole>, statuses: Set<UserAccountStatus>) {
-        _selectedRolesFilter.value = roles
-        _selectedStatusesFilter.value = statuses
+    fun reintentar() {
+        viewModelScope.launch { cargarPrimeraPagina(filtrosActuales) }
+    }
+
+    fun onSearchQueryChanged(texto: String) {
+        _searchQuery.value = texto
+    }
+
+    fun onRoleSelected(rol: UserAccountRole?) {
+        _selectedRole.value = rol
+    }
+
+    fun onStatusSelected(estatus: UserAccountStatus?) {
+        _selectedStatus.value = estatus
     }
 
     fun clearSearchAndFilters() {
         _searchQuery.value = ""
         _selectedRole.value = null
         _selectedStatus.value = null
-        _selectedRolesFilter.value = emptySet()
-        _selectedStatusesFilter.value = emptySet()
+    }
+
+    private companion object {
+        const val SEARCH_DEBOUNCE_MS = 500L
     }
 }

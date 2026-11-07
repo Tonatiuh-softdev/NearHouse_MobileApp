@@ -1112,4 +1112,62 @@
 
     <string name="notif_title_recently_published">Recently published properties \uF195</string>
     <string name="notif_body_recently_published">Based on your search, we think you will like this property.</string>
+
+    <!-- User panel -->
+    <string name="admin_users_title">Users</string>
+    <string name="admin_users_total_accounts">%1$d registered accounts</string>
+    <string name="admin_users_results">%1$d results</string>
+    <string name="admin_users_showing">Showing %1$d users</string>
+    <string name="admin_users_search_hint">Search by name, email or phone number</string>
+    <string name="admin_users_clear_search">Clear search</string>
+    <string name="admin_users_role_all">Role: All</string>
+    <string name="admin_users_status_all">Status: All</string>
+    <string name="admin_users_all">All</string>
+    <string name="admin_users_filters">Filters</string>
+    <string name="admin_users_empty_title">No users found</string>
+    <string name="admin_users_empty_body">No accounts match your current search and filters.</string>
+    <string name="admin_users_clear_filters">Clear search and filters</string>
+    <string name="admin_users_error">Could not load users</string>
+    <string name="admin_users_retry">Retry</string>
+    <string name="admin_users_forbidden">Only administrators can access this section.</string>
+    <string name="admin_users_not_found">User does not exist.</string>
+    <string name="admin_user_status_active">Active</string>
+    <string name="admin_user_status_suspended">Suspended</string>
+    <string name="admin_user_status_deactivated">Deactivated</string>
+
+    <!-- User details -->
+    <string name="admin_user_detail_title">User details</string>
+    <string name="admin_user_section_account">Account</string>
+    <string name="admin_user_section_name">Name</string>
+    <string name="admin_user_section_plan">Plan</string>
+    <string name="admin_user_section_activity">Listings and reports</string>
+    <string name="admin_user_label_email">Email</string>
+    <string name="admin_user_label_phone">Phone</string>
+    <string name="admin_user_label_role">Role</string>
+    <string name="admin_user_label_status">Status</string>
+    <string name="admin_user_label_registered">Registered</string>
+    <string name="admin_user_label_name">First name(s)</string>
+    <string name="admin_user_label_first_surname">First surname</string>
+    <string name="admin_user_label_second_surname">Second surname</string>
+    <string name="admin_user_label_plan">Current plan</string>
+    <string name="admin_user_label_expires">Expires</string>
+    <string name="admin_user_label_review">Under review</string>
+    <string name="admin_user_label_published">Published</string>
+    <string name="admin_user_label_rejected">Rejected</string>
+    <string name="admin_user_label_pending_reports">Pending reports</string>
+    <string name="admin_user_no_plan">No plan</string>
+
+    <string name="admin_user_action_suspend">Suspend account</string>
+    <string name="admin_user_action_unsuspend">Lift suspension</string>
+    <string name="admin_user_action_delete">Delete account</string>
+    <string name="admin_user_suspend_title">Suspend account</string>
+    <string name="admin_user_suspend_body">%1$s won\'t be able to sign in to NearHouse while the suspension lasts. Their listings will stop showing.</string>
+    <string name="admin_user_suspend_duration">Duration</string>
+    <string name="admin_user_suspend_days_format">%1$d days</string>
+    <string name="admin_user_suspend_indefinite">Indefinite</string>
+    <string name="admin_user_suspend_reason">Reason (shown to the user)</string>
+    <string name="admin_user_suspend_confirm">Suspend</string>
+    <string name="admin_user_delete_title">Delete this account?</string>
+    <string name="admin_user_delete_body">The account of %1$s, its listings, photos and reports will be deleted. This cannot be undone.</string>
+    <string name="admin_user_delete_confirm">Delete</string>
 </resources>
