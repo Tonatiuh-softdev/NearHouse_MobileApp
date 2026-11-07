@@ -1,5 +1,7 @@
 package com.equipo4.nearhome.ui.home.map
 
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import com.equipo4.nearhome.ui.home.common.HomeSearchHeader
 import android.content.Context
 import android.graphics.Bitmap
 import androidx.annotation.DrawableRes
@@ -307,56 +309,13 @@ private fun MapHeader(
     onQueryChange: (String) -> Unit,
     onToggleToList: () -> Unit
 ) {
-    var lastToggleTime by remember { mutableStateOf(0L) }
-
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Image(
-            painter = painterResource(R.drawable.ic_nearhouse_logo),
-            contentDescription = stringResource(R.string.logo_cd),
-            modifier = Modifier.size(40.dp).clip(CircleShape)
-        )
-        Row(
-            modifier = Modifier
-                .weight(1f)
-                .height(46.dp)
-                .clip(RoundedCornerShape(23.dp))
-                .background(MaterialTheme.nearHouseColors.searchBarBg)
-                .padding(horizontal = 14.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface, modifier = Modifier.size(20.dp))
-            Spacer(Modifier.width(8.dp))
-            Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
-                if (searchQuery.isEmpty()) {
-                    Text(stringResource(R.string.map_search_location), fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
-                }
-                BasicTextField(
-                    value = searchQuery,
-                    onValueChange = onQueryChange,
-                    singleLine = true,
-                    textStyle = TextStyle(fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurface),
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-            Spacer(Modifier.width(8.dp))
-            Icon(
-                imageVector = Icons.Default.FormatListBulleted,
-                contentDescription = stringResource(R.string.map_view_list),
-                tint = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.size(20.dp).noRippleClickable {
-                    val now = System.currentTimeMillis()
-                    if (now - lastToggleTime > 400) {
-                        lastToggleTime = now
-                        onToggleToList()
-                    }
-                }
-            )
-        }
-    }
+    HomeSearchHeader(
+        searchQuery = searchQuery,
+        onQueryChange = onQueryChange,
+        toggleIcon = rememberVectorPainter(Icons.Default.FormatListBulleted),
+        toggleContentDescription = stringResource(R.string.map_view_list),
+        onToggle = onToggleToList
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -371,7 +330,7 @@ private fun FilterRow(
     val hasFilters = activeCount > 0
 
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 2.dp),
+        modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surface).padding(horizontal = 16.dp, vertical = 2.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         FilterChip(

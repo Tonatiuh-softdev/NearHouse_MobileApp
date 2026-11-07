@@ -34,9 +34,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.equipo4.nearhome.R
-import com.equipo4.nearhome.ui.common.AccountAdminSkeleton
+import com.equipo4.nearhome.data.remote.GoogleAuthManager
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
 import com.equipo4.nearhome.ui.profile.UserRole
+import kotlinx.coroutines.launch
 
 @Composable
 fun AccountAdminRoute(
@@ -94,10 +95,15 @@ fun AccountAdminScreen(
     onConfirmWithGoogle: (eliminar: Boolean) -> Unit = {}
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val googleAuthManager = remember { GoogleAuthManager(context) }
+
     var isCurrentPasswordVisible by remember { mutableStateOf(false) }
     var isDeletePasswordVisible by remember { mutableStateOf(false) }
     var isNewPasswordVisible by remember { mutableStateOf(false) }
     var isConfirmPasswordVisible by remember { mutableStateOf(false) }
+    var isEmailCurrentPasswordVisible by remember { mutableStateOf(false) }
 
     uiState.userMessage?.let { messageRes ->
         val message = stringResource(id = messageRes)
@@ -138,9 +144,15 @@ fun AccountAdminScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
-        // Carga inicial -> Muestra Skeleton de Administración de Cuenta
         if (uiState.isLoading || uiState.userData == null) {
-            AccountAdminSkeleton(modifier = Modifier.padding(paddingValues))
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
         } else {
             val userData = uiState.userData
 
@@ -170,7 +182,7 @@ fun AccountAdminScreen(
                             useIconContainer = true,
                             iconBackgroundColor = MaterialTheme.colorScheme.surfaceVariant,
                             iconTintColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            onClick = { onEvent(AccountAdminUiEvent.OnOptionClick) }
+                            onClick = { onEvent(AccountAdminUiEvent.OnEmailOptionClick) }
                         )
                         HorizontalDivider(
                             modifier = Modifier.padding(start = 72.dp, end = 16.dp),
@@ -297,7 +309,236 @@ fun AccountAdminScreen(
         }
     }
 
-    // ==================== DIÁLOGOS Y PASOS DEL FLUJO DE CONTRASEÑA ====================
+    // ==================== FLUJO DE CAMBIO DE CORREO ====================
+
+    // PASO 1: PANTALLA / DIÁLOGO "CAMBIAR CORREO"
+    if (uiState.emailStep == EmailFlowStep.NEW_EMAIL) {
+        val hasPass = uiState.userData?.tieneContrasena == true
+
+        AlertDialog(
+            onDismissRequest = {
+                if (!uiState.isEmailCodeSending) onEvent(AccountAdminUiEvent.OnEmailFlowDismissed)
+            },
+            title = { Text("Cambiar correo electrónico") },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Text(
+                        text = "Correo actual: ${uiState.userData?.email.orEmpty()}",
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    OutlinedTextField(
+                        value = uiState.newEmailInput,
+                        onValueChange = { onEvent(AccountAdminUiEvent.OnNewEmailChanged(it)) },
+                        label = { Text("Correo nuevo") },
+                        singleLine = true,
+                        enabled = !uiState.isEmailCodeSending,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = if (hasPass) ImeAction.Next else ImeAction.Done),
+                        isError = uiState.newEmailError != null,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    if (uiState.newEmailError != null) {
+                        Text(
+                            text = uiState.newEmailError!!,
+                            color = MaterialTheme.colorScheme.error,
+                            fontSize = 12.sp
+                        )
+                    }
+
+                    if (hasPass) {
+                        OutlinedTextField(
+                            value = uiState.emailCurrentPasswordInput,
+                            onValueChange = { onEvent(AccountAdminUiEvent.OnEmailCurrentPasswordChanged(it)) },
+                            label = { Text("Contraseña actual") },
+                            singleLine = true,
+                            enabled = !uiState.isEmailCodeSending,
+                            visualTransformation = if (isEmailCurrentPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                            trailingIcon = {
+                                IconButton(onClick = { isEmailCurrentPasswordVisible = !isEmailCurrentPasswordVisible }) {
+                                    Icon(
+                                        imageVector = if (isEmailCurrentPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                                        contentDescription = "Mostrar u ocultar contraseña"
+                                    )
+                                }
+                            },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+                            isError = uiState.emailCurrentPasswordError != null,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        if (uiState.emailCurrentPasswordError != null) {
+                            Text(
+                                text = uiState.emailCurrentPasswordError!!,
+                                color = MaterialTheme.colorScheme.error,
+                                fontSize = 12.sp
+                            )
+                        }
+                    }
+
+                    if (uiState.emailGeneralError != null) {
+                        Text(
+                            text = uiState.emailGeneralError!!,
+                            color = MaterialTheme.colorScheme.error,
+                            fontSize = 13.sp
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (hasPass) {
+                            onEvent(AccountAdminUiEvent.OnRequestEmailCodeSubmitted(null))
+                        } else {
+                            coroutineScope.launch {
+                                val result = googleAuthManager.getFirebaseIdToken()
+                                result.onSuccess { token ->
+                                    if (token != null) {
+                                        onEvent(AccountAdminUiEvent.OnRequestEmailCodeSubmitted(token))
+                                    }
+                                }.onFailure { exception ->
+                                    Toast.makeText(context, exception.message ?: "Error al verificar con Google", Toast.LENGTH_LONG).show()
+                                }
+                            }
+                        }
+                    },
+                    enabled = uiState.isNewEmailFormValid && !uiState.isEmailCodeSending
+                ) {
+                    if (uiState.isEmailCodeSending) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text(if (hasPass) "Enviar código" else "Confirmar con Google y enviar código")
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { onEvent(AccountAdminUiEvent.OnEmailFlowDismissed) },
+                    enabled = !uiState.isEmailCodeSending
+                ) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+
+    // PASO 2: PANTALLA / DIÁLOGO "VERIFICA TU NUEVO CORREO"
+    if (uiState.emailStep == EmailFlowStep.VERIFY_CODE) {
+        val fullCode = uiState.emailOtpCode.joinToString("")
+        val isConfirmEnabled = fullCode.length == 6 && !uiState.isEmailConfirming
+        val focusRequesters = remember { List(6) { FocusRequester() } }
+
+        AlertDialog(
+            onDismissRequest = {
+                if (!uiState.isEmailConfirming) onEvent(AccountAdminUiEvent.OnEmailFlowDismissed)
+            },
+            title = { Text("Verifica tu nuevo correo") },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text(
+                        text = "Escribe el código que enviamos a ${uiState.newEmailInput.trim()}",
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    // 6 casillas OTP
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        for (i in 0 until 6) {
+                            OutlinedTextField(
+                                value = uiState.emailOtpCode.getOrElse(i) { "" },
+                                onValueChange = { digit ->
+                                    val cleanDigit = digit.filter { it.isDigit() }.takeLast(1)
+                                    onEvent(AccountAdminUiEvent.OnEmailOtpDigitChanged(i, cleanDigit))
+                                    if (cleanDigit.isNotEmpty() && i < 5) {
+                                        focusRequesters[i + 1].requestFocus()
+                                    }
+                                },
+                                singleLine = true,
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                modifier = Modifier
+                                    .width(44.dp)
+                                    .height(54.dp)
+                                    .focusRequester(focusRequesters[i])
+                            )
+                        }
+                    }
+
+                    if (uiState.emailOtpErrorMessage != null) {
+                        Text(
+                            text = uiState.emailOtpErrorMessage!!,
+                            color = MaterialTheme.colorScheme.error,
+                            fontSize = 13.sp,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        TextButton(
+                            onClick = { onEvent(AccountAdminUiEvent.OnReturnToNewEmailStepRequested) },
+                            enabled = !uiState.isEmailConfirming
+                        ) {
+                            Text("Cambiar correo")
+                        }
+
+                        TextButton(
+                            onClick = { onEvent(AccountAdminUiEvent.OnResendEmailCodeRequested) },
+                            enabled = uiState.canResendEmailCode && !uiState.isEmailConfirming
+                        ) {
+                            if (uiState.canResendEmailCode) {
+                                Text("Reenviar código")
+                            } else {
+                                Text("Reenviar en ${uiState.emailResendCountdown}s")
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { onEvent(AccountAdminUiEvent.OnConfirmNewEmailSubmitted) },
+                    enabled = isConfirmEnabled
+                ) {
+                    if (uiState.isEmailConfirming) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text("Confirmar")
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { onEvent(AccountAdminUiEvent.OnEmailFlowDismissed) },
+                    enabled = !uiState.isEmailConfirming
+                ) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+
+    // ==================== DIÁLOGOS DE CONTRASEÑA ====================
 
     // PASO 1: AVISO AL TOCAR "CONTRASEÑA"
     if (uiState.passwordStep == PasswordFlowStep.CONFIRM_SEND_CODE) {
@@ -356,7 +597,7 @@ fun AccountAdminScreen(
         )
     }
 
-    // PASO 2: VERIFICA TU CORREO
+    // PASO 2: VERIFICA TU CORREO (CONTRASEÑA)
     if (uiState.passwordStep == PasswordFlowStep.VERIFY_CODE) {
         val fullCode = uiState.otpCode.joinToString("")
         val isVerifyEnabled = fullCode.length == 6 && !uiState.isOtpLoading

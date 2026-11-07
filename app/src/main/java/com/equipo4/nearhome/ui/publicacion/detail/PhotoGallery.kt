@@ -2,18 +2,23 @@ package com.equipo4.nearhome.ui.publicacion.detail
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
@@ -21,9 +26,10 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 
 /**
- * Galería de fotos que se desliza, con contador. Se usa en el detalle de publicación y en el
- * detalle de anuncios del administrador. [overlay] permite poner etiquetas encima.
+ * Galería de fotos que se desliza. Se usa en el detalle de publicación y en el detalle
+ * de anuncios del administrador.
  *
+ * [showDots] muestra puntos indicadores abajo (en lugar del contador "1/5").
  * [images] acepta URLs (String) del API o recursos (Int) de los datos de prueba.
  */
 @OptIn(ExperimentalFoundationApi::class)
@@ -32,23 +38,33 @@ fun PhotoGallery(
     images: List<Any>,
     modifier: Modifier = Modifier,
     counterSeparator: String = "/",
+    showDots: Boolean = false,
     overlay: @Composable BoxScope.() -> Unit = {}
 ) {
-    val pagerState = rememberPagerState(pageCount = { images.size })
+    // Nunca menos de 1 página: un pager con 0 páginas puede fallar
+    val pageCount = images.size.coerceAtLeast(1)
+    val pagerState = rememberPagerState(pageCount = { pageCount })
+
     Box(modifier = modifier.background(MaterialTheme.colorScheme.surfaceVariant)) {
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.fillMaxSize()
         ) { page ->
-            AsyncImage(
-                model = images[page],
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
-            )
+            val image = images.getOrNull(page)
+            if (image != null) {
+                AsyncImage(
+                    model = image,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surfaceVariant))
+            }
         }
 
-        if (images.isNotEmpty()) {
+        // Contador "1/5" (solo si no se usan puntos)
+        if (images.isNotEmpty() && !showDots) {
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
@@ -63,6 +79,28 @@ fun PhotoGallery(
                 )
             }
         }
+
+        // Puntos indicadores (solo si hay más de una foto)
+        if (showDots && images.size > 1) {
+            Row(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                images.indices.forEach { index ->
+                    val selected = pagerState.currentPage == index
+                    Box(
+                        modifier = Modifier
+                            .size(if (selected) 8.dp else 6.dp)
+                            .clip(CircleShape)
+                            .background(if (selected) Color.White else Color.White.copy(alpha = 0.5f))
+                    )
+                }
+            }
+        }
+
         overlay()
     }
 }

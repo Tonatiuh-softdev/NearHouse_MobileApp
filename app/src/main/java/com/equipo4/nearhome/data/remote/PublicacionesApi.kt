@@ -1,21 +1,27 @@
 package com.equipo4.nearhome.data.remote
 
+import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
-import retrofit2.Response
-import retrofit2.http.PATCH
 
 data class ActivaDto(val activa: Boolean)
 
+/**
+ * Datos del vendedor que vienen con cada anuncio.
+ * [tieneFoto] y [fotoVersion] sirven para armar la URL de su foto: la versión cambia cuando sube otra.
+ */
 data class VendedorDto(
     val id: Int,
     val nombre: String,
     val correo: String,
-    val telefono: String
+    val telefono: String,
+    val tieneFoto: Boolean = false,
+    val fotoVersion: Long? = null
 )
 
 data class RevisionDto(
@@ -31,9 +37,9 @@ data class PublicacionDto(
     val descripcion: String,
     val reglas: String?,
     val precio: Double,
-    val modalidad: String,        // "Venta" o "Renta"
-    val tipo: String,             // DEPARTAMENTO, CASA o TERRENO
-    val estado: String,           // EN_REVISION, PUBLICADA o RECHAZADA
+    val modalidad: String,
+    val tipo: String,
+    val estado: String,
     val activa: Boolean,
     val calle: String,
     val numero: String,
@@ -41,8 +47,8 @@ data class PublicacionDto(
     val codigoPostal: String?,
     val latitud: Double,
     val longitud: Double,
-    val superficie: Int?,         // solo TERRENO
-    val usoSuelo: String?,        // HABITACIONAL o AGRICOLA
+    val superficie: Int?,
+    val usoSuelo: String?,
     val dormitorios: Int?,
     val banos: Int?,
     val cochera: Int?,
@@ -75,7 +81,6 @@ interface PublicacionesApi {
     /** Elimina un anuncio del usuario con sesión. Responde 204 sin cuerpo. */
     @DELETE("api/v1/publicaciones/{id}")
     suspend fun eliminar(@Path("id") id: Int): Response<Unit>
-
 
     // ---- Administrador ----
 

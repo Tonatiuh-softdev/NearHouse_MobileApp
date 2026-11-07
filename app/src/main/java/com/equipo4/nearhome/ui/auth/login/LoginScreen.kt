@@ -1,5 +1,6 @@
 package com.equipo4.nearhome.ui.auth.login
 
+import com.equipo4.nearhome.ui.common.nearHouseLogoPainter
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -148,7 +149,7 @@ private fun LoginContent(
             Spacer(modifier = Modifier.height(44.dp))
 
             Image(
-                painter = painterResource(id = R.drawable.ic_nearhouse_logo),
+                painter = nearHouseLogoPainter(),
                 contentDescription = "NearHouse Logo",
                 modifier = Modifier.size(width = 60.dp, height = 59.dp)
             )
@@ -158,8 +159,9 @@ private fun LoginContent(
             Text(
                 text = "¡BIENVENIDO A NEARHOUSE!",
                 fontSize = 20.sp,
-                fontWeight = FontWeight.Normal,
-                fontFamily = FontFamily.Serif,
+                fontWeight = FontWeight.Bold,
+                fontFamily = FontFamily.Default,
+                letterSpacing = 0.5.sp,
                 color = cs.onSurface
             )
 

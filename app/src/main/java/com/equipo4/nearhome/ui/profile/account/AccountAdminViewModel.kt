@@ -9,7 +9,9 @@ import com.equipo4.nearhome.data.session.CurrentUserStore
 import com.equipo4.nearhome.di.NetworkModule
 import com.equipo4.nearhome.network.AuthApi
 import com.equipo4.nearhome.network.CambiarContrasenaRequest
+import com.equipo4.nearhome.network.ConfirmarCambioCorreoRequest
 import com.equipo4.nearhome.network.DesactivarCuentaRequest
+import com.equipo4.nearhome.network.SolicitarCodigoCambioCorreoRequest
 import com.equipo4.nearhome.network.UsuarioMeDto
 import com.equipo4.nearhome.network.VerificarCodigoContrasenaRequest
 import com.equipo4.nearhome.ui.profile.UserRole
@@ -37,11 +39,10 @@ class AccountAdminViewModel(application: Application) : AndroidViewModel(applica
     val uiState: StateFlow<AccountAdminUiState> = _uiState.asStateFlow()
 
     private var resendTimerJob: Job? = null
+    private var emailResendTimerJob: Job? = null
+
     init {
         viewModelScope.launch {
-            // Delay de prueba
-            kotlinx.coroutines.delay(2000)
-
             CurrentUserStore.user.collect { user ->
                 _uiState.update {
                     it.copy(isLoading = false, userData = user?.toAccountData())
@@ -73,6 +74,53 @@ class AccountAdminViewModel(application: Application) : AndroidViewModel(applica
             AccountAdminUiEvent.OnOptionClick -> {
                 _uiState.update { it.copy(userMessage = R.string.coming_soon) }
             }
+
+            // --- Cambio de Correo ---
+            AccountAdminUiEvent.OnEmailOptionClick -> {
+                _uiState.update {
+                    it.copy(
+                        emailStep = EmailFlowStep.NEW_EMAIL,
+                        newEmailInput = "",
+                        emailCurrentPasswordInput = "",
+                        emailCurrentPasswordError = null,
+                        newEmailError = null,
+                        emailGeneralError = null,
+                        emailOtpCode = List(6) { "" },
+                        emailOtpErrorMessage = null,
+                        googleTokenForEmailChange = null
+                    )
+                }
+            }
+            is AccountAdminUiEvent.OnNewEmailChanged -> {
+                _uiState.update { it.copy(newEmailInput = event.text, newEmailError = null, emailGeneralError = null) }
+            }
+            is AccountAdminUiEvent.OnEmailCurrentPasswordChanged -> {
+                _uiState.update { it.copy(emailCurrentPasswordInput = event.text, emailCurrentPasswordError = null, emailGeneralError = null) }
+            }
+            is AccountAdminUiEvent.OnRequestEmailCodeSubmitted -> {
+                solicitarCodigoCambioCorreo(event.googleToken)
+            }
+            AccountAdminUiEvent.OnEmailFlowDismissed -> {
+                limpiarEstadoMemoriaCorreo()
+            }
+            is AccountAdminUiEvent.OnEmailOtpDigitChanged -> {
+                val currentOtp = _uiState.value.emailOtpCode.toMutableList()
+                currentOtp[event.index] = event.digit
+                _uiState.update { it.copy(emailOtpCode = currentOtp, emailOtpErrorMessage = null) }
+            }
+            AccountAdminUiEvent.OnConfirmNewEmailSubmitted -> {
+                confirmarCambioCorreo()
+            }
+            AccountAdminUiEvent.OnResendEmailCodeRequested -> {
+                if (_uiState.value.canResendEmailCode) {
+                    solicitarCodigoCambioCorreo(_uiState.value.googleTokenForEmailChange)
+                }
+            }
+            AccountAdminUiEvent.OnReturnToNewEmailStepRequested -> {
+                _uiState.update { it.copy(emailStep = EmailFlowStep.NEW_EMAIL, emailOtpErrorMessage = null) }
+            }
+
+            // --- Contraseña ---
             AccountAdminUiEvent.OnPasswordOptionClick -> {
                 _uiState.update {
                     it.copy(
@@ -112,6 +160,8 @@ class AccountAdminViewModel(application: Application) : AndroidViewModel(applica
             AccountAdminUiEvent.OnSaveNewPasswordSubmitted -> {
                 guardarNuevaContrasena()
             }
+
+            // --- Desactivar / Eliminar ---
             AccountAdminUiEvent.OnDeactivateRequested -> {
                 _uiState.update {
                     it.copy(
@@ -165,6 +215,156 @@ class AccountAdminViewModel(application: Application) : AndroidViewModel(applica
             AccountAdminUiEvent.OnSnackbarMessageConsumed -> {
                 _uiState.update { it.copy(snackbarSuccessMessage = null) }
             }
+        }
+    }
+
+    private fun solicitarCodigoCambioCorreo(googleToken: String?) {
+        val currentState = _uiState.value
+        if (!currentState.isNewEmailFormValid && googleToken == null) return
+
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    isEmailCodeSending = true,
+                    emailCurrentPasswordError = null,
+                    newEmailError = null,
+                    emailGeneralError = null
+                )
+            }
+            try {
+                val hasPass = currentState.userData?.tieneContrasena == true
+                val request = SolicitarCodigoCambioCorreoRequest(
+                    correoNuevo = currentState.newEmailInput.trim(),
+                    contrasena = if (hasPass) currentState.emailCurrentPasswordInput else null,
+                    googleToken = googleToken
+                )
+                val response = authApi.solicitarCodigoCambioCorreo(request)
+                if (response.isSuccessful) {
+                    _uiState.update {
+                        it.copy(
+                            isEmailCodeSending = false,
+                            googleTokenForEmailChange = googleToken,
+                            emailStep = EmailFlowStep.VERIFY_CODE,
+                            emailOtpCode = List(6) { "" },
+                            emailOtpErrorMessage = null
+                        )
+                    }
+                    startEmailResendTimer()
+                } else {
+                    val rawError = response.errorBody()?.string()
+                    val errorMsg = parseErrorMessage(rawError, "Error al solicitar código")
+                    when (response.code()) {
+                        403 -> {
+                            if (hasPass) {
+                                _uiState.update { it.copy(isEmailCodeSending = false, emailCurrentPasswordError = "La contraseña actual no es correcta") }
+                            } else {
+                                _uiState.update { it.copy(isEmailCodeSending = false, emailGeneralError = "Esa cuenta de Google no es la de tu cuenta de NearHouse. Elige la correcta.") }
+                            }
+                        }
+                        409 -> {
+                            _uiState.update { it.copy(isEmailCodeSending = false, newEmailError = "Ese correo ya está registrado") }
+                        }
+                        400 -> {
+                            if (errorMsg.contains("Confirma con Google", ignoreCase = true)) {
+                                _uiState.update { it.copy(isEmailCodeSending = false, emailStep = EmailFlowStep.NEW_EMAIL, emailGeneralError = "Confirma con Google otra vez") }
+                            } else {
+                                _uiState.update { it.copy(isEmailCodeSending = false, emailGeneralError = errorMsg) }
+                            }
+                        }
+                        else -> {
+                            _uiState.update { it.copy(isEmailCodeSending = false, emailGeneralError = errorMsg) }
+                        }
+                    }
+                }
+            } catch (_: IOException) {
+                _uiState.update {
+                    it.copy(isEmailCodeSending = false, emailGeneralError = "No se pudo conectar con el servidor. Revisa tu conexión a internet e inténtalo de nuevo")
+                }
+            } catch (_: Exception) {
+                _uiState.update {
+                    it.copy(isEmailCodeSending = false, emailGeneralError = "Ocurrió un error inesperado. Inténtalo de nuevo")
+                }
+            }
+        }
+    }
+
+    private fun confirmarCambioCorreo() {
+        val currentState = _uiState.value
+        val code = currentState.emailOtpCode.joinToString("")
+        if (code.length != 6) return
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isEmailConfirming = true, emailOtpErrorMessage = null) }
+            try {
+                val request = ConfirmarCambioCorreoRequest(
+                    correoNuevo = currentState.newEmailInput.trim(),
+                    codigo = code
+                )
+                val response = authApi.confirmarCambioCorreo(request)
+                if (response.isSuccessful) {
+                    // Refrescar usuario inmediatamente en CurrentUserStore
+                    CurrentUserStore.refresh(authApi)
+                    limpiarEstadoMemoriaCorreo()
+                    _uiState.update { it.copy(snackbarSuccessMessage = "Correo actualizado") }
+                } else {
+                    val rawError = response.errorBody()?.string()
+                    val errorMsg = parseErrorMessage(rawError, "El código es incorrecto o ya venció")
+                    if (response.code() == 409) {
+                        _uiState.update {
+                            it.copy(
+                                isEmailConfirming = false,
+                                emailStep = EmailFlowStep.NEW_EMAIL,
+                                newEmailError = "Ese correo ya está registrado"
+                            )
+                        }
+                    } else {
+                        _uiState.update {
+                            it.copy(isEmailConfirming = false, emailOtpErrorMessage = errorMsg)
+                        }
+                    }
+                }
+            } catch (_: IOException) {
+                _uiState.update {
+                    it.copy(isEmailConfirming = false, emailOtpErrorMessage = "No se pudo conectar con el servidor. Revisa tu conexión a internet e inténtalo de nuevo")
+                }
+            } catch (_: Exception) {
+                _uiState.update {
+                    it.copy(isEmailConfirming = false, emailOtpErrorMessage = "Ocurrió un error inesperado. Inténtalo de nuevo")
+                }
+            }
+        }
+    }
+
+    private fun startEmailResendTimer() {
+        emailResendTimerJob?.cancel()
+        _uiState.update { it.copy(canResendEmailCode = false, emailResendCountdown = 60) }
+        emailResendTimerJob = viewModelScope.launch {
+            for (i in 60 downTo 1) {
+                _uiState.update { it.copy(emailResendCountdown = i) }
+                delay(1000)
+            }
+            _uiState.update { it.copy(canResendEmailCode = true, emailResendCountdown = 0) }
+        }
+    }
+
+    private fun limpiarEstadoMemoriaCorreo() {
+        emailResendTimerJob?.cancel()
+        _uiState.update {
+            it.copy(
+                emailStep = EmailFlowStep.NONE,
+                newEmailInput = "",
+                emailCurrentPasswordInput = "",
+                emailCurrentPasswordError = null,
+                newEmailError = null,
+                isEmailCodeSending = false,
+                emailGeneralError = null,
+                emailOtpCode = List(6) { "" },
+                isEmailConfirming = false,
+                emailOtpErrorMessage = null,
+                emailResendCountdown = 0,
+                canResendEmailCode = false,
+                googleTokenForEmailChange = null
+            )
         }
     }
 
@@ -261,7 +461,6 @@ class AccountAdminViewModel(application: Application) : AndroidViewModel(applica
                 val response = authApi.cambiarOcrearContrasena(request)
                 val body = response.body()
                 if (response.isSuccessful && body != null) {
-                    // Guardar nuevo token de sesión emitido con nueva versión
                     sessionManager.saveToken(body.token)
                     CurrentUserStore.refresh(authApi)
 
@@ -476,6 +675,8 @@ class AccountAdminViewModel(application: Application) : AndroidViewModel(applica
     override fun onCleared() {
         super.onCleared()
         resendTimerJob?.cancel()
+        emailResendTimerJob?.cancel()
         limpiarEstadoMemoriaContrasena()
+        limpiarEstadoMemoriaCorreo()
     }
 }

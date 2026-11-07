@@ -7,13 +7,12 @@ import com.equipo4.nearhome.domain.model.ListingType
 import com.equipo4.nearhome.domain.model.Property
 import com.equipo4.nearhome.domain.model.PropertyType
 import com.equipo4.nearhome.domain.repository.PropiedadRepository
+import com.equipo4.nearhome.util.AppStrings
+import com.equipo4.nearhome.R
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-
-import com.equipo4.nearhome.util.AppStrings
-import com.equipo4.nearhome.R
 
 class DetailPublicacionViewModel(
     private val repository: PropiedadRepository = Repositories.propiedades
@@ -27,10 +26,10 @@ class DetailPublicacionViewModel(
             _uiState.value = DetailPublicacionUiState.Loading
             try {
                 val property = repository.getById(id)
-                if (property == null) {
-                    _uiState.value = DetailPublicacionUiState.Error(AppStrings.get(R.string.detail_error_not_found))
+                _uiState.value = if (property == null) {
+                    DetailPublicacionUiState.Error(AppStrings.get(R.string.detail_error_not_found))
                 } else {
-                    _uiState.value = DetailPublicacionUiState.Success(property.toDetail())
+                    DetailPublicacionUiState.Success(property.toDetail())
                 }
             } catch (e: Exception) {
                 _uiState.value = DetailPublicacionUiState.Error(AppStrings.get(R.string.detail_error_load))
@@ -44,7 +43,6 @@ class DetailPublicacionViewModel(
             val pub = currentState.publicacion
             val nuevoEstadoGuardado = !pub.estaGuardado
             _uiState.value = DetailPublicacionUiState.Success(pub.copy(estaGuardado = nuevoEstadoGuardado))
-            // Se guarda en el repositorio para que Lista, Mapa y Guardados lo reflejen.
             viewModelScope.launch { repository.setSaved(pub.id, nuevoEstadoGuardado) }
         }
     }
@@ -63,10 +61,7 @@ private fun Property.toDetail(): PublicacionDetail {
     val esReal = description != null
 
     val descripcionFinal = if (esReal) {
-        buildString {
-            append(description)
-            if (!rules.isNullOrBlank()) append("\n\n${AppStrings.get(R.string.create_listing_ad_rules)}: $rules")
-        }
+        description.orEmpty()
     } else {
         "Exclusivo inmueble de ${areaSqM}m² ubicado en una de las mejores zonas de Manzanillo. " +
                 "Cuenta con una distribución ideal para disfrutar del confort y recibir invitados. " +
@@ -105,7 +100,10 @@ private fun Property.toDetail(): PublicacionDetail {
         precio = price,
         esRenta = listingType == ListingType.RENTA,
         tipoPropiedad = tipoLabel,
+        tipo = type,
         direccion = location,
+        latitud = latitude,
+        longitud = longitude,
         imagenes = images,
         metrosCuadrados = areaSqM,
         recamaras = bedrooms ?: 0,
@@ -115,7 +113,11 @@ private fun Property.toDetail(): PublicacionDetail {
         caracteristicasColumna2 = columna2,
         esPropietario = isOwner,
         estaGuardado = isSaved,
+        sellerId = sellerId,
+        sellerName = sellerName.orEmpty(),
+        sellerPhotoUrl = sellerPhotoUrl,
         telefonoVendedor = if (esReal) whatsappNumber(sellerPhone) else "523121234567",
+        reglas = if (esReal && listingType == ListingType.RENTA) rules?.takeIf { it.isNotBlank() } else null,
         emailVendedor = sellerEmail ?: "vendedor@ejemplo.com"
     )
 }

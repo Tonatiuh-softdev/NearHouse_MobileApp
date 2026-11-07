@@ -1,5 +1,6 @@
 package com.equipo4.nearhome.ui.auth.register
 
+import com.equipo4.nearhome.ui.common.nearHouseLogoPainter
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
@@ -471,7 +472,7 @@ private fun OtpVerificationContent(
         Spacer(modifier = Modifier.height(28.dp))
 
         Image(
-            painter = painterResource(id = R.drawable.ic_nearhouse_logo),
+            painter = nearHouseLogoPainter(),
             contentDescription = stringResource(R.string.signup_email_icon_cd),
             modifier = Modifier.size(90.dp)
         )

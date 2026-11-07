@@ -25,7 +25,10 @@ import kotlin.coroutines.cancellation.CancellationException
 
 /** URL de una foto del anuncio. Es pública: Coil la carga sin sesión. */
 fun fotoPublicacionUrl(fotoId: Int): String = "${NetworkModule.BASE_URL}api/v1/fotos/$fotoId"
-/** Vuelve a pedir los anuncios publicados al API (p. ej. al entrar al Home). */
+
+/** Foto de perfil de cualquier usuario. La versión cambia cuando el usuario sube otra, así Coil no muestra la vieja. */
+fun fotoUsuarioUrl(userId: Int, version: Long): String =
+    "${NetworkModule.BASE_URL}api/v1/usuarios/$userId/foto?v=$version"
 
 /**
  * Anuncios reales: lee del API los que están PUBLICADA. Cada vez que una pantalla empieza a observar
@@ -47,6 +50,7 @@ class PropiedadRepositoryApi(context: Context) : PropiedadRepository {
     private val savedIds = MutableStateFlow(prefs.getStringSet(KEY_SAVED, emptySet()).orEmpty().toSet())
     private val remote = MutableStateFlow<List<Property>>(emptyList())
     private var loadJob: Job? = null
+    @Volatile private var reloadPending = false
 
     private val all: Flow<List<Property>> =
         combine(remote, savedIds) { list, saved -> list.map { it.copy(isSaved = it.id in saved) } }
@@ -76,7 +80,6 @@ class PropiedadRepositoryApi(context: Context) : PropiedadRepository {
         prefs.edit().putStringSet(KEY_SAVED, next).apply()
         savedIds.update { next }
     }
-    @Volatile private var reloadPending = false
 
     override fun refresh() = reload()
 
@@ -139,7 +142,11 @@ internal fun PublicacionDto.toProperty(userId: Int?): Property {
         superficieSqM = superficie?.toDouble(),
         description = descripcion,
         rules = reglas,
+        sellerId = vendedor.id,
         sellerName = vendedor.nombre,
+        sellerPhotoUrl = if (vendedor.tieneFoto && vendedor.fotoVersion != null) {
+            fotoUsuarioUrl(vendedor.id, vendedor.fotoVersion)
+        } else null,
         sellerEmail = vendedor.correo,
         sellerPhone = vendedor.telefono,
         isOwner = userId != null && vendedor.id == userId,

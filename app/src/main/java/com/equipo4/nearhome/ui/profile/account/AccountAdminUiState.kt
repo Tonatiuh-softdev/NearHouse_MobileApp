@@ -1,5 +1,6 @@
 package com.equipo4.nearhome.ui.profile.account
 
+import android.util.Patterns
 import androidx.annotation.StringRes
 import com.equipo4.nearhome.ui.profile.UserRole
 
@@ -22,9 +23,17 @@ enum class PasswordFlowStep {
     NEW_PASSWORD
 }
 
+enum class EmailFlowStep {
+    NONE,
+    NEW_EMAIL,
+    VERIFY_CODE
+}
+
 data class AccountAdminUiState(
     val isLoading: Boolean = false,
     val userData: UserAccountData? = null,
+
+    // Flujo de Contraseña
     val passwordStep: PasswordFlowStep = PasswordFlowStep.NONE,
     val maskedEmail: String = "",
     val otpCode: List<String> = List(6) { "" },
@@ -39,6 +48,23 @@ data class AccountAdminUiState(
     val isPasswordSaving: Boolean = false,
     val passwordSaveError: String? = null,
     val proofToken: String? = null,
+
+    // Flujo de Cambio de Correo
+    val emailStep: EmailFlowStep = EmailFlowStep.NONE,
+    val newEmailInput: String = "",
+    val emailCurrentPasswordInput: String = "",
+    val emailCurrentPasswordError: String? = null,
+    val newEmailError: String? = null,
+    val isEmailCodeSending: Boolean = false,
+    val emailGeneralError: String? = null,
+    val emailOtpCode: List<String> = List(6) { "" },
+    val isEmailConfirming: Boolean = false,
+    val emailOtpErrorMessage: String? = null,
+    val emailResendCountdown: Int = 0,
+    val canResendEmailCode: Boolean = false,
+    val googleTokenForEmailChange: String? = null,
+
+    // Diálogos de Desactivación y Eliminación
     val showDeactivateDialog: Boolean = false,
     val deactivatePasswordInput: String = "",
     val deactivateError: String? = null,
@@ -74,10 +100,30 @@ data class AccountAdminUiState(
             val isDifferentFromCurrent = if (hasCurrentPassword) newPasswordInput != currentPasswordInput else true
             return hasMinLength && isConfirmed && currentPasswordValid && isDifferentFromCurrent && !isPasswordSaving
         }
+
+    val isNewEmailFormValid: Boolean
+        get() {
+            val emailClean = newEmailInput.trim()
+            val isFormatValid = Patterns.EMAIL_ADDRESS.matcher(emailClean).matches()
+            val isDifferent = emailClean.lowercase() != userData?.email?.lowercase()
+            val hasPassword = userData?.tieneContrasena == true
+            val passwordValid = if (hasPassword) emailCurrentPasswordInput.isNotBlank() else true
+            return isFormatValid && isDifferent && passwordValid && !isEmailCodeSending
+        }
 }
 
 sealed interface AccountAdminUiEvent {
     data object OnOptionClick : AccountAdminUiEvent
+    data object OnEmailOptionClick : AccountAdminUiEvent
+    data class OnNewEmailChanged(val text: String) : AccountAdminUiEvent
+    data class OnEmailCurrentPasswordChanged(val text: String) : AccountAdminUiEvent
+    data class OnRequestEmailCodeSubmitted(val googleToken: String? = null) : AccountAdminUiEvent
+    data object OnEmailFlowDismissed : AccountAdminUiEvent
+    data class OnEmailOtpDigitChanged(val index: Int, val digit: String) : AccountAdminUiEvent
+    data object OnConfirmNewEmailSubmitted : AccountAdminUiEvent
+    data object OnResendEmailCodeRequested : AccountAdminUiEvent
+    data object OnReturnToNewEmailStepRequested : AccountAdminUiEvent
+
     data object OnPasswordOptionClick : AccountAdminUiEvent
     data object OnRequestCodeConfirmed : AccountAdminUiEvent
     data object OnPasswordFlowDismissed : AccountAdminUiEvent
@@ -88,15 +134,18 @@ sealed interface AccountAdminUiEvent {
     data class OnNewPasswordChanged(val text: String) : AccountAdminUiEvent
     data class OnConfirmPasswordChanged(val text: String) : AccountAdminUiEvent
     data object OnSaveNewPasswordSubmitted : AccountAdminUiEvent
+
     data object OnDeactivateRequested : AccountAdminUiEvent
     data class OnDeactivatePasswordChanged(val text: String) : AccountAdminUiEvent
     data class OnDeactivateConfirmed(val googleToken: String? = null) : AccountAdminUiEvent
     data object OnDeactivateDismissed : AccountAdminUiEvent
+
     data object OnDeleteRequested : AccountAdminUiEvent
     data class OnDeleteConfirmed(val googleToken: String? = null) : AccountAdminUiEvent
     data class OnDeletePasswordChanged(val text: String) : AccountAdminUiEvent
     data object OnDeleteDismissed : AccountAdminUiEvent
     data class OnDeleteInputChanged(val text: String) : AccountAdminUiEvent
+
     data object OnUserMessageConsumed : AccountAdminUiEvent
     data object OnSnackbarMessageConsumed : AccountAdminUiEvent
 }
