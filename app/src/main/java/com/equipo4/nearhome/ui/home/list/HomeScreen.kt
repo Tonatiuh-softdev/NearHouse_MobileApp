@@ -1,5 +1,6 @@
 package com.equipo4.nearhome.ui.home.list
 
+import com.equipo4.nearhome.ui.common.nearHouseLogoPainter
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -193,7 +194,7 @@ private fun HomeHeader(
             .padding(horizontal = 16.dp, vertical = 12.dp),
     ) {
         Image(
-            painter = painterResource(id = R.drawable.ic_nearhouse_logo),
+            painter = nearHouseLogoPainter(),
             contentDescription = stringResource(R.string.logo_cd),
             modifier = Modifier
                 .size(40.dp)
@@ -510,7 +511,7 @@ private fun EmptyHomeState(onClearFilters: () -> Unit) {
             contentAlignment = Alignment.Center
         ) {
             Icon(
-                painter = painterResource(id = R.drawable.ic_nearhouse_logo),
+                painter = nearHouseLogoPainter(),
                 contentDescription = null,
                 tint = emptyIconColor.copy(alpha = 0.5f),
                 modifier = Modifier.size(72.dp)
