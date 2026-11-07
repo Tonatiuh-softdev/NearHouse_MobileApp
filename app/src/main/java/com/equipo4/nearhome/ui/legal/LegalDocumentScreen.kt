@@ -1,5 +1,16 @@
 package com.equipo4.nearhome.ui.legal
 
+import android.content.ActivityNotFoundException
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withLink
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -382,6 +393,42 @@ fun LegalDocumentScreen(
     }
 }
 
+private val EmailRegex = Regex("[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}")
+
+/** Convierte los correos del texto en enlaces: al tocarlos abre la app de correo (Gmail) con el destinatario listo. */
+@Composable
+private fun linkifyEmails(text: String): AnnotatedString {
+    val context = LocalContext.current
+    val linkColor = MaterialTheme.colorScheme.primary
+    return remember(text, linkColor) {
+        buildAnnotatedString {
+            var last = 0
+            EmailRegex.findAll(text).forEach { match ->
+                append(text.substring(last, match.range.first))
+                val email = match.value
+                withLink(
+                    LinkAnnotation.Clickable(
+                        tag = email,
+                        styles = TextLinkStyles(
+                            style = SpanStyle(color = linkColor, textDecoration = TextDecoration.Underline)
+                        )
+                    ) {
+                        val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:$email"))
+                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        try {
+                            context.startActivity(intent)
+                        } catch (_: ActivityNotFoundException) {
+                            // No hay app de correo instalada
+                        }
+                    }
+                ) { append(email) }
+                last = match.range.last + 1
+            }
+            append(text.substring(last))
+        }
+    }
+}
+
 @Composable
 private fun FormattedLegalContent(
     content: String,
@@ -412,7 +459,7 @@ private fun FormattedLegalContent(
                         color = MaterialTheme.colorScheme.primary
                     )
                     Text(
-                        text = bulletText,
+                        text = linkifyEmails(bulletText),
                         fontSize = 14.sp,
                         lineHeight = 20.sp,
                         color = MaterialTheme.colorScheme.onSurface,
@@ -434,7 +481,7 @@ private fun FormattedLegalContent(
                         color = MaterialTheme.colorScheme.primary
                     )
                     Text(
-                        text = bulletText,
+                        text = linkifyEmails(bulletText),
                         fontSize = 14.sp,
                         lineHeight = 20.sp,
                         color = MaterialTheme.colorScheme.onSurface,
@@ -443,7 +490,7 @@ private fun FormattedLegalContent(
                 }
             } else {
                 Text(
-                    text = trimmed,
+                    text = linkifyEmails(trimmed),
                     fontSize = 14.sp,
                     lineHeight = 20.sp,
                     color = MaterialTheme.colorScheme.onSurface

@@ -1,6 +1,7 @@
 package com.equipo4.nearhome.ui.home.list
 
 import com.equipo4.nearhome.ui.common.nearHouseLogoPainter
+import com.equipo4.nearhome.ui.home.common.HomeSearchHeader
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -185,91 +186,14 @@ private fun HomeHeader(
     onToggleToMap: () -> Unit,
     onHomeClick: () -> Unit = {}
 ) {
-    var lastToggleTime by remember { mutableStateOf(0L) }
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-    ) {
-        Image(
-            painter = nearHouseLogoPainter(),
-            contentDescription = stringResource(R.string.logo_cd),
-            modifier = Modifier
-                .size(40.dp)
-                .clip(CircleShape)
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null
-                ) { onHomeClick() }
-        )
-
-        Row(
-            modifier = Modifier
-                .weight(1f)
-                .height(48.dp)
-                .border(
-                    width = 1.dp,
-                    color = MaterialTheme.nearHouseColors.searchBarBorder,
-                    shape = RoundedCornerShape(24.dp)
-                )
-                .clip(RoundedCornerShape(24.dp))
-                .background(MaterialTheme.nearHouseColors.searchBarBg)
-                .padding(horizontal = 16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Default.Search,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.size(22.dp)
-            )
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Box(
-                modifier = Modifier.weight(1f),
-                contentAlignment = Alignment.CenterStart
-            ) {
-                if (searchQuery.isEmpty()) {
-                    Text(
-                        text = stringResource(R.string.home_search_location),
-                        fontSize = 15.sp,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1
-                    )
-                }
-                BasicTextField(
-                    value = searchQuery,
-                    onValueChange = onQueryChange,
-                    singleLine = true,
-                    textStyle = TextStyle(
-                        fontSize = 15.sp,
-                        color = MaterialTheme.colorScheme.onSurface
-                    ),
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Icon(
-                painter = painterResource(id = R.drawable.ic_localizacion),
-                contentDescription = stringResource(R.string.home_view_map),
-                tint = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier
-                    .size(18.dp)
-                    .clickable {
-                        val now = System.currentTimeMillis()
-                        if (now - lastToggleTime > 400) {
-                            lastToggleTime = now
-                            onToggleToMap()
-                        }
-                    }
-            )
-        }
-    }
+    HomeSearchHeader(
+        searchQuery = searchQuery,
+        onQueryChange = onQueryChange,
+        toggleIcon = painterResource(id = R.drawable.ic_localizacion),
+        toggleContentDescription = stringResource(R.string.home_view_map),
+        onToggle = onToggleToMap,
+        onHomeClick = onHomeClick
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
