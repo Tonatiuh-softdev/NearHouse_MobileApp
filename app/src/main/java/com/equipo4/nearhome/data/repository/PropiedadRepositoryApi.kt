@@ -113,6 +113,7 @@ class PropiedadRepositoryApi(context: Context) : PropiedadRepository {
 /** Convierte lo que regresa el API al modelo que usan las pantallas. */
 internal fun PublicacionDto.toProperty(userId: Int?): Property {
     val propertyType = runCatching { PropertyType.valueOf(tipo.uppercase()) }.getOrDefault(PropertyType.CASA)
+    val esDueno = userId != null && vendedor.id == userId
     return Property(
         id = id.toString(),
         title = titulo,
@@ -144,12 +145,17 @@ internal fun PublicacionDto.toProperty(userId: Int?): Property {
         rules = reglas,
         sellerId = vendedor.id,
         sellerName = vendedor.nombre,
+        // Si el anuncio es del usuario con sesión, se usa la misma función que carga su foto de perfil
         sellerPhotoUrl = if (vendedor.tieneFoto && vendedor.fotoVersion != null) {
-            fotoUsuarioUrl(vendedor.id, vendedor.fotoVersion)
+            if (esDueno) {
+                NetworkModule.fotoPerfilUrl(vendedor.fotoVersion.toString())
+            } else {
+                fotoUsuarioUrl(vendedor.id, vendedor.fotoVersion)
+            }
         } else null,
         sellerEmail = vendedor.correo,
         sellerPhone = vendedor.telefono,
-        isOwner = userId != null && vendedor.id == userId,
+        isOwner = esDueno,
         registeredAt = fechaRegistro
     )
 }

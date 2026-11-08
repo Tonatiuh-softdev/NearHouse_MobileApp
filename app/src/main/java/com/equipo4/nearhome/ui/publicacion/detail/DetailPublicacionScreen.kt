@@ -524,6 +524,7 @@ private fun SellerCard(pub: PublicacionDetail, onClick: () -> Unit) {
     }
 }
 
+/** Siempre dibuja las iniciales; la foto va encima, así si no carga se ve el avatar con letras. */
 @Composable
 private fun SellerAvatar(name: String, photoUrl: String?, size: Dp) {
     Box(
@@ -533,19 +534,18 @@ private fun SellerAvatar(name: String, photoUrl: String?, size: Dp) {
             .background(MaterialTheme.colorScheme.primary),
         contentAlignment = Alignment.Center
     ) {
+        Text(
+            text = initials(name),
+            color = MaterialTheme.colorScheme.onPrimary,
+            fontWeight = FontWeight.Bold,
+            fontSize = (size.value * 0.36f).sp
+        )
         if (photoUrl != null) {
             AsyncImage(
                 model = photoUrl,
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
-            )
-        } else {
-            Text(
-                text = initials(name),
-                color = MaterialTheme.colorScheme.onPrimary,
-                fontWeight = FontWeight.Bold,
-                fontSize = (size.value * 0.36f).sp
             )
         }
     }
@@ -645,20 +645,6 @@ private fun PrecioSection(precio: Double, esRenta: Boolean) {
                 modifier = Modifier.padding(bottom = 2.dp)
             )
         }
-    }
-}
-
-@Composable
-private fun TipoPropiedadSection(tipo: String) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(
-            painter = painterResource(id = R.drawable.ic_departamento),
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(18.dp)
-        )
-        Spacer(modifier = Modifier.width(6.dp))
-        Text(text = tipo, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
