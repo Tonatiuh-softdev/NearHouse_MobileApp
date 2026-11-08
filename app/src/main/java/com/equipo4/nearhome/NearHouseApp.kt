@@ -38,13 +38,7 @@ import com.equipo4.nearhome.ui.admin.reports.ReportsScreen
 import com.equipo4.nearhome.ui.admin.reports.ReportDetailScreen
 import com.equipo4.nearhome.ui.admin.reports.ReportConfirmationScreen
 import com.equipo4.nearhome.ui.admin.users_crud.UsersListScreen
-import com.equipo4.nearhome.ui.admin.users_crud.UsersListViewModel
-import com.equipo4.nearhome.ui.admin.users_crud.FilterUsersScreen
-import com.equipo4.nearhome.ui.admin.users_crud.FilterUsersViewModel
-import com.equipo4.nearhome.ui.admin.users_crud.FilterUsersViewModelFactory
 import com.equipo4.nearhome.ui.admin.users_crud.detail.UserDetailScreen
-import com.equipo4.nearhome.ui.admin.users_crud.block.BlockUserScreen
-import com.equipo4.nearhome.ui.admin.users_crud.delete.DeleteUserScreen
 import com.equipo4.nearhome.ui.auth.completeprofile.CompleteProfileScreen
 import com.equipo4.nearhome.ui.auth.recover.RecoverPasswordScreen
 import com.equipo4.nearhome.ui.auth.recover.RecoverPasswordViewModel
@@ -108,6 +102,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.equipo4.nearhome.R
+import com.equipo4.nearhome.ui.admin.users_crud.UsersListScreen
 
 object AppRoutes {
     const val SPLASH = "splash"
@@ -840,18 +835,10 @@ fun NearHouseApp() {
             )
         }
 
-        // Pantalla: Usuarios (Admin)
+        // Pantalla: Usuarios (Admin). Lista real con búsqueda, filtros por rol y estatus, y paginación
         composable(AppRoutes.ADMIN_USERS) {
-            val parentEntry = remember { navController.getBackStackEntry(AppRoutes.ADMIN_USERS) }
-            val usersViewModel: UsersListViewModel = viewModel(parentEntry)
             UsersListScreen(
-                viewModel = usersViewModel,
-                onBackClick = {
-                    navController.popBackStack()
-                },
-                onFilterClick = {
-                    navController.navigate(AppRoutes.ADMIN_USERS_FILTER)
-                },
+                onBackClick = { navController.popBackStack() },
                 onUserClick = { userId ->
                     navController.navigate("${AppRoutes.ADMIN_USER_DETAIL}/$userId")
                 },
@@ -859,29 +846,7 @@ fun NearHouseApp() {
             )
         }
 
-        // Pantalla: Filtrar Usuarios
-        composable(AppRoutes.ADMIN_USERS_FILTER) {
-            val parentEntry = remember { navController.getBackStackEntry(AppRoutes.ADMIN_USERS) }
-            val usersViewModel: UsersListViewModel = viewModel(parentEntry)
-            val initialRoles by usersViewModel.selectedRolesFilter.collectAsState()
-            val initialStatuses by usersViewModel.selectedStatusesFilter.collectAsState()
-            val filterViewModel: FilterUsersViewModel = viewModel(
-                factory = FilterUsersViewModelFactory(initialRoles, initialStatuses)
-            )
-
-            FilterUsersScreen(
-                viewModel = filterViewModel,
-                onBackClick = {
-                    navController.popBackStack()
-                },
-                onApplyFilters = { roles, statuses ->
-                    usersViewModel.applyFilters(roles, statuses)
-                    navController.popBackStack()
-                }
-            )
-        }
-
-        // Pantalla: Detalle de Usuario (Admin)
+        // Pantalla: Detalle de usuario (Admin), solo lectura
         composable(
             route = "${AppRoutes.ADMIN_USER_DETAIL}/{userId}",
             arguments = listOf(navArgument("userId") { type = NavType.StringType })
@@ -889,39 +854,7 @@ fun NearHouseApp() {
             val userId = backStackEntry.arguments?.getString("userId") ?: ""
             UserDetailScreen(
                 userId = userId,
-                onBackClick = { navController.popBackStack() },
-                onBlockClick = { id -> navController.navigate("${AppRoutes.ADMIN_USER_BLOCK}/$id") },
-                onDeleteClick = { id -> navController.navigate("${AppRoutes.ADMIN_USER_DELETE}/$id") }
-            )
-        }
-
-        // Pantalla: Bloquear / Suspender Usuario
-        composable(
-            route = "${AppRoutes.ADMIN_USER_BLOCK}/{userId}",
-            arguments = listOf(navArgument("userId") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val userId = backStackEntry.arguments?.getString("userId") ?: ""
-            BlockUserScreen(
-                userId = userId,
-                onBackClick = { navController.popBackStack() },
-                onBlockSuccess = { _ ->
-                    navController.popBackStack()
-                }
-            )
-        }
-
-        // Pantalla: Eliminar Usuario
-        composable(
-            route = "${AppRoutes.ADMIN_USER_DELETE}/{userId}",
-            arguments = listOf(navArgument("userId") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val userId = backStackEntry.arguments?.getString("userId") ?: ""
-            DeleteUserScreen(
-                userId = userId,
-                onBackClick = { navController.popBackStack() },
-                onDeleteSuccess = { _ ->
-                    navController.popBackStack(AppRoutes.ADMIN_USERS, inclusive = false)
-                }
+                onBackClick = { navController.popBackStack() }
             )
         }
 

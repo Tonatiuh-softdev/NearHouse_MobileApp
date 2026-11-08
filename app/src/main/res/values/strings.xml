@@ -1114,4 +1114,84 @@
 
     <string name="notif_title_recently_published">Propiedades recién publicadas \uF195</string> <!-- 🆕 -->
     <string name="notif_body_recently_published">Basado en tu búsqueda, creemos que esta propiedad te va a gustar.</string>
+
+    <!-- Panel de usuarios -->
+    <string name="admin_users_title">Usuarios</string>
+    <string name="admin_users_total_accounts">%1$d cuentas registradas</string>
+    <string name="admin_users_results">%1$d resultados</string>
+    <string name="admin_users_showing">Mostrando %1$d usuarios</string>
+    <string name="admin_users_search_hint">Buscar por nombre, correo o teléfono</string>
+    <string name="admin_users_clear_search">Limpiar búsqueda</string>
+    <string name="admin_users_role_all">Rol: Todos</string>
+    <string name="admin_users_status_all">Estatus: Todos</string>
+    <string name="admin_users_all">Todos</string>
+    <string name="admin_users_filters">Filtros</string>
+    <string name="admin_users_empty_title">No encontramos usuarios</string>
+    <string name="admin_users_empty_body">No hay cuentas que coincidan con la búsqueda y los filtros actuales.</string>
+    <string name="admin_users_clear_filters">Limpiar búsqueda y filtros</string>
+    <string name="admin_users_error">No se pudieron cargar los usuarios</string>
+    <string name="admin_users_retry">Reintentar</string>
+    <string name="admin_users_forbidden">Solo los administradores pueden ver esta sección.</string>
+    <string name="admin_users_not_found">El usuario no existe.</string>
+    <string name="admin_user_status_active">Activo</string>
+    <string name="admin_user_status_suspended">Suspendido</string>
+    <string name="admin_user_status_deactivated">Desactivado</string>
+
+    <!-- Detalle de usuario -->
+    <string name="admin_user_detail_title">Detalle de usuario</string>
+    <string name="admin_user_section_account">Cuenta</string>
+    <string name="admin_user_section_name">Nombre</string>
+    <string name="admin_user_section_plan">Plan</string>
+    <string name="admin_user_section_activity">Publicaciones y reportes</string>
+    <string name="admin_user_label_email">Correo</string>
+    <string name="admin_user_label_phone">Teléfono</string>
+    <string name="admin_user_label_role">Rol</string>
+    <string name="admin_user_label_status">Estatus</string>
+    <string name="admin_user_label_registered">Registro</string>
+    <string name="admin_user_label_name">Nombre(s)</string>
+    <string name="admin_user_label_first_surname">Primer apellido</string>
+    <string name="admin_user_label_second_surname">Segundo apellido</string>
+    <string name="admin_user_label_plan">Plan actual</string>
+    <string name="admin_user_label_expires">Vence</string>
+    <string name="admin_user_label_review">En revisión</string>
+    <string name="admin_user_label_published">Publicadas</string>
+    <string name="admin_user_label_rejected">Rechazadas</string>
+    <string name="admin_user_label_pending_reports">Reportes pendientes</string>
+    <string name="admin_user_no_plan">Sin plan</string>
+
+    <!-- Acciones del detalle -->
+    <string name="admin_user_action_block">Bloquear / Suspender</string>
+    <string name="admin_user_action_unsuspend">Quitar suspensión</string>
+    <string name="admin_user_action_delete">Eliminar cuenta</string>
+
+    <!-- Bloquear / suspender -->
+    <string name="admin_user_block_title">Bloquear cuenta</string>
+    <string name="admin_user_block_subtitle">Acción sensible</string>
+    <string name="admin_user_block_question">¿Bloquear esta cuenta?</string>
+    <string name="admin_user_block_desc">Confirma que deseas restringir el acceso de esta persona.</string>
+    <string name="admin_user_block_warning">La cuenta perderá acceso a NearHouse y no podrá contactar personas ni crear o editar publicaciones hasta que un administrador la reactive.</string>
+    <string name="admin_user_block_reason_label">Motivo (opcional)</string>
+    <string name="admin_user_block_reason_hint">Describe brevemente la razón administrativa...</string>
+    <string name="admin_user_block_result">Resultado de la acción</string>
+    <string name="admin_user_block_result_badge">Bloqueado / Suspendido</string>
+    <string name="admin_user_block_result_desc">Acceso suspendido · Reactivación manual</string>
+    <string name="admin_user_block_footnote">La fecha, el administrador responsable y el motivo quedarán registrados en el historial de la cuenta.</string>
+    <string name="admin_user_block_confirm">Bloquear cuenta</string>
+    <string name="admin_user_block_default_reason">Suspensión administrativa</string>
+
+    <!-- Eliminar -->
+    <string name="admin_user_delete_title">Eliminar usuario</string>
+    <string name="admin_user_delete_subtitle">Acción irreversible</string>
+    <string name="admin_user_delete_header">Eliminar definitivamente</string>
+    <string name="admin_user_delete_header_desc">Esta acción no se puede deshacer.</string>
+    <string name="admin_user_delete_warning_title">Atención: tiene publicaciones asociadas</string>
+    <string name="admin_user_delete_warning_body">%1$s tiene %2$d publicaciones vinculadas a su cuenta. Se borrarán junto con la cuenta, sus fotos y sus reportes.</string>
+    <string name="admin_user_delete_list_title">Se eliminará la cuenta y sus datos personales</string>
+    <string name="admin_user_delete_item_personal">Nombre, correo y teléfono</string>
+    <string name="admin_user_delete_item_access">Acceso y credenciales</string>
+    <string name="admin_user_delete_item_activity">Preferencias y actividad de la cuenta</string>
+    <string name="admin_user_delete_footnote">Al continuar, confirmas que revisaste la identidad y el impacto de esta eliminación.</string>
+    <string name="admin_user_delete_confirm">Eliminar definitivamente</string>
+
+
 </resources>
