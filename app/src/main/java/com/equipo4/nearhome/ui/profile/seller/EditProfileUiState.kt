@@ -18,6 +18,9 @@ data class EditProfileUiState(
     val secondLastName: String = "",
     val photoUri: Uri? = null,
 
+    // Foto recién tomada/elegida que espera ser encuadrada en el círculo
+    val pendingCropUri: Uri? = null,
+
     // Errores de validación
     val firstNameError: String? = null,
     val firstLastNameError: String? = null,

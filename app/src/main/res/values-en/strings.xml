@@ -92,6 +92,12 @@
     <string name="edit_profile_camera_permission_message">We need access to your camera to take your new profile picture.</string>
     <string name="edit_profile_open_settings">Open settings</string>
 
+    <!-- Recorte circular de foto de perfil -->
+    <string name="crop_photo_title">Adjust photo</string>
+    <string name="crop_photo_hint">Drag and pinch to frame your photo inside the circle</string>
+    <string name="crop_photo_confirm">Use photo</string>
+    <string name="crop_photo_error">Couldn\'t open the image. Try another one.</string>
+
     <!-- Suscripción y Planes -->
     <string name="choose_plan_title">Choose your plan</string>
     <string name="choose_plan_header_title">Start publishing your properties!</string>
@@ -1113,7 +1119,6 @@
     <string name="notif_title_recently_published">Recently published properties \uF195</string>
     <string name="notif_body_recently_published">Based on your search, we think you will like this property.</string>
 
-<<<<<<< HEAD
     <!-- Deactivate / delete account -->
     <string name="acc_current_password">Current password</string>
     <string name="acc_toggle_password_cd">Show or hide password</string>
@@ -1128,7 +1133,6 @@
     <string name="login_keep_confirm">Keep my account</string>
     <string name="login_reactivated_msg">Your account is active again</string>
     <string name="login_kept_msg">Done, your account will not be deleted</string>
-=======
     <!-- User panel -->
     <string name="admin_users_title">Users</string>
     <string name="admin_users_total_accounts">%1$d registered accounts</string>
@@ -1206,5 +1210,4 @@
     <string name="admin_user_delete_item_activity">Preferences and account activity</string>
     <string name="admin_user_delete_footnote">By continuing, you confirm that you reviewed the identity and the impact of this deletion.</string>
     <string name="admin_user_delete_confirm">Delete permanently</string>
->>>>>>> 593bd23814c0e19620ab89675f5ede8d8119119f
 </resources>

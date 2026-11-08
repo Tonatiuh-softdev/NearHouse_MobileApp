@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -53,11 +54,22 @@ fun PropertyCard(
     val pagerState = rememberPagerState(pageCount = { totalPages })
     val coroutineScope = rememberCoroutineScope()
 
+    val cardShape = RoundedCornerShape(18.dp)
+    val shadowElevation = MaterialTheme.nearHouseColors.cardShadowElevation
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .then(
+                if (shadowElevation > 0.dp) Modifier.shadow(
+                    elevation = shadowElevation,
+                    shape = cardShape,
+                    ambientColor = Color.Black,
+                    spotColor = Color.Black
+                ) else Modifier
+            )
             .clickable { onClick() },
-        shape = RoundedCornerShape(18.dp),
+        shape = cardShape,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         border = BorderStroke(1.dp, MaterialTheme.nearHouseColors.cardBorder),
         elevation = CardDefaults.cardElevation(defaultElevation = MaterialTheme.nearHouseColors.cardElevation)

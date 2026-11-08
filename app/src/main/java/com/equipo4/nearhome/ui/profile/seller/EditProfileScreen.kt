@@ -86,197 +86,208 @@ fun EditProfileScreen(
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia()
     ) { uri ->
-        viewModel.onGalleryImagePicked(context, uri)
+        viewModel.onGalleryImagePicked(uri)
     }
 
-    Scaffold(
-        bottomBar = {
-            NearHomeBottomBar(
-                selectedTab = 3,
-                onTabSelected = { tabIndex ->
-                    viewModel.onAttemptExit { onBottomTabSelected(tabIndex) }
-                }
-            )
-        },
-        containerColor = MaterialTheme.colorScheme.background
-    ) { innerPadding ->
-        if (uiState.isLoading) {
-            EditProfileSkeleton(modifier = Modifier.padding(innerPadding))
-        } else {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .verticalScroll(rememberScrollState())
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .statusBarsPadding()
-                        .padding(horizontal = 12.dp, vertical = 8.dp)
-                ) {
-                    IconButton(
-                        onClick = { viewModel.onAttemptExit { onNavigateToMyListingsWithSnackbar("") } }
-                    ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.edit_profile_back),
-                            tint = MaterialTheme.colorScheme.onBackground
-                        )
+    Box(modifier = Modifier.fillMaxSize()) {
+        Scaffold(
+            bottomBar = {
+                NearHomeBottomBar(
+                    selectedTab = 3,
+                    onTabSelected = { tabIndex ->
+                        viewModel.onAttemptExit { onBottomTabSelected(tabIndex) }
                     }
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
+                )
+            },
+            containerColor = MaterialTheme.colorScheme.background
+        ) { innerPadding ->
+            if (uiState.isLoading) {
+                EditProfileSkeleton(modifier = Modifier.padding(innerPadding))
+            } else {
                 Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                        .verticalScroll(rememberScrollState())
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(100.dp)
-                            .clickable { viewModel.openBottomSheet() }
+                            .fillMaxWidth()
+                            .statusBarsPadding()
+                            .padding(horizontal = 12.dp, vertical = 8.dp)
+                    ) {
+                        IconButton(
+                            onClick = { viewModel.onAttemptExit { onNavigateToMyListingsWithSnackbar("") } }
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(R.string.edit_profile_back),
+                                tint = MaterialTheme.colorScheme.onBackground
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Box(
                             modifier = Modifier
-                                .fillMaxSize()
-                                .clip(CircleShape)
-                                .background(Color(0xFFE0F2FE)),
-                            contentAlignment = Alignment.Center
+                                .size(100.dp)
+                                .clickable { viewModel.openBottomSheet() }
                         ) {
-                            if (uiState.photoUri != null) {
-                                AsyncImage(
-                                    model = uiState.photoUri,
-                                    contentDescription = stringResource(R.string.edit_profile_picture_title),
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier.fillMaxSize()
-                                )
-                            } else {
-                                Icon(
-                                    imageVector = Icons.Outlined.Person,
-                                    contentDescription = null,
-                                    tint = Color(0xFF0284C7),
-                                    modifier = Modifier.size(56.dp)
-                                )
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(CircleShape)
+                                    .background(Color(0xFFE0F2FE)),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (uiState.photoUri != null) {
+                                    AsyncImage(
+                                        model = uiState.photoUri,
+                                        contentDescription = stringResource(R.string.edit_profile_picture_title),
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                } else {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Person,
+                                        contentDescription = null,
+                                        tint = Color(0xFF0284C7),
+                                        modifier = Modifier.size(56.dp)
+                                    )
+                                }
+                            }
+
+                            Surface(
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.primary,
+                                shadowElevation = 2.dp,
+                                modifier = Modifier
+                                    .size(30.dp)
+                                    .align(Alignment.BottomEnd)
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Edit,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onPrimary,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
                             }
                         }
 
-                        Surface(
-                            shape = CircleShape,
-                            color = MaterialTheme.colorScheme.primary,
-                            shadowElevation = 2.dp,
-                            modifier = Modifier
-                                .size(30.dp)
-                                .align(Alignment.BottomEnd)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Icon(
-                                    imageVector = Icons.Outlined.Edit,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onPrimary,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                            }
-                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Text(
+                            text = stringResource(R.string.edit_profile_picture_title),
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            modifier = Modifier.clickable { viewModel.openBottomSheet() }
+                        )
                     }
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(32.dp))
 
-                    Text(
-                        text = stringResource(R.string.edit_profile_picture_title),
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier.clickable { viewModel.openBottomSheet() }
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(32.dp))
-
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp)
-                ) {
-                    OutlinedTextField(
-                        value = uiState.firstName,
-                        onValueChange = { viewModel.onFirstNameChange(it) },
-                        label = { Text(stringResource(R.string.edit_profile_first_name)) },
-                        isError = uiState.firstNameError != null,
-                        supportingText = {
-                            uiState.firstNameError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-                        },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(8.dp)
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    OutlinedTextField(
-                        value = uiState.firstLastName,
-                        onValueChange = { viewModel.onFirstLastNameChange(it) },
-                        label = { Text(stringResource(R.string.edit_profile_first_last_name)) },
-                        isError = uiState.firstLastNameError != null,
-                        supportingText = {
-                            uiState.firstLastNameError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-                        },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(8.dp)
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    OutlinedTextField(
-                        value = uiState.secondLastName,
-                        onValueChange = { viewModel.onSecondLastNameChange(it) },
-                        label = { Text(stringResource(R.string.edit_profile_second_last_name)) },
-                        placeholder = {
-                            Text(
-                                text = stringResource(R.string.edit_profile_optional_hint),
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                            )
-                        },
-                        isError = uiState.secondLastNameError != null,
-                        supportingText = {
-                            uiState.secondLastNameError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-                        },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(8.dp)
-                    )
-
-                    Spacer(modifier = Modifier.height(40.dp))
-
-                    Button(
-                        onClick = { viewModel.saveProfile() },
-                        enabled = uiState.isSaveEnabled,
-                        shape = RoundedCornerShape(8.dp),
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(48.dp)
+                            .padding(horizontal = 24.dp)
                     ) {
-                        if (uiState.isSaving) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(24.dp),
-                                color = MaterialTheme.colorScheme.onPrimary
-                            )
-                        } else {
-                            Text(
-                                text = stringResource(R.string.edit_profile_save),
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-                    uiState.saveError?.let {
-                        Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 8.dp))
-                    }
+                        OutlinedTextField(
+                            value = uiState.firstName,
+                            onValueChange = { viewModel.onFirstNameChange(it) },
+                            label = { Text(stringResource(R.string.edit_profile_first_name)) },
+                            isError = uiState.firstNameError != null,
+                            supportingText = {
+                                uiState.firstNameError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                            },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(8.dp)
+                        )
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        OutlinedTextField(
+                            value = uiState.firstLastName,
+                            onValueChange = { viewModel.onFirstLastNameChange(it) },
+                            label = { Text(stringResource(R.string.edit_profile_first_last_name)) },
+                            isError = uiState.firstLastNameError != null,
+                            supportingText = {
+                                uiState.firstLastNameError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                            },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(8.dp)
+                        )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        OutlinedTextField(
+                            value = uiState.secondLastName,
+                            onValueChange = { viewModel.onSecondLastNameChange(it) },
+                            label = { Text(stringResource(R.string.edit_profile_second_last_name)) },
+                            placeholder = {
+                                Text(
+                                    text = stringResource(R.string.edit_profile_optional_hint),
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                )
+                            },
+                            isError = uiState.secondLastNameError != null,
+                            supportingText = {
+                                uiState.secondLastNameError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                            },
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(8.dp)
+                        )
+
+                        Spacer(modifier = Modifier.height(40.dp))
+
+                        Button(
+                            onClick = { viewModel.saveProfile() },
+                            enabled = uiState.isSaveEnabled,
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(48.dp)
+                        ) {
+                            if (uiState.isSaving) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(24.dp),
+                                    color = MaterialTheme.colorScheme.onPrimary
+                                )
+                            } else {
+                                Text(
+                                    text = stringResource(R.string.edit_profile_save),
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                        uiState.saveError?.let {
+                            Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 8.dp))
+                        }
+
+                        Spacer(modifier = Modifier.height(24.dp))
+                    }
                 }
             }
+        }
+
+        // Pantalla de recorte circular, encima de todo (incluida la barra inferior)
+        uiState.pendingCropUri?.let { uri ->
+            ProfilePhotoCropScreen(
+                sourceUri = uri,
+                onCancel = { viewModel.onCropCancelled() },
+                onCropped = { viewModel.onPhotoCropped(it) }
+            )
         }
     }
 

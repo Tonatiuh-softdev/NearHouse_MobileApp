@@ -126,26 +126,25 @@ class EditProfileViewModel(application: Application) : AndroidViewModel(applicat
         return uri
     }
 
+    // Cámara y galería ya no ponen la foto directo: primero abren la pantalla
+    // de recorte circular (ProfilePhotoCropScreen).
     fun onCameraImageCaptured(success: Boolean) {
         if (success && tempCameraUri != null) {
-            _uiState.update { it.copy(photoUri = tempCameraUri, isBottomSheetOpen = false) }
+            _uiState.update { it.copy(pendingCropUri = tempCameraUri, isBottomSheetOpen = false) }
         }
     }
 
-    fun onGalleryImagePicked(context: Context, uri: Uri?) {
+    fun onGalleryImagePicked(uri: Uri?) {
         uri ?: return
-        viewModelScope.launch {
-            val localFile = File(context.filesDir, "profile_photo_${System.currentTimeMillis()}.jpg")
-            try {
-                context.contentResolver.openInputStream(uri)?.use { input ->
-                    localFile.outputStream().use { output -> input.copyTo(output) }
-                }
-                val localUri = Uri.fromFile(localFile)
-                _uiState.update { it.copy(photoUri = localUri, isBottomSheetOpen = false) }
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
+        _uiState.update { it.copy(pendingCropUri = uri, isBottomSheetOpen = false) }
+    }
+
+    fun onPhotoCropped(croppedUri: Uri) {
+        _uiState.update { it.copy(photoUri = croppedUri, pendingCropUri = null) }
+    }
+
+    fun onCropCancelled() {
+        _uiState.update { it.copy(pendingCropUri = null) }
     }
 
     fun onRemovePhoto() {

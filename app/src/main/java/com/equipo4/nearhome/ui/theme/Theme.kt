@@ -41,7 +41,10 @@ data class NearHouseCustomColors(
     val filterChipBg: Color,
     val filterChipSelectedBg: Color,
     val cardBorder: Color,
-    val cardElevation: Dp
+    val cardElevation: Dp,
+    // Sombra extra dibujada con Modifier.shadow (sin tinte tonal de Material3).
+    // Se usa en modo oscuro, donde la elevación normal casi no se nota.
+    val cardShadowElevation: Dp = 0.dp
 )
 
 val LightNearHouseCustomColors = NearHouseCustomColors(
@@ -84,8 +87,9 @@ val DarkNearHouseCustomColors = NearHouseCustomColors(
     searchBarBorder = Color.Transparent,
     filterChipBg = Color(0xFF1E2630),
     filterChipSelectedBg = Color(0xFF1E3A5F),
-    cardBorder = Color(0xFF334155), // Misma tonalidad sutil de outlineVariant en oscuro
-    cardElevation = 0.dp
+    cardBorder = Color.Transparent,
+    cardElevation = 0.dp,
+    cardShadowElevation = 10.dp
 )
 
 val LocalNearHouseCustomColors = staticCompositionLocalOf {

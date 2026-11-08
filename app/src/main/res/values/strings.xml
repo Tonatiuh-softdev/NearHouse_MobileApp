@@ -92,6 +92,12 @@
     <string name="edit_profile_camera_permission_message">Necesitamos acceso a tu cámara para tomar tu nueva foto de perfil.</string>
     <string name="edit_profile_open_settings">Abrir ajustes</string>
 
+    <!-- Recorte circular de foto de perfil -->
+    <string name="crop_photo_title">Ajustar foto</string>
+    <string name="crop_photo_hint">Arrastra y pellizca para encuadrar tu foto dentro del círculo</string>
+    <string name="crop_photo_confirm">Usar foto</string>
+    <string name="crop_photo_error">No se pudo abrir la imagen. Intenta con otra.</string>
+
     <!-- Suscripción y Planes -->
     <string name="choose_plan_title">Elige tu plan</string>
     <string name="choose_plan_header_title">¡Empieza a publicar tus inmuebles!</string>
@@ -1115,7 +1121,6 @@
     <string name="notif_title_recently_published">Propiedades recién publicadas \uF195</string> <!-- 🆕 -->
     <string name="notif_body_recently_published">Basado en tu búsqueda, creemos que esta propiedad te va a gustar.</string>
 
-<<<<<<< HEAD
     <!-- Desactivar / eliminar cuenta -->
     <string name="acc_current_password">Contraseña actual</string>
     <string name="acc_toggle_password_cd">Mostrar u ocultar contraseña</string>
@@ -1130,7 +1135,6 @@
     <string name="login_keep_confirm">Conservar mi cuenta</string>
     <string name="login_reactivated_msg">Tu cuenta está activa otra vez</string>
     <string name="login_kept_msg">Listo, tu cuenta ya no se eliminará</string>
-=======
     <!-- Panel de usuarios -->
     <string name="admin_users_title">Usuarios</string>
     <string name="admin_users_total_accounts">%1$d cuentas registradas</string>
@@ -1210,5 +1214,4 @@
     <string name="admin_user_delete_confirm">Eliminar definitivamente</string>
 
 
->>>>>>> 593bd23814c0e19620ab89675f5ede8d8119119f
 </resources>
