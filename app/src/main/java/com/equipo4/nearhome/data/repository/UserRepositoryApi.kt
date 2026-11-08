@@ -91,7 +91,11 @@ class UserRepositoryApi(context: Context) : UserRepository {
     }
 
     override suspend fun suspender(userId: String, dias: Int?, motivo: String): Result<Unit> =
-        accion(userId) { id -> api.suspender(id, SuspenderUsuarioDto(dias, motivo.trim())) }
+        accion(userId) { id ->
+            // La base exige un motivo: si el administrador lo deja vacío, se manda uno por defecto
+            val razon = motivo.trim().ifEmpty { AppStrings.get(R.string.admin_user_block_default_reason) }
+            api.suspender(id, SuspenderUsuarioDto(dias, razon))
+        }
 
     override suspend fun levantarSuspension(userId: String): Result<Unit> =
         accion(userId) { id -> api.levantarSuspension(id) }

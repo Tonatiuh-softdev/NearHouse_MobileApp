@@ -1,5 +1,6 @@
 package com.equipo4.nearhome.ui.admin.users_crud.detail
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -22,6 +23,7 @@ import com.equipo4.nearhome.domain.model.UserDetail
 import com.equipo4.nearhome.ui.admin.users_crud.UserAvatar
 import com.equipo4.nearhome.ui.admin.users_crud.UserRoleTag
 import com.equipo4.nearhome.ui.admin.users_crud.UserStatusBadge
+import com.equipo4.nearhome.domain.model.UserAccountRole
 
 private enum class AccionUsuario { NINGUNA, SUSPENDER, ELIMINAR }
 
@@ -40,15 +42,58 @@ fun UserDetailScreen(
     val actionError by viewModel.actionError.collectAsState()
     var pantalla by remember { mutableStateOf(AccionUsuario.NINGUNA) }
     val snackbarHostState = remember { SnackbarHostState() }
+    val usuario = (state as? UserDetailUiState.Success)?.user
 
-    // Muestra el error de "Quitar suspensión" en un Snackbar. Los errores de suspender
-    // se muestran dentro de su pantalla, y los de eliminar, dentro de su diálogo.
+    // El botón atrás del sistema cierra la confirmación abierta, no sale del detalle
+    BackHandler(enabled = pantalla != AccionUsuario.NINGUNA) {
+        viewModel.limpiarErrorAccion()
+        pantalla = AccionUsuario.NINGUNA
+    }
+
+    // Errores de "Quitar suspensión" se muestran en un Snackbar
     LaunchedEffect(actionError, pantalla) {
         val mensaje = actionError
         if (mensaje != null && pantalla == AccionUsuario.NINGUNA) {
             snackbarHostState.showSnackbar(mensaje)
             viewModel.limpiarErrorAccion()
         }
+    }
+
+    if (usuario != null && pantalla == AccionUsuario.SUSPENDER) {
+        SuspendUserScreen(
+            user = usuario,
+            isSubmitting = busy,
+            errorMessage = actionError,
+            onBackClick = {
+                viewModel.limpiarErrorAccion()
+                pantalla = AccionUsuario.NINGUNA
+            },
+            onConfirm = { motivo ->
+                viewModel.suspender(dias = null, motivo = motivo) {
+                    pantalla = AccionUsuario.NINGUNA
+                }
+            }
+        )
+        return
+    }
+
+    if (usuario != null && pantalla == AccionUsuario.ELIMINAR) {
+        DeleteUserScreen(
+            user = usuario,
+            isSubmitting = busy,
+            errorMessage = actionError,
+            onBackClick = {
+                viewModel.limpiarErrorAccion()
+                pantalla = AccionUsuario.NINGUNA
+            },
+            onConfirm = {
+                viewModel.eliminar {
+                    pantalla = AccionUsuario.NINGUNA
+                    onBackClick()
+                }
+            }
+        )
+        return
     }
 
     Scaffold(
@@ -76,11 +121,10 @@ fun UserDetailScreen(
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         bottomBar = {
-            val estado = state
-            if (estado is UserDetailUiState.Success && pantalla == AccionUsuario.NINGUNA) {
+            if (usuario != null && !usuario.role.esAdministrador()) {
                 UserActionsBar(
-                    status = estado.user.status,
-                    onSuspend = { pantalla = AccionUsuario.SUSPENDER },
+                    status = usuario.status,
+                    onBlock = { pantalla = AccionUsuario.SUSPENDER },
                     onUnsuspend = { viewModel.levantarSuspension { } },
                     onDelete = { pantalla = AccionUsuario.ELIMINAR }
                 )
@@ -124,41 +168,10 @@ fun UserDetailScreen(
             }
         }
     }
-
-    // Pantallas de confirmación: se muestran encima del detalle
-    val estadoActual = state
-    if (pantalla == AccionUsuario.SUSPENDER && estadoActual is UserDetailUiState.Success) {
-        SuspendUserScreen(
-            userName = estadoActual.user.name,
-            isSubmitting = busy,
-            errorMessage = actionError,
-            onBackClick = {
-                viewModel.limpiarErrorAccion()
-                pantalla = AccionUsuario.NINGUNA
-            },
-            onConfirm = { dias, motivo ->
-                viewModel.suspender(dias, motivo) { pantalla = AccionUsuario.NINGUNA }
-            }
-        )
-    }
-
-    if (pantalla == AccionUsuario.ELIMINAR && estadoActual is UserDetailUiState.Success) {
-        ConfirmDeleteDialog(
-            userName = estadoActual.user.name,
-            isSubmitting = busy,
-            onDismiss = {
-                viewModel.limpiarErrorAccion()
-                pantalla = AccionUsuario.NINGUNA
-            },
-            onConfirm = {
-                viewModel.eliminar {
-                    pantalla = AccionUsuario.NINGUNA
-                    onBackClick()
-                }
-            }
-        )
-    }
 }
+
+private fun UserAccountRole.esAdministrador(): Boolean =
+    this == UserAccountRole.ADMINISTRADOR || this == UserAccountRole.SUPER_ADMIN
 
 @Composable
 private fun DetalleContenido(user: UserDetail, modifier: Modifier = Modifier) {
@@ -171,7 +184,6 @@ private fun DetalleContenido(user: UserDetail, modifier: Modifier = Modifier) {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Cabecera: foto (o iniciales), nombre, correo y estatus
         SeccionCard(titulo = null) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,

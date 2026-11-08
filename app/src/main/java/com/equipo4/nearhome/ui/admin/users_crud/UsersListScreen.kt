@@ -29,6 +29,8 @@ import com.equipo4.nearhome.domain.model.UserAccountRole
 import com.equipo4.nearhome.domain.model.UserAccountStatus
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
 import com.equipo4.nearhome.ui.theme.nearHouseColors
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 
 /** Cuántos elementos antes del final se pide la siguiente página. */
 private const val UMBRAL_CARGA = 4
@@ -45,6 +47,11 @@ fun UsersListScreen(
     val role by viewModel.selectedRole.collectAsState()
     val status by viewModel.selectedStatus.collectAsState()
     val state by viewModel.uiState.collectAsState()
+    // Cada vez que la pantalla vuelve a mostrarse (por ejemplo, después de suspender o eliminar),
+    // se vuelve a pedir la lista. Sin esto, se queda la versión de antes.
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        viewModel.reintentar()
+    }
 
     var showRoleMenu by remember { mutableStateOf(false) }
     var showStatusMenu by remember { mutableStateOf(false) }
@@ -211,15 +218,6 @@ fun UsersListScreen(
                             }
                         }
                     }
-
-                    // Sin filtros extra por ahora
-                    FilterChip(
-                        selected = false,
-                        onClick = { },
-                        label = { Text(stringResource(R.string.admin_users_filters)) },
-                        shape = RoundedCornerShape(10.dp),
-                        colors = chipColors()
-                    )
                 }
                 HorizontalDivider(color = MaterialTheme.colorScheme.outline, thickness = 1.dp)
             }

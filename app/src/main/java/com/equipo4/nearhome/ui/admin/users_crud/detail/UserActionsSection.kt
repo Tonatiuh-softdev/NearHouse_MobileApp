@@ -5,55 +5,72 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.domain.model.UserAccountStatus
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.ui.text.font.FontWeight
 
-/** Botones de acción. Abren una pantalla de confirmación; nada se ejecuta aquí directamente. */
 @Composable
 fun UserActionsBar(
     status: UserAccountStatus,
-    onSuspend: () -> Unit,
+    onBlock: () -> Unit,
     onUnsuspend: () -> Unit,
     onDelete: () -> Unit
 ) {
     Surface(color = MaterialTheme.colorScheme.surface, shadowElevation = 8.dp) {
-        Column(
-            modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .navigationBarsPadding()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             if (status == UserAccountStatus.SUSPENDIDO) {
                 Button(
                     onClick = onUnsuspend,
-                    modifier = Modifier.fillMaxWidth().height(50.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                    modifier = Modifier.weight(1f).height(46.dp),
+                    shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text(stringResource(R.string.admin_user_action_unsuspend), fontWeight = FontWeight.Bold)
+                    Text(
+                        text = stringResource(R.string.admin_user_action_unsuspend),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 1
+                    )
                 }
             } else {
                 OutlinedButton(
-                    onClick = onSuspend,
-                    modifier = Modifier.fillMaxWidth().height(50.dp),
+                    onClick = onBlock,
+                    modifier = Modifier.weight(1f).height(46.dp),
                     shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.error),
-                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.onSurface)
                 ) {
-                    Text(stringResource(R.string.admin_user_action_suspend), fontWeight = FontWeight.Bold)
+                    Text(
+                        text = stringResource(R.string.admin_user_action_block),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium,
+                        maxLines = 1
+                    )
                 }
             }
-            OutlinedButton(
+
+            TextButton(
                 onClick = onDelete,
-                modifier = Modifier.fillMaxWidth().height(50.dp),
-                shape = RoundedCornerShape(12.dp),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.error),
-                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                modifier = Modifier.weight(1f).height(46.dp)
             ) {
-                Text(stringResource(R.string.admin_user_action_delete), fontWeight = FontWeight.Bold)
+                Text(
+                    text = stringResource(R.string.admin_user_action_delete),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.error,
+                    maxLines = 1
+                )
             }
         }
     }
