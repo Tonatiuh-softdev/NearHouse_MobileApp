@@ -23,5 +23,5 @@ object Repositories {
     val propiedades: PropiedadRepository by lazy { PropiedadRepositoryApi(ctx()) }
     val reportes: ReportRepository by lazy { ReportRepositoryApi(ctx()) }
     val anuncios: AdminListingRepository by lazy { AdminListingRepositoryApi(ctx()) }
-    val users: UserRepository by lazy { UserRepositoryFake() }
+    val users: UserRepository by lazy { UserRepositoryApi(ctx()) }
 }

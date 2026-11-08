@@ -73,7 +73,7 @@ class EditProfileViewModel(application: Application) : AndroidViewModel(applicat
 
     private fun fotoRemotaDe(user: UsuarioMeDto): Uri? =
         if (user.tieneFoto && user.fotoVersion != null) {
-            Uri.parse(NetworkModule.fotoPerfilUrl(user.id, user.fotoVersion!!))
+            Uri.parse(NetworkModule.fotoPerfilUrl(user.fotoVersion!!))
         } else {
             null
         }

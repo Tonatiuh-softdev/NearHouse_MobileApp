@@ -1113,6 +1113,7 @@
     <string name="notif_title_recently_published">Recently published properties \uF195</string>
     <string name="notif_body_recently_published">Based on your search, we think you will like this property.</string>
 
+<<<<<<< HEAD
     <!-- Deactivate / delete account -->
     <string name="acc_current_password">Current password</string>
     <string name="acc_toggle_password_cd">Show or hide password</string>
@@ -1127,4 +1128,83 @@
     <string name="login_keep_confirm">Keep my account</string>
     <string name="login_reactivated_msg">Your account is active again</string>
     <string name="login_kept_msg">Done, your account will not be deleted</string>
+=======
+    <!-- User panel -->
+    <string name="admin_users_title">Users</string>
+    <string name="admin_users_total_accounts">%1$d registered accounts</string>
+    <string name="admin_users_results">%1$d results</string>
+    <string name="admin_users_showing">Showing %1$d users</string>
+    <string name="admin_users_search_hint">Search by name, email or phone</string>
+    <string name="admin_users_clear_search">Clear search</string>
+    <string name="admin_users_role_all">Role: All</string>
+    <string name="admin_users_status_all">Status: All</string>
+    <string name="admin_users_all">All</string>
+    <string name="admin_users_filters">Filters</string>
+    <string name="admin_users_empty_title">No users found</string>
+    <string name="admin_users_empty_body">No accounts match the current search and filters.</string>
+    <string name="admin_users_clear_filters">Clear search and filters</string>
+    <string name="admin_users_error">Could not load users</string>
+    <string name="admin_users_retry">Retry</string>
+    <string name="admin_users_forbidden">Only administrators can view this section.</string>
+    <string name="admin_users_not_found">The user does not exist.</string>
+    <string name="admin_user_status_active">Active</string>
+    <string name="admin_user_status_suspended">Suspended</string>
+    <string name="admin_user_status_deactivated">Deactivated</string>
+
+    <!-- User detail -->
+    <string name="admin_user_detail_title">User details</string>
+    <string name="admin_user_section_account">Account</string>
+    <string name="admin_user_section_name">Name</string>
+    <string name="admin_user_section_plan">Plan</string>
+    <string name="admin_user_section_activity">Listings and reports</string>
+    <string name="admin_user_label_email">Email</string>
+    <string name="admin_user_label_phone">Phone</string>
+    <string name="admin_user_label_role">Role</string>
+    <string name="admin_user_label_status">Status</string>
+    <string name="admin_user_label_registered">Registered</string>
+    <string name="admin_user_label_name">First name(s)</string>
+    <string name="admin_user_label_first_surname">First surname</string>
+    <string name="admin_user_label_second_surname">Second surname</string>
+    <string name="admin_user_label_plan">Current plan</string>
+    <string name="admin_user_label_expires">Expires</string>
+    <string name="admin_user_label_review">Under review</string>
+    <string name="admin_user_label_published">Published</string>
+    <string name="admin_user_label_rejected">Rejected</string>
+    <string name="admin_user_label_pending_reports">Pending reports</string>
+    <string name="admin_user_no_plan">No plan</string>
+
+    <!-- Detail actions -->
+    <string name="admin_user_action_block">Block / Suspend</string>
+    <string name="admin_user_action_unsuspend">Lift suspension</string>
+    <string name="admin_user_action_delete">Delete account</string>
+
+    <!-- Block / suspend -->
+    <string name="admin_user_block_title">Block account</string>
+    <string name="admin_user_block_subtitle">Sensitive action</string>
+    <string name="admin_user_block_question">Block this account?</string>
+    <string name="admin_user_block_desc">Confirm that you want to restrict this person\'s access.</string>
+    <string name="admin_user_block_warning">The account will lose access to NearHouse and won\'t be able to contact people or create or edit listings until an administrator reactivates it.</string>
+    <string name="admin_user_block_reason_label">Reason (optional)</string>
+    <string name="admin_user_block_reason_hint">Briefly describe the administrative reason...</string>
+    <string name="admin_user_block_result">Action result</string>
+    <string name="admin_user_block_result_badge">Blocked / Suspended</string>
+    <string name="admin_user_block_result_desc">Access suspended · Manual reactivation</string>
+    <string name="admin_user_block_footnote">The date, the responsible administrator and the reason will be recorded in the account history.</string>
+    <string name="admin_user_block_confirm">Block account</string>
+    <string name="admin_user_block_default_reason">Administrative suspension</string>
+
+    <!-- Delete -->
+    <string name="admin_user_delete_title">Delete user</string>
+    <string name="admin_user_delete_subtitle">Irreversible action</string>
+    <string name="admin_user_delete_header">Delete permanently</string>
+    <string name="admin_user_delete_header_desc">This action cannot be undone.</string>
+    <string name="admin_user_delete_warning_title">Warning: has associated listings</string>
+    <string name="admin_user_delete_warning_body">%1$s has %2$d listings linked to the account. They will be deleted together with the account, its photos and reports.</string>
+    <string name="admin_user_delete_list_title">The account and its personal data will be deleted</string>
+    <string name="admin_user_delete_item_personal">Name, email and phone</string>
+    <string name="admin_user_delete_item_access">Access and credentials</string>
+    <string name="admin_user_delete_item_activity">Preferences and account activity</string>
+    <string name="admin_user_delete_footnote">By continuing, you confirm that you reviewed the identity and the impact of this deletion.</string>
+    <string name="admin_user_delete_confirm">Delete permanently</string>
+>>>>>>> 593bd23814c0e19620ab89675f5ede8d8119119f
 </resources>

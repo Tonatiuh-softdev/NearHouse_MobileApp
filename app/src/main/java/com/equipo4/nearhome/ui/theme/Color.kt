@@ -42,3 +42,13 @@ val NearHouseSurfaceDark = Color(0xFF161B22)
 val NearHouseOnSurfaceDark = Color(0xFFF1F5F9)
 val NearHouseOnSurfaceVariantDark = Color(0xFF94A3B8)
 val NearHouseOutlineDark = Color(0xFF2A3441)
+
+// Estatus de cuentas en el panel de usuarios
+val StatusActiveBgLight = Color(0xFFDCFCE7)
+val StatusActiveTextLight = Color(0xFF15803D)
+val StatusActiveBgDark = Color(0xFF143821)
+val StatusActiveTextDark = Color(0xFF4ADE80)
+val StatusSuspendedBgLight = Color(0xFFFEE2E2)
+val StatusSuspendedTextLight = Color(0xFFB91C1C)
+val StatusSuspendedBgDark = Color(0xFF3B1818)
+val StatusSuspendedTextDark = Color(0xFFF87171)
