@@ -46,8 +46,8 @@ import com.equipo4.nearhome.ui.admin.users_crud.detail.UserDetailScreen
 import com.equipo4.nearhome.ui.admin.users_crud.block.BlockUserScreen
 import com.equipo4.nearhome.ui.admin.users_crud.delete.DeleteUserScreen
 import com.equipo4.nearhome.ui.auth.completeprofile.CompleteProfileScreen
-import com.equipo4.nearhome.ui.auth.forgot_password.ForgotPasswordScreen
-import com.equipo4.nearhome.ui.auth.forgot_password.ForgotPasswordViewModel
+import com.equipo4.nearhome.ui.auth.recover.RecoverPasswordScreen
+import com.equipo4.nearhome.ui.auth.recover.RecoverPasswordViewModel
 import com.equipo4.nearhome.ui.auth.login.LoginScreen
 import com.equipo4.nearhome.ui.auth.register.SignUpScreen
 import com.equipo4.nearhome.ui.auth.verification.PhoneVerificationScreen
@@ -295,8 +295,8 @@ fun NearHouseApp() {
                 onNavigateToRegister = {
                     navController.navigate(AppRoutes.SIGN_UP)
                 },
-                onNavigateToForgotPassword = {
-                    navController.navigate(AppRoutes.FORGOT_PASSWORD)
+                onNavigateToForgotPassword = { prefilledEmail ->
+                    navController.navigate("${AppRoutes.FORGOT_PASSWORD}?email=${prefilledEmail.trim()}")
                 },
                 onLoginSuccess = {
                     sessionManager.setLoggedIn(true)
@@ -405,17 +405,22 @@ fun NearHouseApp() {
         }
 
         // Pantalla 5: Recuperación de contraseña
-        composable(AppRoutes.FORGOT_PASSWORD) {
-            val forgotPasswordViewModel: ForgotPasswordViewModel = viewModel()
-            ForgotPasswordScreen(
-                viewModel = forgotPasswordViewModel,
-                onNavigateToLogin = {
+        composable(
+            route = "${AppRoutes.FORGOT_PASSWORD}?email={email}",
+            arguments = listOf(navArgument("email") { type = NavType.StringType; defaultValue = "" })
+        ) { entry ->
+            val prefilledEmail = entry.arguments?.getString("email") ?: ""
+            val recoverViewModel: RecoverPasswordViewModel = viewModel()
+            val context = LocalContext.current
+            RecoverPasswordScreen(
+                viewModel = recoverViewModel,
+                prefilledEmail = prefilledEmail,
+                onNavigateBack = {
                     navController.popBackStack()
                 },
-                onNavigateToSignUp = {
-                    navController.navigate(AppRoutes.SIGN_UP) {
-                        popUpTo(AppRoutes.LOGIN) { inclusive = false }
-                    }
+                onSuccessFinished = { msg ->
+                    Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                    navController.popBackStack(AppRoutes.LOGIN, inclusive = false)
                 }
             )
         }

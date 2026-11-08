@@ -12,7 +12,9 @@ object NetworkModule {
     const val BASE_URL = "https://nearhouseapi-production.up.railway.app/"
 
     /** URL de la foto. El parámetro v cambia cuando la foto cambia, para no usar la vieja en caché. */
-    fun fotoPerfilUrl(version: String): String = "${BASE_URL}api/v1/usuarios/me/foto?v=$version"
+    /** Foto pública de un usuario. Coil la carga sin token. La versión cambia cuando el usuario sube otra. */
+    fun fotoPerfilUrl(userId: Int, version: String): String =
+        "${BASE_URL}api/v1/usuarios/$userId/foto?v=$version"
 
     fun provideOkHttpClient(sessionManager: SessionManager): OkHttpClient {
         // Nivel BASIC obligatorio para NO imprimir contraseñas ni tokens en Logcat
