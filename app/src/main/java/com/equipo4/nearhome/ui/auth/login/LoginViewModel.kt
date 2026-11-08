@@ -1,13 +1,17 @@
 package com.equipo4.nearhome.ui.auth.login
 
 import android.app.Application
+import android.content.Context
 import android.util.Patterns
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.equipo4.nearhome.R
 import com.equipo4.nearhome.data.local.SessionManager
+import com.equipo4.nearhome.data.remote.GoogleAuthManager
 import com.equipo4.nearhome.di.NetworkModule
 import com.equipo4.nearhome.network.AuthApi
 import com.equipo4.nearhome.network.LoginRequest
+import com.equipo4.nearhome.util.AppStrings
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -16,9 +20,6 @@ import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.io.IOException
 import kotlin.coroutines.cancellation.CancellationException
-
-import com.equipo4.nearhome.util.AppStrings
-import com.equipo4.nearhome.R
 
 class LoginViewModel(
     application: Application
@@ -66,46 +67,78 @@ class LoginViewModel(
         }
     }
 
-    fun onLoginClicked() {
+    fun onLoginClicked(reactivar: Boolean = false) {
         val currentState = _uiState.value
         // Evita enviar dos veces la misma petición
         if (!currentState.isFormValid || currentState.isLoading) return
 
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            _uiState.update {
+                it.copy(
+                    isLoading = true,
+                    errorMessage = null,
+                    showReactivateDialog = false
+                )
+            }
             try {
                 val response = authApi.login(
                     LoginRequest(
                         correo = currentState.email.trim(),
-                        contrasena = currentState.password
+                        contrasena = currentState.password,
+                        reactivar = reactivar
                     )
                 )
 
                 val body = response.body()
                 if (response.isSuccessful && body != null) {
-                    // Persistencia: token y datos básicos (la contraseña jamás se guarda)
+                    // Persistencia: token y datos básicos
                     sessionManager.saveSession(
                         token = body.token,
                         userId = body.usuario.id,
                         nombre = body.usuario.nombre,
                         rol = body.usuario.rol,
-                        correo = body.usuario.correo   // contacto del propietario en Crear anuncio
+                        correo = body.usuario.correo
                     )
-                    _uiState.update { it.copy(isLoading = false, isSuccess = true) }
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            isSuccess = true,
+                            reactivateSuccessMessage = if (reactivar) {
+                                AppStrings.get(
+                                    if (currentState.reactivateIsDeletion) R.string.login_kept_msg else R.string.login_reactivated_msg
+                                )
+                            } else null
+                        )
+                    }
                 } else {
                     val rawError = try {
                         response.errorBody()?.string()
                     } catch (e: Exception) {
                         null
                     }
-                    val errorMessage = parseErrorMessage(response.code(), rawError)
-                    _uiState.update { it.copy(isLoading = false, errorMessage = errorMessage) }
+                    // 409 = cuenta desactivada (CUENTA_DESACTIVADA) o por eliminarse (CUENTA_EN_ELIMINACION)
+                    val errorJson = try { JSONObject(rawError ?: "") } catch (e: Exception) { null }
+                    val codigo = errorJson?.optString("codigo").orEmpty()
+                    val esEliminacion = codigo == "CUENTA_EN_ELIMINACION"
+                    val isDeactivated = esEliminacion || codigo == "CUENTA_DESACTIVADA" || response.code() == 409 ||
+                        (rawError?.contains("desactivada", ignoreCase = true) == true)
+                    if (isDeactivated) {
+                        _uiState.update {
+                            it.copy(
+                                isLoading = false,
+                                showReactivateDialog = true,
+                                reactivateIsDeletion = esEliminacion,
+                                reactivateMessage = errorJson?.optString("error")?.takeIf { m -> m.isNotBlank() }
+                            )
+                        }
+                    } else {
+                        val errorMessage = parseErrorMessage(response.code(), rawError)
+                        _uiState.update { it.copy(isLoading = false, errorMessage = errorMessage) }
+                    }
                 }
             } catch (e: CancellationException) {
-                // No tragarse la cancelación de la corrutina
                 throw e
             } catch (e: IOException) {
-                // Sin internet, timeout o API apagada
                 _uiState.update {
                     it.copy(
                         isLoading = false,
@@ -123,11 +156,14 @@ class LoginViewModel(
         }
     }
 
-    /**
-     * Prioridad: 1) el mensaje que manda la API; 2) un texto según el código HTTP.
-     * Así "Demasiados intentos" y "Cuenta suspendida" ya no se convierten en
-     * AppStrings.get(R.string.login_error_401).
-     */
+    fun onDismissReactivateDialog() {
+        _uiState.update { it.copy(showReactivateDialog = false) }
+    }
+
+    fun onConfirmReactivate() {
+        onLoginClicked(reactivar = true)
+    }
+
     private fun parseErrorMessage(code: Int, rawError: String?): String {
         val apiMessage = try {
             val json = JSONObject(rawError ?: "")
@@ -147,7 +183,35 @@ class LoginViewModel(
         }
     }
 
-    fun onGoogleLoginClicked() {
-        // Fuera del alcance de esta tarea
+    fun onGoogleLoginClicked(context: Context, onTokenReceived: (String) -> Unit) {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    isLoading = true,
+                    errorMessage = null,
+                    googleSuccessMessage = null
+                )
+            }
+
+            val googleAuthManager = GoogleAuthManager(context)
+            val result = googleAuthManager.getFirebaseIdToken()
+
+            result.fold(
+                onSuccess = { firebaseToken ->
+                    _uiState.update { it.copy(isLoading = false) }
+                    if (firebaseToken != null) {
+                        onTokenReceived(firebaseToken)
+                    }
+                },
+                onFailure = { error ->
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            errorMessage = error.message ?: "No se pudo iniciar sesión con Google. Inténtalo de nuevo."
+                        )
+                    }
+                }
+            )
+        }
     }
 }

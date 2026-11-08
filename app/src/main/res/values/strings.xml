@@ -28,6 +28,12 @@
     <string name="measure_applied_prefix">Medida aplicada: %s</string>
     <string name="closed_without_measure">Cerrado sin aplicar medida</string>
     <string name="attended_date_prefix">Atendido · %s</string>
+    <string name="default_web_client_id">424289712499-tcqb92huv82t8ggmnd1k8kcm2vaflu9g.apps.googleusercontent.com</string>
+    <string name="report_error_duplicate">Ya reportaste esta publicación; está en revisión.</string>
+    <string name="report_error_limit">Llegaste al límite de reportes por hoy. Intenta mañana.</string>
+    <string name="report_error_not_available">Esta publicación ya no está disponible.</string>
+    <string name="report_error_own">No puedes reportar tu propia publicación.</string>
+    <string name="report_evidence_title">Sube hasta 5 imágenes como evidencia (opcional)</string>
 
     <plurals name="pending_reports_subtitle">
         <item quantity="one">1 pendiente por revisar</item>
@@ -58,6 +64,39 @@
     <string name="profile_default_name">Usuario</string>
     <string name="profile_section_profile">Perfil</string>
     <string name="profile_my_listings">Mis anuncios</string>
+
+    <!-- Editar Perfil -->
+    <string name="edit_profile_back">Regresar</string>
+    <string name="edit_profile_close">Cerrar</string>
+    <string name="edit_profile_cancel">Cancelar</string>
+    <string name="edit_profile_save">Guardar</string>
+    <string name="edit_profile_picture_title">Foto de perfil</string>
+    <string name="edit_profile_first_name">Nombre(s)</string>
+    <string name="edit_profile_first_last_name">Primer Apellido</string>
+    <string name="edit_profile_second_last_name">Segundo Apellido</string>
+    <string name="edit_profile_optional_hint">(opcional)</string>
+
+    <string name="edit_profile_option_camera">Cámara</string>
+    <string name="edit_profile_option_gallery">Galería</string>
+    <string name="edit_profile_option_delete_photo">Eliminar foto</string>
+
+    <string name="edit_profile_error_required">Este campo es obligatorio</string>
+    <string name="edit_profile_error_only_letters">Solo se permiten letras y espacios</string>
+    <string name="edit_profile_updated_success">Perfil actualizado</string>
+
+    <string name="edit_profile_discard_title">¿Descartar cambios?</string>
+    <string name="edit_profile_discard_message">Tienes cambios sin guardar. Si sales ahora, se perderán.</string>
+    <string name="edit_profile_discard_confirm">Descartar</string>
+
+    <string name="edit_profile_camera_permission_title">Permiso de cámara requerido</string>
+    <string name="edit_profile_camera_permission_message">Necesitamos acceso a tu cámara para tomar tu nueva foto de perfil.</string>
+    <string name="edit_profile_open_settings">Abrir ajustes</string>
+
+    <!-- Recorte circular de foto de perfil -->
+    <string name="crop_photo_title">Ajustar foto</string>
+    <string name="crop_photo_hint">Arrastra y pellizca para encuadrar tu foto dentro del círculo</string>
+    <string name="crop_photo_confirm">Usar foto</string>
+    <string name="crop_photo_error">No se pudo abrir la imagen. Intenta con otra.</string>
 
     <!-- Suscripción y Planes -->
     <string name="choose_plan_title">Elige tu plan</string>
@@ -228,6 +267,36 @@
     <string name="listing_history_created">Anuncio registrado como</string>
     <string name="listing_history_by_format">Por %1$s</string>
     <string name="listing_history_reason_format">Motivo: %1$s</string>
+
+    <!-- Detalle de publicación -->
+    <string name="detail_back_cd">Regresar</string>
+    <string name="detail_save_cd">Guardar</string>
+    <string name="detail_type_house">Casa</string>
+    <string name="detail_type_apartment">Departamento</string>
+    <string name="detail_type_land">Terreno</string>
+    <string name="detail_area_format">%1$d m²</string>
+    <string name="detail_dimensions_format">%1$d x %2$d m</string>
+    <string name="detail_section_features">Características</string>
+    <string name="detail_section_description">Descripción</string>
+    <string name="detail_section_details">Más detalles</string>
+    <string name="detail_read_less">Leer menos</string>
+    <string name="detail_seller_fallback">Anunciante</string>
+    <string name="detail_seller_owner">Tu anuncio</string>
+    <string name="detail_seller_profile">Ver perfil del anunciante</string>
+    <string name="detail_whatsapp">WhatsApp</string>
+    <string name="detail_yes">Sí</string>
+    <string name="detail_no">No</string>
+    <string name="detail_floor">Piso</string>
+    <string name="detail_ground_floor">Planta baja</string>
+    <string name="detail_furnished">Amueblado</string>
+    <string name="detail_elevator">Elevador</string>
+    <string name="detail_levels">Niveles</string>
+    <string name="detail_garden_patio">Jardín / patio</string>
+    <string name="detail_land_use">Uso de suelo</string>
+    <string name="detail_pets">Mascotas</string>
+    <string name="detail_pets_allowed">Permitidas</string>
+    <string name="detail_pets_not_allowed">No se permiten</string>
+    <string name="detail_rules">Reglas</string>
 
     <!-- Botones de acción -->
     <string name="listing_action_approve">Aprobar</string>
@@ -431,7 +500,7 @@
     <string name="create_listing_preview_label">Tu publicación en el listado</string>
     <string name="create_listing_preview_new">Nuevo</string>
     <string name="create_listing_preview_note">Todo listo. El formato, imágenes y distribución se adaptan automáticamente a todos los dispositivos.</string>
-    <string name="create_listing_confirm_publish">Confirmar y publicar</string>
+    <string name="create_listing_confirm_publish">Confirmar y enviar</string>
     <string name="create_listing_back_to_edit">Volver a editar</string>
     <string name="create_listing_sending">Enviando…</string>
     <string name="create_listing_sent_title">Anuncio enviado</string>
@@ -577,11 +646,17 @@
     <string name="home_properties_count">%s inmuebles</string>
     <string name="home_search_location">Busca por ubicación</string>
     <string name="home_sort">Ordenar</string>
+    <string name="sort_default">Por defecto</string>
+    <string name="sort_price_low_high">Menor a mayor costo</string>
+    <string name="sort_price_high_low">Mayor a menor costo</string>
     <string name="map_type_todo">Todo</string>
     <string name="map_type_types">%d tipos</string>
     <string name="map_preview_title">Detalle de la propiedad</string>
     <string name="saved_empty_title">Aún no tienes propiedades guardadas</string>
     <string name="saved_empty_subtitle">Guarda las propiedades que te interesen para encontrarlas aquí más fácil</string>
+    <string name="home_empty_title">No hay publicaciones disponibles</string>
+    <string name="home_empty_subtitle">Intenta cambiar los filtros o tu búsqueda para ver más inmuebles</string>
+    <string name="home_empty_clear_filters">Limpiar filtros</string>
     <string name="checkout_free_trial_heading">No se te cobrará durante tu primer mes</string>
     <string name="checkout_free_trial_body">Se te pedirá un método de pago para activarlo automáticamente al finalizar tu mes de prueba, salvo que canceles antes.</string>
     <string name="checkout_plan_format">Plan %s</string>
@@ -779,37 +854,364 @@
     <string name="address_colonia_format">Col. %1$s</string>
     <string name="address_postal_format">C.P. %1$s</string>
     <string name="legal_terms_title">Términos y condiciones</string>
-    <string name="legal_terms_updated">3 de octubre de 2026</string>
-    <string name="legal_terms_subtitle">Términos/Condiciones Generales - Todos los Usuarios</string>
-    <string name="legal_terms_s1_title">Edad mínima (18 años)</string>
-    <string name="legal_terms_s1_content">Se establece considerando que la plataforma gestiona transacciones económicas (renta/venta) y contacto directo entre personas desconocidas, un contexto donde no es recomendable permitir el acceso a menores de edad, a diferencia de una red social genérica.</string>
-    <string name="legal_terms_s2_title">Reglas de conducta</string>
-    <string name="legal_terms_s2_content">Se derivan directamente de los riesgos ya identificados en el RF25 (información falsa, contenido ofensivo, fraude), y se agrega una regla adicional: contar con autorización para publicar el inmueble, para evitar que un usuario publique una propiedad sin permiso del propietario.</string>
-    <string name="legal_terms_s3_title">Suspensión o eliminación de cuentas</string>
-    <string name="legal_terms_s3_content">Se conecta con el flujo de reportes ya diseñado (Reportar anuncio -> Reportes del Administrador) y con el flujo de eliminación de cuenta con plazo de 30 días, manteniendo coherencia entre los distintos módulos del proyecto.</string>
-    <string name="legal_terms_s4_title">NearHouse como intermediario</string>
-    <string name="legal_terms_s4_content">Esta es la cláusula que brinda mayor protección a la plataforma frente a disputas legales. Sin ella, NearHouse podría percibirse como responsable de una transacción fallida entre dos usuarios (por ejemplo, un fraude en una renta). Por ello se establece explícitamente que la plataforma no es parte de la transacción ni garantiza la veracidad de las publicaciones. Es una cláusula estándar en plataformas tipo marketplace (Mercado Libre, Airbnb, entre otras, usan cláusulas equivalentes).</string>
-    <string name="legal_terms_s5_title">Pagos</string>
-    <string name="legal_terms_s5_content">Se establecen dos reglas: los pagos por publicar o promocionar un anuncio no son reembolsables salvo error atribuible a la plataforma, y si una publicación pagada es eliminada por incumplir las reglas, tampoco procede reembolso. Esto evita que un usuario publique contenido indebido, pague, y luego solicite reembolso al ser removido.</string>
-    <string name="legal_terms_s6_title">Límite de responsabilidad</string>
-    <string name="legal_terms_s6_content">Establece que la plataforma no es responsable de fraudes entre usuarios. Complementa la cláusula de intermediario, pero con un alcance más general, al cubrir no solo fraudes sino cualquier mala experiencia derivada del uso de la app.</string>
-    <string name="legal_terms_s7_title">Modificación de términos y condiciones</string>
-    <string name="legal_terms_s7_content">Se define un plazo de 15 días de aviso previo, por ser un periodo razonable (ni demasiado corto ni excesivamente largo), y se establece que la notificación se realiza dentro de la app, consistente con el funcionamiento real de NearHouse.</string>
+    <string name="legal_terms_updated">20 de octubre de 2026</string>
+    <string name="legal_terms_subtitle">Términos y Condiciones de Uso de NearHouse</string>
+    <string name="legal_terms_s1_title">Aceptación de los términos</string>
+    <string name="legal_terms_s1_content">Al crear una cuenta o usar NearHouse, aceptas estos términos. Te recomendamos leerlos con calma. Si algo no te convence, puedes dejar de usar la app cuando quieras.</string>
+    <string name="legal_terms_s2_title">Qué es NearHouse</string>
+    <string name="legal_terms_s2_content">NearHouse es una app para publicar y buscar casas, departamentos y terrenos en venta o renta en Manzanillo, Colima.\nNearHouse es un proyecto académico hecho por estudiantes. No es una empresa ni un servicio comercial formal.\n• Puede tener errores o cambiar con el tiempo.\n• Podemos modificar, suspender o eliminar la app en cualquier momento.\n• Si la descargaste sin conocer el proyecto, ten en cuenta que no es un servicio profesional y que no garantizamos que siempre esté disponible.</string>
+    <string name="legal_terms_s3_title">Edad mínima (18 años)</string>
+    <string name="legal_terms_s3_content">Para crear una cuenta y usar NearHouse debes tener al menos 18 años. Al registrarte, confirmas que cumples con esta edad. Si detectamos que una cuenta pertenece a una persona menor de edad, la suspenderemos y eliminaremos sus datos.</string>
+    <string name="legal_terms_s4_title">Tu cuenta</string>
+    <string name="legal_terms_s4_content">• Los datos que das al registrarte deben ser verdaderos.\n• Verificamos tu correo y tu teléfono.\n• Puedes entrar con tu correo y tu contraseña, o con tu cuenta de Google.\n• Cuida tu contraseña. Eres responsable de lo que se haga con tu cuenta.</string>
+    <string name="legal_terms_s5_title">Reglas de conducta</string>
+    <string name="legal_terms_s5_content">En NearHouse está prohibido:\n• publicar información falsa o engañosa;\n• subir contenido ofensivo;\n• cometer o intentar fraudes;\n• hacerte pasar por otra persona;\n• publicar un inmueble sin autorización de su propietario.\nTodo anuncio pasa por la revisión de un administrador antes de publicarse. Las fotos deben tomarse en el inmueble.</string>
+    <string name="legal_terms_s6_title">Suspensión o eliminación de cuentas</string>
+    <string name="legal_terms_s6_content">Cualquier usuario puede reportar un anuncio. Los administradores revisan los reportes y pueden quitar anuncios, suspender o eliminar cuentas que no cumplan estas reglas.\nSi quieres eliminar tu cuenta, solicítalo a nearhouse@robtonx.com. Borraremos tus datos en un plazo de 30 días.</string>
+    <string name="legal_terms_s7_title">NearHouse como intermediario</string>
+    <string name="legal_terms_s7_content">NearHouse solo pone en contacto a quien publica con quien busca. No somos parte de la venta ni de la renta, no cobramos comisión por ellas y no garantizamos que lo publicado sea cierto.\nRevisa el inmueble y sus documentos antes de pagar o firmar algo.</string>
+    <string name="legal_terms_s8_title">Pagos</string>
+    <string name="legal_terms_s8_content">Los pagos por publicar o promocionar un anuncio, y por contratar un plan de suscripción, son simulados. NearHouse no hace ningún cobro real a tu tarjeta ni a tu cuenta bancaria.\n• Te recomendamos no escribir datos de una tarjeta real.\n• Como no hay cobros reales, no hay reembolsos.</string>
+    <string name="legal_terms_s9_title">Límite de responsabilidad</string>
+    <string name="legal_terms_s9_content">NearHouse no responde por fraudes entre usuarios, ni por daños o problemas que resulten de un trato entre ellos o del uso de la app.</string>
+    <string name="legal_terms_s10_title">Tu contenido</string>
+    <string name="legal_terms_s10_content">• Las fotos y textos de tus anuncios siguen siendo tuyos.\n• Al publicarlos, permites que NearHouse los muestre dentro de la app.\n• Podemos quitar cualquier contenido que rompa estas reglas.</string>
+    <string name="legal_terms_s11_title">Modificación de términos y condiciones</string>
+    <string name="legal_terms_s11_content">Si cambiamos estos términos, te avisaremos dentro de la app con 15 días de anticipación. Si sigues usando NearHouse después de ese plazo, aceptas los cambios.</string>
+    <string name="legal_terms_s12_title">Contacto</string>
+    <string name="legal_terms_s12_content">Si tienes dudas sobre estos términos, escríbenos a [CORREO DE CONTACTO].</string>
     <string name="legal_privacy_title">Política de privacidad</string>
-    <string name="legal_privacy_updated">3 de octubre de 2026</string>
-    <string name="legal_privacy_subtitle">Bienvenido a NearHouse. Este Aviso de Privacidad aplica a la aplicación NearHouse y a los servicios relacionados con ella (la \"Plataforma\"), desarrollada como proyecto académico (\"NearHouse\", \"nosotros\" o \"la app\").\n\nNos comprometemos a proteger tu privacidad. Este aviso explica cómo recolectamos, usamos, compartimos y protegemos tu información personal dentro de la app. Si no estás de acuerdo con este aviso, te recomendamos no usar la Plataforma.</string>
-    <string name="legal_privacy_s1_title">Qué datos recolecta la app</string>
-    <string name="legal_privacy_s1_content">La lista parte de lo que NearHouse necesita funcionalmente para operar, no de una lista genérica tomada de otra app:\n\n• Nombre, apellidos, fecha de nacimiento: identifican a la persona y permiten confirmar que es mayor de edad (requisito establecido en los Términos).\n• Correo y teléfono: son los medios de contacto y recuperación de cuenta; el teléfono además se usa para verificación por SMS.\n• Ubicación: es un dato central en un portal inmobiliario, ya que sin ella no es posible mostrar propiedades cercanas ni ubicar un inmueble en el mapa.\n• Fotos de perfil e historial de publicaciones/favoritos/conversaciones: son datos generados por el uso de la app (no provienen de un formulario, se crean mientras se usa NearHouse), por lo que deben declararse de forma separada.</string>
-    <string name="legal_privacy_s2_title">Para qué se usa cada dato</string>
-    <string name="legal_privacy_s2_content">La norma aplicable exige que cada dato tenga una finalidad específica y no una justificación vaga como \"para mejorar la experiencia\". Por eso, en el documento cada dato está ligado a una función concreta de la app (por ejemplo: fecha de nacimiento → verificación de edad mínima, no \"personalización\").</string>
-    <string name="legal_privacy_s3_title">Con quién se comparte</string>
-    <string name="legal_privacy_s3_content">No se trata de que NearHouse comparta datos de forma general, sino de los servicios externos necesarios para el funcionamiento de la app (autenticación con Google, verificación por SMS, pasarela de pagos, almacenamiento en la nube). Esto debe declararse de forma explícita porque la normativa exige señalar con qué terceros se comparte información y con qué fin, sin dejarlo implícito.</string>
-    <string name="legal_privacy_s4_title">Protección y tiempo de conservación</string>
-    <string name="legal_privacy_s4_content">Se abordan dos aspectos: cómo se protege la información (cifrado de contraseña, acceso restringido) y durante cuánto tiempo se conserva (mientras la cuenta esté activa, más 30 días adicionales en caso de solicitud de eliminación). Este plazo es consistente con el flujo de \"eliminar cuenta\" definido previamente en el proyecto.</string>
-    <string name="legal_privacy_s5_title">Derechos ARCO</string>
-    <string name="legal_privacy_s5_content">• A – Acceso: el usuario puede solicitar conocer qué datos se tienen sobre él.\n• R – Rectificación: puede corregir datos desactualizados o incorrectos (por ejemplo, su número de teléfono).\n• C – Cancelación: puede solicitar la eliminación de sus datos, lo cual corresponde a la eliminación de cuenta.\n• O – Oposición: puede solicitar que un dato específico no se use para cierta finalidad, sin necesidad de eliminar toda la cuenta.\n\nEstos derechos son de inclusión obligatoria conforme a la Ley Federal de Protección de Datos Personales en Posesión de los Particulares (LFPDPPP) en México.</string>
-    <string name="legal_privacy_s6_title">Menores de edad</string>
-    <string name="legal_privacy_s6_content">Dado que el proyecto establece 18 años como edad mínima, la postura adoptada es que no se recolectan datos de menores de forma intencional. Permitir menores implicaría requisitos adicionales (consentimiento de los padres, verificación de edad), lo cual excede el alcance del proyecto.</string>
-    <string name="legal_privacy_s7_title">Analítica (Firebase)</string>
-    <string name="legal_privacy_s7_content">Se declara su uso aunque se limite a estadísticas de uso, ya que cualquier herramienta que registre el comportamiento del usuario dentro de la app (pantallas visitadas, tiempo de uso) constituye tratamiento de datos y debe mencionarse, incluso si no identifica a la persona por nombre.</string>
+    <string name="legal_privacy_updated">20 de octubre de 2026</string>
+    <string name="legal_privacy_subtitle">Bienvenido a NearHouse. Este aviso de privacidad aplica a la aplicación NearHouse y a los servicios relacionados con ella (la \"Plataforma\"), desarrollada como proyecto académico.\n\nNos comprometemos a proteger tu privacidad. Este aviso explica cómo recolectamos, usamos, compartimos y protegemos tu información personal dentro de la app, conforme a la Ley Federal de Protección de Datos Personales en Posesión de los Particulares. Si no estás de acuerdo con este aviso, te recomendamos no usar la Plataforma.</string>
+    <string name="legal_privacy_s1_title">Quién es responsable de tus datos</string>
+    <string name="legal_privacy_s1_content">El responsable de tus datos personales es el equipo de NearHouse. Puedes escribirnos a nearhouse@robtonx.com.</string>
+    <string name="legal_privacy_s2_title">Qué datos recolecta la app</string>
+    <string name="legal_privacy_s2_content">Solo recolectamos los datos que NearHouse necesita para funcionar.\n\nPara crear tu cuenta:\n• nombre y apellidos;\n• correo;\n• teléfono;\n• contraseña;\n• fecha de nacimiento.\n\nSi entras con Google: el nombre y el correo de tu cuenta de Google.\n\nDatos que tú agregas:\n• foto de perfil;\n• anuncios con sus fotos;\n• dirección y ubicación del inmueble;\n• datos de contacto de tus anuncios (nombre, teléfono y correo);\n• anuncios que guardas.\n\nUbicación: usamos la ubicación de tu celular al tomar las fotos de un anuncio y al usar el mapa. Solo la usamos en esos momentos.\n\nCámara: la usamos solo para que tomes las fotos del inmueble.\n\nPagos: al pagar un anuncio o elegir un plan, la app te muestra un formulario de pago de ejemplo. Los pagos son simulados: no se hace ningún cobro y no enviamos ni guardamos los datos de tu tarjeta. Te recomendamos no escribir datos de una tarjeta real.</string>
+    <string name="legal_privacy_s3_title">Para qué se usa cada dato</string>
+    <string name="legal_privacy_s3_content">• Nombre y apellidos: identificarte y mostrar quién publica un anuncio.\n• Correo: verificar tu cuenta, recuperarla si olvidas tu contraseña y permitir que otros usuarios te contacten cuando publicas.\n• Teléfono: verificar tu cuenta por SMS, recuperarla y permitir que otros usuarios te contacten por WhatsApp cuando publicas.\n• Contraseña: que puedas iniciar sesión.\n• Nombre y correo de Google: crear tu cuenta y que puedas entrar sin escribir contraseña.\n• Fecha de nacimiento: confirmar que tienes al menos 18 años.\n• Foto de perfil: mostrarla en tu cuenta.\n• Fotos del inmueble: mostrar tu anuncio.\n• Ubicación al tomar las fotos: comprobar que se tomaron en el inmueble y mostrarlo en el mapa.\n• Ubicación al usar el mapa: mostrarte los inmuebles cercanos.\n• Dirección del inmueble: indicar dónde está.\n• Anuncios guardados: que encuentres fácilmente lo que te interesa.</string>
+    <string name="legal_privacy_s4_title">Qué se ve públicamente</string>
+    <string name="legal_privacy_s4_content">Cuando publicas un anuncio, los demás usuarios pueden ver:\n• sus fotos;\n• la dirección y la ubicación del inmueble;\n• tus datos de contacto: nombre, teléfono y correo.\n\nSi no quieres que otras personas vean esta información, no publiques anuncios.</string>
+    <string name="legal_privacy_s5_title">Con quién se comparte</string>
+    <string name="legal_privacy_s5_content">No vendemos tus datos. Solo usamos servicios externos para que la app funcione:\n• Google Firebase: verificación de tu teléfono por SMS y entrar con Google.\n• Google Maps: mostrar el mapa.\n• Railway: servidores donde se guardan los datos. Pueden estar fuera de México.\n• Brevo: envío de los correos con tu código de verificación.</string>
+    <string name="legal_privacy_s6_title">Protección y tiempo de conservación</string>
+    <string name="legal_privacy_s6_content">• Tu contraseña se guarda cifrada. Nadie puede verla, ni el equipo de NearHouse.\n• El acceso a los datos es limitado.\n• Guardamos tus datos mientras tu cuenta esté activa, y 30 días más después de que pidas eliminarla.</string>
+    <string name="legal_privacy_s7_title">Derechos ARCO</string>
+    <string name="legal_privacy_s7_content">Tienes derecho a:\n• Acceso: saber qué datos tenemos sobre ti.\n• Rectificación: corregir o actualizar tus datos.\n• Cancelación: pedir que borremos tus datos.\n• Oposición: pedir que un dato no se use para algo en específico.\n\nCómo ejercerlos: escríbenos a nearhouse@robtonx.com con tu nombre completo, el correo de tu cuenta y lo que solicitas.\n\nCuánto tardamos: te respondemos en un plazo máximo de 20 días hábiles.\n\nRetirar tu consentimiento: también puedes retirarlo en cualquier momento, por el mismo medio.\n\nSi crees que no atendimos bien tu solicitud, puedes acudir a la Secretaría Anticorrupción y Buen Gobierno.</string>
+    <string name="legal_privacy_s8_title">Menores de edad</string>
+    <string name="legal_privacy_s8_content">NearHouse es solo para personas mayores de 18 años. No recolectamos datos de menores de edad a propósito. Si detectamos una cuenta de una persona menor de edad, la eliminamos.</string>
+    <string name="legal_privacy_s9_title">Cambios a este aviso</string>
+    <string name="legal_privacy_s9_content">Si cambiamos este aviso, te avisaremos dentro de la app y actualizaremos la fecha de \"Última actualización\" que aparece arriba.</string>
+
+    <!-- Administración de la cuenta -->
+    <string name="account_admin_title">Administración de la cuenta</string>
+
+    <!-- Datos de acceso -->
+    <string name="section_access_data">Datos de acceso</string>
+    <string name="label_email">Correo electrónico</string>
+    <string name="label_phone">Teléfono</string>
+    <string name="label_password">Contraseña</string>
+    <string name="masked_password">••••••••</string>
+
+    <!-- Membresía y pagos -->
+    <string name="section_membership">Membresía y pagos</string>
+    <string name="label_current_plan">Plan actual</string>
+    <string name="buyer_no_plan">Sin plan</string>
+    <string name="buyer_plan_subtitle">Conoce los planes para publicar tus anuncios</string>
+    <string name="seller_plan_status_format">%1$s (%2$s)</string>
+    <string name="seller_renewal_format">Renueva el %1$s</string>
+
+    <!-- Gestión de la cuenta -->
+    <string name="section_account_management">Gestión de la cuenta</string>
+    <string name="deactivate_account_title">Desactivar cuenta temporalmente</string>
+    <string name="deactivate_account_subtitle">Pausa tus anuncios y perfil. Puedes volver cuando quieras.</string>
+    <string name="delete_account_title">Eliminar cuenta permanentemente</string>
+    <string name="delete_account_subtitle">Tu cuenta se borrará en 30 días. Si inicias sesión antes, podrás conservarla.</string>
+
+    <!-- Acciones y Diálogos -->
+    <string name="coming_soon">Próximamente</string>
+    <string name="cancel">Cancelar</string>
+    <string name="confirm_deactivate">Desactivar</string>
+    <string name="confirm_delete">Eliminar</string>
+    <string name="delete_keyword_target">ELIMINAR</string>
+
+    <string name="dialog_deactivate_title">¿Desactivar tu cuenta?</string>
+    <string name="dialog_deactivate_text">Tus anuncios y tu perfil dejarán de verse. Podrás volver a activarla cuando inicies sesión.</string>
+    <string name="dialog_delete_title">¿Eliminar tu cuenta?</string>
+    <string name="dialog_delete_text">Tus anuncios dejarán de verse desde hoy. En 30 días se borrarán tu perfil, tus anuncios y todos tus datos. Si cambias de opinión, inicia sesión antes de esa fecha.</string>
+    <string name="dialog_delete_placeholder">Escribe ELIMINAR para confirmar</string>
+
+    <!-- Planes (API) -->
+    <string name="plan_price_amount">$%1$d</string>
+    <string name="plan_limit_single">Hasta 1 publicación activa</string>
+    <string name="plan_limit_multi_format">Hasta %1$d publicaciones activas</string>
+    <string name="plan_limit_unlimited">Publicaciones activas ilimitadas</string>
+    <string name="plan_vis_1">Visibilidad estándar</string>
+    <string name="plan_vis_2">Visibilidad destacada</string>
+    <string name="plan_vis_3">Visibilidad máxima</string>
+    <string name="plan_full_name_format">Plan %1$s</string>
+    <string name="plan_status_active">Activo</string>
+    <string name="plan_status_expired">Vencido</string>
+    <string name="plan_expires_format">Vence el %1$s</string>
+    <string name="plan_expired_format">Venció el %1$s</string>
+    <string name="plan_current_btn">Plan actual</string>
+    <string name="plan_free_trial_dialog_text">Activa tu mes gratis del plan %1$s. Después de %2$d días tu plan vence y puedes contratarlo por %3$s</string>
+    <string name="free_trial_activate_btn">Activar</string>
+    <string name="plans_load_error">No se pudieron cargar los planes</string>
+    <string name="plans_retry">Reintentar</string>
+    <string name="network_error_connection">No se pudo conectar con el servidor. Revisa tu conexión a internet e inténtalo de nuevo</string>
+
+    <string name="search_filters_colonias_loading">Cargando colonias…</string>
+    <string name="search_filters_colonias_error">No se pudieron cargar las colonias</string>
+    <string name="search_filters_colonias_empty">Aún no hay colonias con anuncios</string>
+    <string name="search_filters_colonias_retry">Reintentar</string>
+
+    <!-- Reportar Publicación -->
+    <string name="report_title">Reportar publicación</string>
+    <string name="report_category_question">¿Por qué quieres reportar esta publicación?</string>
+    <string name="report_reason_question">Por favor dinos el motivo de la denuncia.</string>
+    <string name="report_anonymous_notice">Tu reporte es anónimo para los demás y revisaremos todos los reportes según nuestras normas</string>
+
+    <!-- Categorías -->
+    <string name="report_category_false_info">Información falsa</string>
+    <string name="report_category_false_info_desc">Datos equivocados o que ya no están al día</string>
+    <string name="report_category_offensive">Contenido ofensivo</string>
+    <string name="report_category_offensive_desc">Textos o imágenes inapropiados</string>
+    <string name="report_category_fraud">Posible fraude</string>
+    <string name="report_category_fraud_desc">Alguien intenta engañar o cobrar sin derecho</string>
+
+    <!-- Motivos: Información falsa -->
+    <string name="report_reason_photos_mismatch">Fotos que no corresponden a la propiedad</string>
+    <string name="report_reason_wrong_price">Precio falso o engañoso</string>
+    <string name="report_reason_wrong_data">Datos incorrectos</string>
+    <string name="report_reason_wrong_location">Ubicación incorrecta</string>
+    <string name="report_reason_not_available">La propiedad ya no está disponible</string>
+
+    <!-- Motivos: Contenido ofensivo -->
+    <string name="report_reason_offensive_language">Lenguaje ofensivo o insultos</string>
+    <string name="report_reason_discriminatory">Contenido discriminatorio</string>
+    <string name="report_reason_sexual">Contenido sexual</string>
+    <string name="report_reason_violent">Contenido violento</string>
+
+    <!-- Motivos: Posible fraude -->
+    <string name="report_reason_suspicious_price">Precio sospechosamente bajo</string>
+    <string name="report_reason_not_exist">La propiedad no existe</string>
+    <string name="report_reason_multiple_publishers">Propiedad publicada por más de una persona</string>
+    <string name="report_reason_advance_payment">Piden un pago antes de ver la propiedad</string>
+    <string name="report_reason_other">Otro</string>
+
+    <!-- Formulario de descripción y evidencia -->
+    <string name="report_description_title">Por favor complete el motivo de la denuncia</string>
+    <string name="report_description_placeholder">Proporcione una descripción detallada de su problema para que podamos ayudarlo a resolver el problema de la mejor manera</string>
+    <string name="report_add_evidence_cd">Agregar evidencia</string>
+    <string name="report_send">Enviar</string>
+
+    <!-- Confirmaciones y errores -->
+    <string name="report_success_title">Gracias por tu reporte</string>
+    <string name="report_success_message">Lo revisaremos y, si no cumple con nuestras normas, tomaremos las medidas necesarias</string>
+    <string name="report_success_button">Entendido</string>
+    <string name="report_discard_title">¿Descartar reporte?</string>
+    <string name="report_discard_message">Si sales ahora se perderán los cambios que no hayas enviado.</string>
+    <string name="report_error_title">Archivo no permitido</string>
+    <string name="report_error_image_size">La imagen no debe superar los 5 MB.</string>
+    <string name="report_error_video_size">El video no debe superar los 20 MB.</string>
+    <string name="report_error_video_duration">El video no debe durar más de 30 segundos.</string>
+
+    <!-- Comunes para Reportes -->
+    <string name="report_common_ok">Aceptar</string>
+    <string name="report_common_remove">Eliminar</string>
+    <string name="report_common_discard">Descartar</string>
+    <string name="report_common_cancel">Cancelar</string>
+
+    <!-- Mis Publicaciones -->
+
+    <!-- Perfil y Navegación -->
+    <string name="cd_back">Regresar</string>
+    <string name="cd_edit_profile">Editar perfil</string>
+
+    <!-- Acciones de Publicación -->
+    <string name="action_create_listing">Crear anuncio +</string>
+    <string name="empty_listings_message">Aún no tienes anuncios. Crea tu primer anuncio para que los compradores lo vean.</string>
+
+    <!-- Estados de Publicación -->
+    <string name="status_in_review">En revisión</string>
+    <string name="status_published">Publicado</string>
+    <string name="status_rejected">Rechazado</string>
+
+    <string name="create_listing_error_description_min">Escribe al menos 30 caracteres</string>
+    <string name="create_listing_description_area_hint">Incluye la superficie (m²) del inmueble</string>
+    <string name="create_listing_colonia_undetected">No pudimos detectar la colonia en este punto. Vuelve a detectar la ubicación.</string>
+    <string name="create_listing_redetect">Volver a detectar</string>
+    <string name="create_listing_hint_colonia_undetected">Detecta la colonia para continuar</string>
+    <string name="create_listing_error_network">No hay conexión. Revisa tu internet e inténtalo de nuevo.</string>
+    <string name="create_listing_error_generic">No se pudo enviar el anuncio. Inténtalo de nuevo.</string>
+    <string name="create_listing_error_session">Tu sesión expiró. Inicia sesión de nuevo.</string>
+    <string name="create_listing_error_forbidden">Tu cuenta no puede publicar anuncios.</string>
+    <string name="my_listings_load_error">No se pudieron cargar tus anuncios</string>
+
+    <string name="manage_listing_title">Gestión de anuncio</string>
+    <string name="manage_listing_edit">Editar anuncio</string>
+    <string name="manage_listing_pause">Pausar/ocultar anuncio</string>
+    <string name="manage_listing_resume">Reactivar anuncio</string>
+    <string name="manage_listing_delete">Eliminar anuncio</string>
+    <string name="manage_listing_delete_question">¿Estás seguro de que quieres eliminar este anuncio?</string>
+    <string name="manage_listing_delete_warning">Esta acción no se puede deshacer.</string>
+    <string name="manage_listing_confirm">Confirmar</string>
+    <string name="manage_listing_options_cd">Opciones del anuncio</string>
+    <string name="edit_listing_save">Guardar cambios</string>
+    <string name="edit_listing_sent_title">¡Cambios guardados!</string>
+    <string name="edit_listing_sent_body">Tu anuncio volvió a revisión. Un administrador lo revisará de nuevo.</string>
+    <string name="manage_listing_pause_only_published">Solo se puede pausar o reactivar un anuncio publicado</string>
+    <string name="manage_listing_paused">Anuncio pausado</string>
+    <string name="manage_listing_resumed">Anuncio reactivado</string>
+    <string name="status_paused">Pausado</string>
+    <string name="manage_listing_deleted">Eliminación de publicación exitosa</string>
+
+    <!-- Verificación del teléfono por SMS (Firebase) -->
+    <string name="phone_sms_wait_for_sms">Espera a que llegue el SMS o pide uno nuevo</string>
+    <string name="phone_sms_enter_6">Escribe los 6 dígitos del código</string>
+    <string name="phone_sms_error_invalid_number">El número de teléfono no es válido</string>
+    <string name="phone_sms_error_too_many">Demasiados intentos. Espera unos minutos e intenta de nuevo</string>
+    <string name="phone_sms_error_network">Sin conexión. Revisa tu internet e intenta de nuevo</string>
+    <string name="phone_sms_error_send">No se pudo enviar el SMS. Intenta de nuevo</string>
+    <string name="phone_sms_error_expired">El código ya expiró. Pide uno nuevo</string>
+    <string name="phone_sms_error_verify">No se pudo verificar el código. Intenta de nuevo</string>
+    <string name="phone_sms_error_restart">Se perdieron los datos del registro. Vuelve a empezar</string>
+    <string name="listings_load_error">No se pudieron cargar los anuncios. Revisa tu conexión e inténtalo de nuevo.</string>
+    <string name="listings_retry">Reintentar</string>
+
+    <!-- Reportes pantalla de administracion -->
+    <string name="report_action_procede">Procede</string>
+    <string name="report_note_label">Nota del administrador</string>
+    <string name="report_note_seller_notice">El vendedor verá esta nota si retiras la publicación. No menciones a quien reportó.</string>
+    <string name="report_remove_listing">Retirar la publicación</string>
+    <string name="report_remove_confirm_title">¿Retirar la publicación?</string>
+    <string name="report_remove_confirm_body">La publicación dejará de verse en Inicio y en el mapa, y el vendedor la verá como rechazada.</string>
+    <string name="report_measure_listing_removed">Medida aplicada: publicación retirada</string>
+    <string name="report_account_deleted">Cuenta eliminada</string>
+    <string name="report_reporter_title">Reportado por</string>
+
+    <!-- Pantalla Notificaciones -->
+    <string name="notifications_title">Notificaciones</string>
+    <string name="notifications_empty">Sin notificaciones</string>
+    <string name="notifications_error">No se pudieron cargar tus notificaciones</string>
+    <string name="notifications_retry">Reintentar</string>
+
+    <!-- Títulos y Textos con Marcadores -->
+    <string name="notif_title_in_review">Publicación en revisión</string>
+    <string name="notif_body_in_review">Hola, tu propiedad \"%1$s\" está en revisión. Te avisaremos en cuanto sea aprobada.</string>
+
+    <string name="notif_title_approved">¡Tu publicación fue aprobada! \u2705</string>
+    <string name="notif_body_approved">Tu propiedad \"%1$s\" ya pasó la revisión y está publicada. A partir de ahora los interesados podrán verla y contactarte.</string>
+
+    <string name="notif_title_rejected">Publicación rechazada \u274C</string>
+    <string name="notif_body_rejected">Tu propiedad \"%1$s\" no fue aprobada. Motivo: \"%2$s\". Puedes corregirla y volver a enviarla.</string>
+
+    <string name="notif_title_payment">¡Gracias por tu pago! \u5890</string> <!-- 🙌 -->
+    <string name="notif_body_payment">Hola, %1$s, confirmamos tu pago del plan %2$s.</string>
+
+    <string name="notif_title_welcome">¡Bienvenido como vendedor! \uF389</string> <!-- 🎉 -->
+    <string name="notif_body_welcome">Hola, %1$s, ya puedes empezar a publicar tus propiedades.</string>
+
+    <string name="notif_title_search_updates">¡Hay novedades en tu búsqueda! \uF50D</string> <!-- 🔍 -->
+    <string name="notif_body_search_updates">Esta propiedad recién publicada coincide con tus filtros de búsqueda.</string>
+
+    <string name="notif_title_found_for_you">Encontramos algo para ti \uF3E1</string> <!-- 🏡 -->
+    <string name="notif_body_found_for_you">Encontramos una propiedad que coincide con tu búsqueda de \"%1$s\". ¡Échale un vistazo!</string>
+
+    <string name="notif_title_recently_published">Propiedades recién publicadas \uF195</string> <!-- 🆕 -->
+    <string name="notif_body_recently_published">Basado en tu búsqueda, creemos que esta propiedad te va a gustar.</string>
+
+    <!-- Desactivar / eliminar cuenta -->
+    <string name="acc_current_password">Contraseña actual</string>
+    <string name="acc_toggle_password_cd">Mostrar u ocultar contraseña</string>
+    <string name="acc_google_hint">Tu cuenta entra con Google. Para confirmar, elige tu cuenta de Google.</string>
+    <string name="acc_confirm_google">Confirmar con Google</string>
+    <string name="acc_delete_scheduled_msg">Tu cuenta se eliminará el %1$s. Si cambias de opinión, inicia sesión antes de esa fecha.</string>
+    <!-- Iniciar sesión con cuenta desactivada o por eliminar -->
+    <string name="login_reactivate_title">Cuenta desactivada</string>
+    <string name="login_reactivate_text">Tu cuenta está desactivada. ¿Quieres reactivarla?</string>
+    <string name="login_reactivate_confirm">Reactivar</string>
+    <string name="login_keep_title">Tu cuenta se va a eliminar</string>
+    <string name="login_keep_confirm">Conservar mi cuenta</string>
+    <string name="login_reactivated_msg">Tu cuenta está activa otra vez</string>
+    <string name="login_kept_msg">Listo, tu cuenta ya no se eliminará</string>
+    <!-- Panel de usuarios -->
+    <string name="admin_users_title">Usuarios</string>
+    <string name="admin_users_total_accounts">%1$d cuentas registradas</string>
+    <string name="admin_users_results">%1$d resultados</string>
+    <string name="admin_users_showing">Mostrando %1$d usuarios</string>
+    <string name="admin_users_search_hint">Buscar por nombre, correo o teléfono</string>
+    <string name="admin_users_clear_search">Limpiar búsqueda</string>
+    <string name="admin_users_role_all">Rol: Todos</string>
+    <string name="admin_users_status_all">Estatus: Todos</string>
+    <string name="admin_users_all">Todos</string>
+    <string name="admin_users_filters">Filtros</string>
+    <string name="admin_users_empty_title">No encontramos usuarios</string>
+    <string name="admin_users_empty_body">No hay cuentas que coincidan con la búsqueda y los filtros actuales.</string>
+    <string name="admin_users_clear_filters">Limpiar búsqueda y filtros</string>
+    <string name="admin_users_error">No se pudieron cargar los usuarios</string>
+    <string name="admin_users_retry">Reintentar</string>
+    <string name="admin_users_forbidden">Solo los administradores pueden ver esta sección.</string>
+    <string name="admin_users_not_found">El usuario no existe.</string>
+    <string name="admin_user_status_active">Activo</string>
+    <string name="admin_user_status_suspended">Suspendido</string>
+    <string name="admin_user_status_deactivated">Desactivado</string>
+
+    <!-- Detalle de usuario -->
+    <string name="admin_user_detail_title">Detalle de usuario</string>
+    <string name="admin_user_section_account">Cuenta</string>
+    <string name="admin_user_section_name">Nombre</string>
+    <string name="admin_user_section_plan">Plan</string>
+    <string name="admin_user_section_activity">Publicaciones y reportes</string>
+    <string name="admin_user_label_email">Correo</string>
+    <string name="admin_user_label_phone">Teléfono</string>
+    <string name="admin_user_label_role">Rol</string>
+    <string name="admin_user_label_status">Estatus</string>
+    <string name="admin_user_label_registered">Registro</string>
+    <string name="admin_user_label_name">Nombre(s)</string>
+    <string name="admin_user_label_first_surname">Primer apellido</string>
+    <string name="admin_user_label_second_surname">Segundo apellido</string>
+    <string name="admin_user_label_plan">Plan actual</string>
+    <string name="admin_user_label_expires">Vence</string>
+    <string name="admin_user_label_review">En revisión</string>
+    <string name="admin_user_label_published">Publicadas</string>
+    <string name="admin_user_label_rejected">Rechazadas</string>
+    <string name="admin_user_label_pending_reports">Reportes pendientes</string>
+    <string name="admin_user_no_plan">Sin plan</string>
+
+    <!-- Acciones del detalle -->
+    <string name="admin_user_action_block">Bloquear / Suspender</string>
+    <string name="admin_user_action_unsuspend">Quitar suspensión</string>
+    <string name="admin_user_action_delete">Eliminar cuenta</string>
+
+    <!-- Bloquear / suspender -->
+    <string name="admin_user_block_title">Bloquear cuenta</string>
+    <string name="admin_user_block_subtitle">Acción sensible</string>
+    <string name="admin_user_block_question">¿Bloquear esta cuenta?</string>
+    <string name="admin_user_block_desc">Confirma que deseas restringir el acceso de esta persona.</string>
+    <string name="admin_user_block_warning">La cuenta perderá acceso a NearHouse y no podrá contactar personas ni crear o editar publicaciones hasta que un administrador la reactive.</string>
+    <string name="admin_user_block_reason_label">Motivo (opcional)</string>
+    <string name="admin_user_block_reason_hint">Describe brevemente la razón administrativa...</string>
+    <string name="admin_user_block_result">Resultado de la acción</string>
+    <string name="admin_user_block_result_badge">Bloqueado / Suspendido</string>
+    <string name="admin_user_block_result_desc">Acceso suspendido · Reactivación manual</string>
+    <string name="admin_user_block_footnote">La fecha, el administrador responsable y el motivo quedarán registrados en el historial de la cuenta.</string>
+    <string name="admin_user_block_confirm">Bloquear cuenta</string>
+    <string name="admin_user_block_default_reason">Suspensión administrativa</string>
+
+    <!-- Eliminar -->
+    <string name="admin_user_delete_title">Eliminar usuario</string>
+    <string name="admin_user_delete_subtitle">Acción irreversible</string>
+    <string name="admin_user_delete_header">Eliminar definitivamente</string>
+    <string name="admin_user_delete_header_desc">Esta acción no se puede deshacer.</string>
+    <string name="admin_user_delete_warning_title">Atención: tiene publicaciones asociadas</string>
+    <string name="admin_user_delete_warning_body">%1$s tiene %2$d publicaciones vinculadas a su cuenta. Se borrarán junto con la cuenta, sus fotos y sus reportes.</string>
+    <string name="admin_user_delete_list_title">Se eliminará la cuenta y sus datos personales</string>
+    <string name="admin_user_delete_item_personal">Nombre, correo y teléfono</string>
+    <string name="admin_user_delete_item_access">Acceso y credenciales</string>
+    <string name="admin_user_delete_item_activity">Preferencias y actividad de la cuenta</string>
+    <string name="admin_user_delete_footnote">Al continuar, confirmas que revisaste la identidad y el impacto de esta eliminación.</string>
+    <string name="admin_user_delete_confirm">Eliminar definitivamente</string>
+
+
 </resources>

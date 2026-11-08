@@ -1,6 +1,6 @@
 package com.equipo4.nearhome.di
 
-import com.equipo4.nearhome.data.local.SessionManager //Importante: ajusta a donde está SessionManager
+import com.equipo4.nearhome.data.local.SessionManager // Importante: ajusta a donde está SessionManager
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -8,9 +8,11 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object NetworkModule {
-    // 10.0.2.2 es la IP para conectar desde el emulador a tu Docker local en el puerto 8080 (cambia si cambias de red)
-    //private const val BASE_URL = "http://192.168.100.8:8080/"
-    private const val BASE_URL = "https://nearhouseapi-production.up.railway.app/"
+    // URL base del API desplegado en Railway (cámbiala si cambias de servidor)
+    const val BASE_URL = "https://nearhouseapi-production.up.railway.app/"
+
+    /** URL de la foto. El parámetro v cambia cuando la foto cambia, para no usar la vieja en caché. */
+    fun fotoPerfilUrl(version: String): String = "${BASE_URL}api/v1/usuarios/me/foto?v=$version"
 
     fun provideOkHttpClient(sessionManager: SessionManager): OkHttpClient {
         // Nivel BASIC obligatorio para NO imprimir contraseñas ni tokens en Logcat

@@ -1,5 +1,7 @@
 package com.equipo4.nearhome.ui.publicacion.detail
 
+import com.equipo4.nearhome.domain.model.PropertyType
+
 data class PublicacionDetail(
     val id: String,
     val titulo: String,
@@ -7,8 +9,11 @@ data class PublicacionDetail(
     val precio: Double,
     val esRenta: Boolean,
     val tipoPropiedad: String,
+    val tipo: PropertyType,
     val direccion: String,
-    val imagenes: List<Int>, // IDs de drawable (con backend serán URLs)
+    val latitud: Double?,
+    val longitud: Double?,
+    val imagenes: List<Any>,
     val metrosCuadrados: Int,
     val recamaras: Int,
     val banos: Int,
@@ -17,8 +22,13 @@ data class PublicacionDetail(
     val caracteristicasColumna2: List<String>,
     val esPropietario: Boolean = false,
     val estaGuardado: Boolean = false,
+    val sellerId: Int?,
+    val sellerName: String,
+    val sellerPhotoUrl: String? = null,
     val telefonoVendedor: String,
-    val emailVendedor: String
+    val emailVendedor: String,
+    /** Reglas del inmueble. Solo existen en renta; en venta siempre es null. */
+    val reglas: String? = null
 )
 
 sealed interface DetailPublicacionUiState {

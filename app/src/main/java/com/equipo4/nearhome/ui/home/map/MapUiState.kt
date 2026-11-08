@@ -12,7 +12,7 @@ enum class SortOption(val label: String) {
 }
 
 data class MapUiState(
-    val isLoading: Boolean = true,
+    val isLoading: Boolean = false,
     val errorMessage: String? = null,
     val allProperties: List<Property> = emptyList(),
     val searchQuery: String = "",

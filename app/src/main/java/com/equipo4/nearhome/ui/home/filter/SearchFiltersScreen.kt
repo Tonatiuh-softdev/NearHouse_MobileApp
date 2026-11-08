@@ -20,22 +20,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.equipo4.nearhome.R
 import com.equipo4.nearhome.domain.model.ListingType
 import com.equipo4.nearhome.domain.model.PropertyType
 import com.equipo4.nearhome.ui.theme.adminAccent
+import com.equipo4.nearhome.ui.theme.nearHouseColors
 import com.equipo4.nearhome.ui.theme.onAdminAccent
-
-import androidx.compose.ui.res.stringResource
-import com.equipo4.nearhome.R
-
-private val LightGray = Color(0xFFF3F4F6)
-private val BorderColor = Color(0xFFE5E7EB)
-private val SelectedBg = Color(0xFFF0F4F8)
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -45,6 +41,7 @@ fun SearchFiltersScreen(
     onApplySuccess: () -> Unit = {}
 ) {
     val state by viewModel.filterState.collectAsState()
+    val coloniasState by viewModel.coloniasState.collectAsState()
     val primaryColor = adminAccent()
 
     var minPriceStr by remember(state.minPrice) { mutableStateOf(state.minPrice?.let { if (it > 0) it.toInt().toString() else "" } ?: "") }
@@ -60,26 +57,30 @@ fun SearchFiltersScreen(
             TopAppBar(
                 title = {
                     Column {
-                        Text(stringResource(R.string.search_filters_title), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1F2937))
+                        Text(stringResource(R.string.search_filters_title), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                         Text(
                             text = state.buildSummaryText(),
                             fontSize = 12.sp,
-                            color = Color(0xFF6B7280),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 1
                         )
                     }
                 },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back))
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.common_back),
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
         },
         bottomBar = {
             Surface(
-                color = Color.White,
+                color = MaterialTheme.colorScheme.surface,
                 shadowElevation = 8.dp,
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -127,7 +128,7 @@ fun SearchFiltersScreen(
                 }
             }
         },
-        containerColor = Color.White
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -137,57 +138,73 @@ fun SearchFiltersScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
-            // 1. Segmented Buttons: Comprar / Rentar
+            // 1. Operation Buttons: Comprar / Rentar (Single-select, default none)
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(stringResource(R.string.search_filters_operation), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1F2937))
+                Text(stringResource(R.string.search_filters_operation), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(48.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(LightGray)
-                        .padding(4.dp),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     val isComprar = state.listingType == ListingType.VENTA
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(if (isComprar) primaryColor else Color.Transparent)
-                            .clickable { viewModel.updateFilter { it.copy(listingType = ListingType.VENTA) } },
-                        contentAlignment = Alignment.Center
+                    val isRentar = state.listingType == ListingType.RENTA
+
+                    OutlinedButton(
+                        onClick = {
+                            viewModel.updateFilter { s ->
+                                s.copy(listingType = if (s.listingType == ListingType.VENTA) null else ListingType.VENTA)
+                            }
+                        },
+                        shape = RoundedCornerShape(10.dp),
+                        border = BorderStroke(
+                            width = if (isComprar) 1.5.dp else 1.dp,
+                            color = if (isComprar) primaryColor else MaterialTheme.colorScheme.outline
+                        ),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = if (isComprar) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
+                            contentColor = if (isComprar) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface
+                        ),
+                        modifier = Modifier.weight(1f).height(44.dp),
+                        contentPadding = PaddingValues(horizontal = 4.dp)
                     ) {
                         Text(
                             stringResource(R.string.search_filters_buy),
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = if (isComprar) Color.White else Color(0xFF4B5563)
+                            fontSize = 12.sp,
+                            fontWeight = if (isComprar) FontWeight.Bold else FontWeight.Medium,
+                            maxLines = 1
                         )
                     }
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(if (!isComprar) primaryColor else Color.Transparent)
-                            .clickable { viewModel.updateFilter { it.copy(listingType = ListingType.RENTA) } },
-                        contentAlignment = Alignment.Center
+
+                    OutlinedButton(
+                        onClick = {
+                            viewModel.updateFilter { s ->
+                                s.copy(listingType = if (s.listingType == ListingType.RENTA) null else ListingType.RENTA)
+                            }
+                        },
+                        shape = RoundedCornerShape(10.dp),
+                        border = BorderStroke(
+                            width = if (isRentar) 1.5.dp else 1.dp,
+                            color = if (isRentar) primaryColor else MaterialTheme.colorScheme.outline
+                        ),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = if (isRentar) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
+                            contentColor = if (isRentar) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface
+                        ),
+                        modifier = Modifier.weight(1f).height(44.dp),
+                        contentPadding = PaddingValues(horizontal = 4.dp)
                     ) {
                         Text(
                             stringResource(R.string.search_filters_rent),
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = if (!isComprar) Color.White else Color(0xFF4B5563)
+                            fontSize = 12.sp,
+                            fontWeight = if (isRentar) FontWeight.Bold else FontWeight.Medium,
+                            maxLines = 1
                         )
                     }
                 }
             }
 
-            // 2. Property Type Buttons
+            // 2. Property Type Buttons (Multi-select)
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(stringResource(R.string.search_filters_property_type), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1F2937))
+                Text(stringResource(R.string.search_filters_property_type), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -198,19 +215,22 @@ fun SearchFiltersScreen(
                         PropertyType.TERRENO to stringResource(R.string.search_filters_type_land)
                     )
                     types.forEach { (type, label) ->
-                        val selected = state.propertyType == type
+                        val selected = type in state.propertyTypes
                         OutlinedButton(
                             onClick = {
-                                viewModel.updateFilter { it.copy(propertyType = if (selected) null else type) }
+                                viewModel.updateFilter { s ->
+                                    val next = if (selected) s.propertyTypes - type else s.propertyTypes + type
+                                    s.copy(propertyTypes = next)
+                                }
                             },
                             shape = RoundedCornerShape(10.dp),
                             border = BorderStroke(
                                 width = if (selected) 1.5.dp else 1.dp,
-                                color = if (selected) primaryColor else BorderColor
+                                color = if (selected) primaryColor else MaterialTheme.colorScheme.outline
                             ),
                             colors = ButtonDefaults.outlinedButtonColors(
-                                containerColor = if (selected) SelectedBg else Color.White,
-                                contentColor = if (selected) primaryColor else Color(0xFF4B5563)
+                                containerColor = if (selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
+                                contentColor = if (selected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface
                             ),
                             modifier = Modifier.weight(1f).height(44.dp),
                             contentPadding = PaddingValues(horizontal = 4.dp)
@@ -224,7 +244,7 @@ fun SearchFiltersScreen(
             // 3. Price Inputs
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 val priceTitle = if (state.listingType == ListingType.RENTA) stringResource(R.string.search_filters_monthly_rent) else stringResource(R.string.search_filters_sale_price)
-                Text(priceTitle, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1F2937))
+                Text(priceTitle, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -235,16 +255,36 @@ fun SearchFiltersScreen(
                         onValueChange = { minPriceStr = it },
                         label = { Text(stringResource(R.string.search_filters_min)) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = MaterialTheme.colorScheme.surface,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                            focusedBorderColor = primaryColor,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                            focusedLabelColor = primaryColor,
+                            unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                        ),
                         modifier = Modifier.weight(1f),
                         singleLine = true,
                         shape = RoundedCornerShape(10.dp)
                     )
-                    Text("—", color = Color(0xFF9CA3AF))
+                    Text("—", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     OutlinedTextField(
                         value = maxPriceStr,
                         onValueChange = { maxPriceStr = it },
                         label = { Text(stringResource(R.string.search_filters_max)) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = MaterialTheme.colorScheme.surface,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                            focusedBorderColor = primaryColor,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                            focusedLabelColor = primaryColor,
+                            unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                        ),
                         modifier = Modifier.weight(1f),
                         singleLine = true,
                         shape = RoundedCornerShape(10.dp)
@@ -259,8 +299,8 @@ fun SearchFiltersScreen(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(stringResource(R.string.search_filters_location), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1F2937))
-                    Text(stringResource(R.string.search_filters_multi_select), fontSize = 12.sp, color = Color(0xFF6B7280))
+                    Text(stringResource(R.string.search_filters_location), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                    Text(stringResource(R.string.search_filters_multi_select), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
 
                 Spacer(Modifier.height(4.dp))
@@ -270,11 +310,11 @@ fun SearchFiltersScreen(
                     onClick = { coloniasExpanded = !coloniasExpanded },
                     shape = if (coloniasExpanded) RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp, bottomStart = 0.dp, bottomEnd = 0.dp) else RoundedCornerShape(12.dp),
                     colors = CardDefaults.outlinedCardColors(
-                        containerColor = if (isColoniaSelected) SelectedBg else Color.White
+                        containerColor = if (isColoniaSelected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface
                     ),
                     border = BorderStroke(
                         width = if (isColoniaSelected) 1.5.dp else 1.dp,
-                        color = if (isColoniaSelected) primaryColor else BorderColor
+                        color = if (isColoniaSelected) primaryColor else MaterialTheme.colorScheme.outline
                     ),
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -294,13 +334,13 @@ fun SearchFiltersScreen(
                             colText,
                             fontSize = 14.sp,
                             fontWeight = if (isColoniaSelected) FontWeight.Bold else FontWeight.Normal,
-                            color = if (isColoniaSelected) primaryColor else Color(0xFF1F2937),
+                            color = if (isColoniaSelected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.weight(1f)
                         )
                         Icon(
                             imageVector = if (coloniasExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                             contentDescription = null,
-                            tint = if (isColoniaSelected) primaryColor else Color(0xFF6B7280)
+                            tint = if (isColoniaSelected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -308,8 +348,8 @@ fun SearchFiltersScreen(
                 if (coloniasExpanded) {
                     Card(
                         shape = RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp, bottomStart = 12.dp, bottomEnd = 12.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF9FAFB)),
-                        border = BorderStroke(1.dp, BorderColor),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Column(
@@ -318,7 +358,6 @@ fun SearchFiltersScreen(
                                 .padding(12.dp),
                             verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            // "Todas"
                             val isAllSelected = state.selectedColonias.isEmpty()
                             FlatCheckItem(
                                 text = stringResource(R.string.search_filters_all_locations),
@@ -328,27 +367,77 @@ fun SearchFiltersScreen(
                                 iconOnRight = false
                             )
 
-                            // Lista de colonias en 2 columnas
-                            FlowRow(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                verticalArrangement = Arrangement.spacedBy(2.dp)
-                            ) {
-                                ALL_COLONIAS.forEach { colonia ->
-                                    val isSelected = colonia in state.selectedColonias
-                                    Box(modifier = Modifier.fillMaxWidth(0.48f)) {
-                                        FlatCheckItem(
-                                            text = colonia,
-                                            checked = isSelected,
-                                            onCheckedChange = { checked ->
-                                                viewModel.updateFilter { s ->
-                                                    val next = if (checked) s.selectedColonias + colonia else s.selectedColonias - colonia
-                                                    s.copy(selectedColonias = next)
-                                                }
-                                            },
-                                            primaryColor = primaryColor,
-                                            iconOnRight = false
+                            // El catálogo sale del API: solo colonias con anuncios publicados
+                            when {
+                                coloniasState.loading -> Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(18.dp),
+                                        strokeWidth = 2.dp,
+                                        color = primaryColor
+                                    )
+                                    Text(
+                                        stringResource(R.string.search_filters_colonias_loading),
+                                        fontSize = 13.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+
+                                coloniasState.error -> Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 12.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        stringResource(R.string.search_filters_colonias_error),
+                                        fontSize = 13.sp,
+                                        color = MaterialTheme.colorScheme.error,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    TextButton(onClick = { viewModel.reintentarColonias() }) {
+                                        Text(
+                                            stringResource(R.string.search_filters_colonias_retry),
+                                            color = primaryColor,
+                                            fontWeight = FontWeight.SemiBold
                                         )
+                                    }
+                                }
+
+                                coloniasState.items.isEmpty() -> Text(
+                                    stringResource(R.string.search_filters_colonias_empty),
+                                    fontSize = 13.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)
+                                )
+
+                                else -> FlowRow(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                                ) {
+                                    coloniasState.items.forEach { colonia ->
+                                        val isSelected = colonia in state.selectedColonias
+                                        Box(modifier = Modifier.fillMaxWidth(0.48f)) {
+                                            FlatCheckItem(
+                                                text = colonia,
+                                                checked = isSelected,
+                                                onCheckedChange = { checked ->
+                                                    viewModel.updateFilter { s ->
+                                                        val next = if (checked) s.selectedColonias + colonia else s.selectedColonias - colonia
+                                                        s.copy(selectedColonias = next)
+                                                    }
+                                                },
+                                                primaryColor = primaryColor,
+                                                iconOnRight = false
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -357,20 +446,20 @@ fun SearchFiltersScreen(
                 }
             }
 
-            // 5. Characteristics sections dynamically rendered
-            when (state.propertyType) {
-                PropertyType.CASA -> {
-                    CasaCharacteristicsSection(state, viewModel, primaryColor)
-                }
-                PropertyType.DEPARTAMENTO -> {
-                    DeptoCharacteristicsSection(state, viewModel, primaryColor)
-                }
-                PropertyType.TERRENO -> {
-                    TerrenoCharacteristicsSection(state, viewModel, minSupStr, { minSupStr = it }, maxSupStr, { maxSupStr = it }, primaryColor)
-                }
-                null -> {
-                    CasaCharacteristicsSection(state, viewModel, primaryColor)
-                }
+            // 5. Characteristics sections (Multi-select support)
+            val showAllTypes = state.propertyTypes.isEmpty()
+            val showCasa = showAllTypes || PropertyType.CASA in state.propertyTypes
+            val showDepto = showAllTypes || PropertyType.DEPARTAMENTO in state.propertyTypes
+            val showTerreno = showAllTypes || PropertyType.TERRENO in state.propertyTypes
+
+            if (showCasa) {
+                CasaCharacteristicsSection(state, viewModel, primaryColor)
+            }
+            if (showDepto) {
+                DeptoCharacteristicsSection(state, viewModel, primaryColor)
+            }
+            if (showTerreno) {
+                TerrenoCharacteristicsSection(state, viewModel, minSupStr, { minSupStr = it }, maxSupStr, { maxSupStr = it }, primaryColor)
             }
         }
     }
@@ -395,16 +484,16 @@ private fun NumericDropdownSelector(
     }
 
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
-        Text(title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1F2937))
+        Text(title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
         OutlinedCard(
             onClick = { expanded = !expanded },
             shape = if (expanded) RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp, bottomStart = 0.dp, bottomEnd = 0.dp) else RoundedCornerShape(12.dp),
             colors = CardDefaults.outlinedCardColors(
-                containerColor = if (hasSelection) SelectedBg else Color.White
+                containerColor = if (hasSelection) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface
             ),
             border = BorderStroke(
                 width = if (hasSelection) 1.5.dp else 1.dp,
-                color = if (hasSelection) primaryColor else BorderColor
+                color = if (hasSelection) primaryColor else MaterialTheme.colorScheme.outline
             ),
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -419,12 +508,12 @@ private fun NumericDropdownSelector(
                     summary,
                     fontSize = 13.sp,
                     fontWeight = if (hasSelection) FontWeight.Bold else FontWeight.Normal,
-                    color = if (hasSelection) primaryColor else Color(0xFF1F2937)
+                    color = if (hasSelection) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface
                 )
                 Icon(
                     imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                     contentDescription = null,
-                    tint = if (hasSelection) primaryColor else Color(0xFF6B7280)
+                    tint = if (hasSelection) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -432,8 +521,8 @@ private fun NumericDropdownSelector(
         if (expanded) {
             Card(
                 shape = RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp, bottomStart = 12.dp, bottomEnd = 12.dp),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFF9FAFB)),
-                border = BorderStroke(1.dp, BorderColor),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Row(
@@ -450,10 +539,10 @@ private fun NumericDropdownSelector(
                                 expanded = false
                             },
                             shape = RoundedCornerShape(8.dp),
-                            border = BorderStroke(1.dp, if (isSelected) primaryColor else BorderColor),
+                            border = BorderStroke(1.dp, if (isSelected) primaryColor else MaterialTheme.colorScheme.outline),
                             colors = ButtonDefaults.outlinedButtonColors(
-                                containerColor = if (isSelected) SelectedBg else Color.White,
-                                contentColor = if (isSelected) primaryColor else Color(0xFF4B5563)
+                                containerColor = if (isSelected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
+                                contentColor = if (isSelected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface
                             ),
                             modifier = Modifier
                                 .weight(1f)
@@ -469,7 +558,6 @@ private fun NumericDropdownSelector(
     }
 }
 
-/** Elemento de lista plano (sin tarjeta con borde propio), con check circular al seleccionarse (soporta icono a la izquierda o derecha). */
 @Composable
 private fun FlatCheckItem(
     text: String,
@@ -482,7 +570,7 @@ private fun FlatCheckItem(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(8.dp))
-            .background(if (checked) SelectedBg else Color.Transparent)
+            .background(if (checked) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent)
             .clickable { onCheckedChange(!checked) }
             .padding(horizontal = 12.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -495,7 +583,7 @@ private fun FlatCheckItem(
                 text = text,
                 fontSize = 13.sp,
                 fontWeight = if (checked) FontWeight.SemiBold else FontWeight.Medium,
-                color = if (checked) primaryColor else Color(0xFF1F2937),
+                color = if (checked) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.weight(1f),
                 maxLines = 1
             )
@@ -504,7 +592,7 @@ private fun FlatCheckItem(
                 text = text,
                 fontSize = 13.sp,
                 fontWeight = if (checked) FontWeight.SemiBold else FontWeight.Medium,
-                color = if (checked) primaryColor else Color(0xFF1F2937),
+                color = if (checked) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.weight(1f),
                 maxLines = 1
             )
@@ -534,9 +622,9 @@ private fun CheckIndicator(checked: Boolean, primaryColor: Color) {
         Box(
             modifier = Modifier
                 .size(20.dp)
-                .background(BorderColor, RoundedCornerShape(4.dp))
+                .background(MaterialTheme.colorScheme.outline, RoundedCornerShape(4.dp))
                 .padding(1.dp)
-                .background(Color.White, RoundedCornerShape(3.dp))
+                .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(3.dp))
         )
     }
 }
@@ -544,10 +632,9 @@ private fun CheckIndicator(checked: Boolean, primaryColor: Color) {
 @Composable
 private fun CasaCharacteristicsSection(state: PropertyFilterState, viewModel: SearchFiltersViewModel, primaryColor: Color) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        HorizontalDivider(color = BorderColor)
-        Text(stringResource(R.string.search_filters_house_features), fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1F2937))
+        HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+        Text(stringResource(R.string.search_filters_house_features), fontSize = 15.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
 
-        // Fila 1: Dormitorios | Baños
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -572,7 +659,6 @@ private fun CasaCharacteristicsSection(state: PropertyFilterState, viewModel: Se
             )
         }
 
-        // Fila 2: Estacionamiento | Niveles de la casa
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -605,7 +691,7 @@ private fun CasaCharacteristicsSection(state: PropertyFilterState, viewModel: Se
             iconOnRight = true
         )
 
-        if (state.listingType == ListingType.RENTA) {
+        if (state.listingType == ListingType.RENTA || state.listingType == null) {
             FlatCheckItem(
                 text = stringResource(R.string.search_filters_pets),
                 checked = state.mascotasPermitidas,
@@ -620,10 +706,9 @@ private fun CasaCharacteristicsSection(state: PropertyFilterState, viewModel: Se
 @Composable
 private fun DeptoCharacteristicsSection(state: PropertyFilterState, viewModel: SearchFiltersViewModel, primaryColor: Color) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        HorizontalDivider(color = BorderColor)
-        Text(stringResource(R.string.search_filters_apartment_features), fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1F2937))
+        HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+        Text(stringResource(R.string.search_filters_apartment_features), fontSize = 15.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
 
-        // Fila 1: Dormitorios | Baños
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -648,7 +733,6 @@ private fun DeptoCharacteristicsSection(state: PropertyFilterState, viewModel: S
             )
         }
 
-        // Fila 2: Estacionamiento | Piso
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -681,7 +765,7 @@ private fun DeptoCharacteristicsSection(state: PropertyFilterState, viewModel: S
             iconOnRight = true
         )
 
-        if (state.listingType == ListingType.RENTA) {
+        if (state.listingType == ListingType.RENTA || state.listingType == null) {
             FlatCheckItem(
                 text = stringResource(R.string.search_filters_pets),
                 checked = state.mascotasPermitidas,
@@ -712,11 +796,11 @@ private fun TerrenoCharacteristicsSection(
     primaryColor: Color
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        HorizontalDivider(color = BorderColor)
-        Text(stringResource(R.string.search_filters_land_features), fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1F2937))
+        HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+        Text(stringResource(R.string.search_filters_land_features), fontSize = 15.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
 
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(stringResource(R.string.search_filters_area), fontSize = 13.sp, fontWeight = FontWeight.Medium, color = Color(0xFF6B7280))
+            Text(stringResource(R.string.search_filters_area), fontSize = 13.sp, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -727,16 +811,36 @@ private fun TerrenoCharacteristicsSection(
                     onValueChange = minSupChange@{ onMinSupChange(it) },
                     label = { Text(stringResource(R.string.search_filters_min)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surface,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                        focusedBorderColor = primaryColor,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                        focusedLabelColor = primaryColor,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                    ),
                     modifier = Modifier.weight(1f),
                     singleLine = true,
                     shape = RoundedCornerShape(10.dp)
                 )
-                Text("—", color = Color(0xFF9CA3AF))
+                Text("—", color = MaterialTheme.colorScheme.onSurfaceVariant)
                 OutlinedTextField(
                     value = maxSup,
                     onValueChange = maxSupChange@{ onMaxSupChange(it) },
                     label = { Text(stringResource(R.string.search_filters_max)) },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surface,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                        focusedBorderColor = primaryColor,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                        focusedLabelColor = primaryColor,
+                        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                        unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                    ),
                     modifier = Modifier.weight(1f),
                     singleLine = true,
                     shape = RoundedCornerShape(10.dp)
@@ -744,9 +848,8 @@ private fun TerrenoCharacteristicsSection(
             }
         }
 
-        // Uso del suelo dropdown unificado
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(stringResource(R.string.search_filters_land_use), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1F2937))
+            Text(stringResource(R.string.search_filters_land_use), fontSize = 14.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
             Spacer(Modifier.height(4.dp))
 
             var usoExpanded by remember { mutableStateOf(false) }
@@ -755,11 +858,11 @@ private fun TerrenoCharacteristicsSection(
                 onClick = { usoExpanded = !usoExpanded },
                 shape = if (usoExpanded) RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp, bottomStart = 0.dp, bottomEnd = 0.dp) else RoundedCornerShape(12.dp),
                 colors = CardDefaults.outlinedCardColors(
-                    containerColor = if (isUsoSelected) SelectedBg else Color.White
+                    containerColor = if (isUsoSelected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface
                 ),
                 border = BorderStroke(
                     width = if (isUsoSelected) 1.5.dp else 1.dp,
-                    color = if (isUsoSelected) primaryColor else BorderColor
+                    color = if (isUsoSelected) primaryColor else MaterialTheme.colorScheme.outline
                 ),
                 modifier = Modifier.fillMaxWidth()
             ) {
@@ -774,12 +877,12 @@ private fun TerrenoCharacteristicsSection(
                         when (state.usoSuelo) { null -> stringResource(R.string.search_filters_select); "Habitacional" -> stringResource(R.string.create_listing_land_residential); "Agrícola" -> stringResource(R.string.create_listing_land_agricultural); else -> state.usoSuelo }.toString(),
                         fontSize = 14.sp,
                         fontWeight = if (isUsoSelected) FontWeight.Bold else FontWeight.Normal,
-                        color = if (isUsoSelected) primaryColor else Color(0xFF1F2937)
+                        color = if (isUsoSelected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurface
                     )
                     Icon(
                         imageVector = if (usoExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                         contentDescription = null,
-                        tint = if (isUsoSelected) primaryColor else Color(0xFF6B7280)
+                        tint = if (isUsoSelected) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -787,8 +890,8 @@ private fun TerrenoCharacteristicsSection(
             if (usoExpanded) {
                 Card(
                     shape = RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp, bottomStart = 12.dp, bottomEnd = 12.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF9FAFB)),
-                    border = BorderStroke(1.dp, BorderColor),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(

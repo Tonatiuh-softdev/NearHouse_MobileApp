@@ -15,12 +15,14 @@ enum class ListingAction {
         }
 
     companion object {
-        /** Botones del Detalle según el estado, en el orden en que se muestran. */
+        /**
+         * Botones del Detalle según el estado, en el orden en que se muestran.
+         * Por ahora solo se puede aprobar o rechazar un anuncio pendiente: desactivar, reactivar y eliminar
+         * no tienen dónde guardarse en la base de datos.
+         */
         fun availableFor(status: ListingStatus): List<ListingAction> = when (status) {
-            ListingStatus.PENDIENTE -> listOf(RECHAZAR, APROBAR, ELIMINAR)
-            ListingStatus.ACTIVO -> listOf(DESACTIVAR, ELIMINAR)
-            ListingStatus.DESACTIVADO -> listOf(REACTIVAR, ELIMINAR)
-            ListingStatus.RECHAZADO, ListingStatus.RENTADO_VENDIDO -> listOf(ELIMINAR)
+            ListingStatus.PENDIENTE -> listOf(RECHAZAR, APROBAR)
+            else -> emptyList()
         }
     }
 }
@@ -53,13 +55,14 @@ data class AdminListing(
     val listingType: ListingType,
     val price: Double,
     val location: String,
+    /** m² del terreno. En casa y departamento es 0 (la superficie va en la descripción). */
     val areaSqM: Int,
     val bedrooms: Int? = null,
     val bathrooms: Int? = null,
     val garages: Int? = null,
     val description: String,
-    /** IDs de drawable (con backend serán URLs). */
-    val images: List<Int>,
+    /** Fotos: URLs (String) del API o R.drawable.* (Int) en los datos de prueba. */
+    val images: List<Any>,
     val advertiser: Advertiser,
     val registeredAt: Long,
     val status: ListingStatus,

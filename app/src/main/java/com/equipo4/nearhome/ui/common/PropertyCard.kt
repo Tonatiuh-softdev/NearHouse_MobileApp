@@ -2,81 +2,77 @@ package com.equipo4.nearhome.ui.common
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.domain.model.ListingType
 import com.equipo4.nearhome.domain.model.Property
 import com.equipo4.nearhome.domain.model.PropertyType
+import com.equipo4.nearhome.ui.theme.nearHouseColors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
 
-import androidx.compose.ui.res.stringResource
-
-private val NavyColor = Color(0xFF0B2C4D)
-private val LightGrayBg = Color(0xFFF3F4F6)
-private val SectionGrayBg = Color(0xFFF8F9FA)
-private val BorderColor = Color(0xFFE5E7EB)
-private val BadgeBlueBg = Color(0xFFEBF5FF)
-private val BadgeBlueText = Color(0xFF1E88E5)
-private val TextDark = Color(0xFF1F2937)
-private val TextGray = Color(0xFF6B7280)
-
-/**
- * Tarjeta de propiedad compartida (Lista, Guardados, etc.). Movida tal cual desde HomeScreen.
- * El ícono de guardado se pinta relleno cuando property.isSaved == true.
- */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PropertyCard(
     property: Property,
-    onToggleSave: () -> Unit,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onToggleSave: () -> Unit = {},
+    showSaveButton: Boolean = true,
+    badge: (@Composable () -> Unit)? = null
 ) {
     val totalPages = property.images.ifEmpty { listOf(1) }.size
     val pagerState = rememberPagerState(pageCount = { totalPages })
     val coroutineScope = rememberCoroutineScope()
 
+    val cardShape = RoundedCornerShape(18.dp)
+    val shadowElevation = MaterialTheme.nearHouseColors.cardShadowElevation
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .then(
+                if (shadowElevation > 0.dp) Modifier.shadow(
+                    elevation = shadowElevation,
+                    shape = cardShape,
+                    ambientColor = Color.Black,
+                    spotColor = Color.Black
+                ) else Modifier
+            )
             .clickable { onClick() },
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        border = BorderStroke(1.dp, BorderColor)
+        shape = cardShape,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.nearHouseColors.cardBorder),
+        elevation = CardDefaults.cardElevation(defaultElevation = MaterialTheme.nearHouseColors.cardElevation)
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             PropertyImageCarousel(
@@ -85,6 +81,8 @@ fun PropertyCard(
                 coroutineScope = coroutineScope,
                 totalPages = totalPages,
                 onToggleSave = onToggleSave,
+                showSaveButton = showSaveButton,
+                badge = badge,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(210.dp)
@@ -103,81 +101,78 @@ private fun PropertyImageCarousel(
     coroutineScope: CoroutineScope,
     totalPages: Int,
     onToggleSave: () -> Unit,
+    showSaveButton: Boolean,
+    badge: (@Composable () -> Unit)?,
     modifier: Modifier = Modifier
 ) {
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFFE5E7EB))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
     ) {
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.fillMaxSize()
         ) { page ->
-            val imageRes = property.images.getOrNull(page)
-            if (imageRes != null) {
-                Image(
-                    painter = painterResource(id = imageRes),
+            val image = property.images.getOrNull(page)
+            if (image != null) {
+                AsyncImage(
+                    model = image,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
                 )
-            } else Box(
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            if (property.type == PropertyType.TERRENO) Color(0xFF53624E)
+                            else Color(0xFF7A7265)
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = stringResource(R.string.property_image_format, page + 1),
+                        color = Color.White.copy(alpha = 0.7f),
+                        fontSize = 15.sp
+                    )
+                }
+            }
+        }
+
+        if (showSaveButton) {
+            Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        if (property.type == PropertyType.TERRENO) Color(0xFF53624E)
-                        else Color(0xFF7A7265)
-                    ),
+                    .align(Alignment.TopEnd)
+                    .padding(12.dp)
+                    .size(36.dp)
+                    .clip(CircleShape)
+                    .background(Color.Black.copy(alpha = 0.4f))
+                    .clickable { onToggleSave() },
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = stringResource(R.string.property_image_format, page + 1),
-                    color = Color.White.copy(alpha = 0.7f),
-                    fontSize = 15.sp
+                val bookmarkIcon = if (property.isSaved) {
+                    R.drawable.ic_guardar_relleno_abajo
+                } else {
+                    R.drawable.ic_guardar_abajo
+                }
+                Icon(
+                    painter = painterResource(id = bookmarkIcon),
+                    contentDescription = stringResource(R.string.property_save_cd),
+                    tint = Color.White,
+                    modifier = Modifier
+                        .size(18.dp)
+                        .scale(if (property.isSaved) 1.45f else 1.0f)
                 )
             }
         }
 
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(12.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .background(Color.Black.copy(alpha = 0.6f))
-                .padding(horizontal = 10.dp, vertical = 4.dp)
-        ) {
-            Text(
-                text = "${pagerState.currentPage + 1} / $totalPages",
-                color = Color.White,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.SemiBold
-            )
-        }
-
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(12.dp)
-                .size(36.dp)
-                .clip(CircleShape)
-                .background(Color.Black.copy(alpha = 0.4f))
-                .clickable { onToggleSave() },
-            contentAlignment = Alignment.Center
-        ) {
-            val bookmarkIcon = if (property.isSaved) {
-                R.drawable.ic_guardar_relleno_abajo
-            } else {
-                R.drawable.ic_guardar_abajo
-            }
-            Icon(
-                painter = painterResource(id = bookmarkIcon),
-                contentDescription = stringResource(R.string.property_save_cd),
-                tint = Color.White,
+        if (badge != null) {
+            Box(
                 modifier = Modifier
-                    .size(18.dp)
-                    .scale(if (property.isSaved) 1.45f else 1.0f)
-            )
+                    .align(Alignment.TopEnd)
+                    .padding(12.dp)
+            ) { badge() }
         }
 
         if (pagerState.currentPage > 0) {
@@ -244,25 +239,25 @@ private fun PropertyInfoContent(
                     text = stringResource(R.string.property_price_format, formattedPrice),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = TextDark
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 if (property.listingType == ListingType.RENTA) {
                     Text(
                         text = stringResource(R.string.property_per_month),
                         fontSize = 14.sp,
-                        color = TextGray,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(bottom = 2.dp)
                     )
                 }
             }
 
             Surface(
-                color = BadgeBlueBg,
+                color = MaterialTheme.nearHouseColors.tagRentaBg,
                 shape = RoundedCornerShape(6.dp)
             ) {
                 Text(
                     text = property.listingType.name,
-                    color = BadgeBlueText,
+                    color = MaterialTheme.nearHouseColors.tagRentaText,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
@@ -277,7 +272,7 @@ private fun PropertyInfoContent(
             text = property.title.uppercase(),
             fontSize = 13.sp,
             fontWeight = FontWeight.Bold,
-            color = TextDark,
+            color = MaterialTheme.colorScheme.onSurface,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
@@ -290,16 +285,16 @@ private fun PropertyInfoContent(
             modifier = Modifier.fillMaxWidth()
         ) {
             Icon(
-                painter = painterResource(id = R.drawable.ic_pin_localizacion),
+                imageVector = Icons.Outlined.LocationOn,
                 contentDescription = null,
-                tint = Color.Unspecified,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(16.dp)
             )
             Spacer(modifier = Modifier.width(4.dp))
             Text(
                 text = property.location,
                 fontSize = 12.sp,
-                color = TextGray,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -307,45 +302,93 @@ private fun PropertyInfoContent(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // Fila 4: Características dinámicas
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            val (typeText, typeIcon) = when (property.type) {
-                PropertyType.DEPARTAMENTO -> stringResource(R.string.property_short_apartment) to R.drawable.ic_departamento
-                PropertyType.CASA -> stringResource(R.string.property_short_house) to R.drawable.ic_casa_relleno_abajo
-                PropertyType.TERRENO -> stringResource(R.string.property_short_land) to R.drawable.ic_terreno
+        // Fila 4: Características en 2x2 (Column de 2 Rows)
+        val (typeText, typeIcon) = when (property.type) {
+            PropertyType.DEPARTAMENTO -> stringResource(R.string.property_short_apartment) to Icons.Outlined.Apartment
+            PropertyType.CASA -> stringResource(R.string.property_short_house) to Icons.Outlined.Home
+            PropertyType.TERRENO -> stringResource(R.string.property_short_land) to Icons.Outlined.Landscape
+        }
+
+        if (property.type == PropertyType.TERRENO) {
+            // TERRENO: Una sola fila
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                FeatureItem(
+                    icon = typeIcon,
+                    text = typeText,
+                    modifier = Modifier.weight(1f)
+                )
+
+                val areaText = if (property.frontMeters != null && property.depthMeters != null) {
+                    "${property.frontMeters.toInt()}x${property.depthMeters.toInt()} m"
+                } else if (property.areaSqM > 0) {
+                    "${property.areaSqM} m²"
+                } else null
+
+                if (areaText != null) {
+                    FeatureItem(
+                        icon = Icons.Outlined.SquareFoot,
+                        text = areaText,
+                        modifier = Modifier.weight(1f)
+                    )
+                } else {
+                    Spacer(modifier = Modifier.weight(1f))
+                }
             }
+        } else {
+            // CASA / DEPARTAMENTO: Cuadrícula rígida de 2x2
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                // Fila 1: Tipo | Recámaras
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    FeatureItem(
+                        icon = typeIcon,
+                        text = typeText,
+                        modifier = Modifier.weight(1f)
+                    )
 
-            FeatureItem(iconRes = typeIcon, text = typeText)
+                    if (property.bedrooms != null) {
+                        FeatureItem(
+                            icon = Icons.Outlined.Bed,
+                            text = stringResource(R.string.property_bedrooms_format, property.bedrooms),
+                            modifier = Modifier.weight(1f)
+                        )
+                    } else {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
+                }
 
-            if (property.type == PropertyType.TERRENO) {
-                if (property.frontMeters != null && property.depthMeters != null) {
-                    FeatureItem(
-                        iconRes = R.drawable.ic_regla_medicion,
-                        text = "${property.frontMeters.toInt()}x${property.depthMeters.toInt()} m"
-                    )
-                }
-            } else {
-                property.bedrooms?.let {
-                    FeatureItem(
-                        iconRes = R.drawable.ic_habitaciones,
-                        text = stringResource(R.string.property_bedrooms_format, it)
-                    )
-                }
-                property.bathrooms?.let {
-                    FeatureItem(
-                        iconRes = R.drawable.ic_bathrooms,
-                        text = stringResource(R.string.property_bathrooms_format, it)
-                    )
-                }
-                property.garages?.let {
-                    FeatureItem(
-                        iconRes = R.drawable.ic_cocheras,
-                        text = stringResource(R.string.property_garages_format, it)
-                    )
+                // Fila 2: Baños | Cocheras
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (property.bathrooms != null) {
+                        FeatureItem(
+                            icon = Icons.Outlined.Bathtub,
+                            text = stringResource(R.string.property_bathrooms_format, property.bathrooms),
+                            modifier = Modifier.weight(1f)
+                        )
+                    } else {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
+
+                    if (property.garages != null) {
+                        FeatureItem(
+                            icon = Icons.Outlined.Garage,
+                            text = stringResource(R.string.property_garages_format, property.garages),
+                            modifier = Modifier.weight(1f)
+                        )
+                    } else {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
                 }
             }
         }
@@ -354,23 +397,28 @@ private fun PropertyInfoContent(
 
 @Composable
 private fun FeatureItem(
-    iconRes: Int,
-    text: String
+    icon: ImageVector,
+    text: String,
+    modifier: Modifier = Modifier
 ) {
     Row(
+        modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
+        horizontalArrangement = Arrangement.Start
     ) {
         Icon(
-            painter = painterResource(id = iconRes),
+            imageVector = icon,
             contentDescription = null,
-            tint = TextGray,
-            modifier = Modifier.size(15.dp)
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(16.dp)
         )
+        Spacer(modifier = Modifier.width(6.dp))
         Text(
             text = text,
             fontSize = 12.sp,
-            color = TextGray
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }

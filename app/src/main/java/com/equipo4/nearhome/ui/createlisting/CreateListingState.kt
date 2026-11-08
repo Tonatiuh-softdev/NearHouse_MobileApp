@@ -2,27 +2,38 @@ package com.equipo4.nearhome.ui.createlisting
 
 import com.equipo4.nearhome.domain.model.ListingType
 import com.equipo4.nearhome.domain.model.PropertyType
-
 import com.equipo4.nearhome.util.AppStrings
 import com.equipo4.nearhome.R
 
 enum class LandUse { HABITACIONAL, AGRICOLA }
 
-const val MAX_TITLE = 80
+const val MAX_TITLE = 60
+const val MIN_DESCRIPTION = 30
 const val MAX_DESCRIPTION = 1000
 const val MAX_RULES = 300
+const val MAX_PHOTOS_APP = 5
+
+/** Foto que ya está en el servidor (modo edición). */
+data class ExistingPhoto(val id: Int, val url: String)
 
 data class CreateListingState(
+    // ---- Modo edición ----
+    val editingId: Int? = null,
+    val existingPhotos: List<ExistingPhoto> = emptyList(),
+    val fotosEliminar: List<Int> = emptyList(),
+    val reemplazaPortada: Boolean = false,
+    val loadingEdit: Boolean = false,
+    val loadEditError: String? = null,
+
     // ---- Paso 1 ----
     val listingType: ListingType? = null,
     val propertyType: PropertyType? = null,
-    val price: String = "",          // solo dígitos
-    val area: String = "",           // solo dígitos (solo se pide en Terreno)
-    val colonia: String? = null,
+    val price: String = "",
+    val area: String = "",
     val bedrooms: Int? = null,
     val bathrooms: Int? = null,
     val parking: Int? = null,
-    val floor: Int? = null,          // 0 = Planta baja
+    val floor: Int? = null,
     val levels: Int? = null,
     val furnished: Boolean = false,
     val petsAllowed: Boolean = false,
@@ -31,13 +42,14 @@ data class CreateListingState(
     val landUse: LandUse? = null,
 
     // ---- Paso 2 ----
-    val photos: List<String> = emptyList(),   // rutas de archivo, en orden (la primera es la portada)
+    /** Solo rutas locales de cámara (fotos nuevas). */
+    val photos: List<String> = emptyList(),
     val latitude: Double? = null,
     val longitude: Double? = null,
     val street: String = "",
     val streetNumber: String = "",
     val postalCode: String = "",
-    val locationColonia: String? = null,      // colonia según la ubicación de la foto (manda sobre la del Paso 1)
+    val locationColonia: String? = null,
     val locationConfirmed: Boolean = false,
     val locationLoading: Boolean = false,
     val locationError: Boolean = false,
@@ -46,55 +58,55 @@ data class CreateListingState(
     val title: String = "",
     val description: String = "",
     val rules: String = "",
-    val contact: ContactoUsuario? = null,     // solo lectura: sale de la sesión / API
+    val contact: ContactoUsuario? = null,
 
-    // ---- Envío (Paso 4 / vista previa) ----
+    // ---- Envío ----
     val submitting: Boolean = false,
     val submitted: Boolean = false,
+    val submitError: String? = null,
 
-    // ---- Control de errores visibles ----
     val touched: Set<String> = emptySet()
 ) {
+    val isEditing get() = editingId != null
+
+    val totalPhotoCount get() = existingPhotos.size + photos.size
+
     val priceValid get() = (price.toLongOrNull() ?: 0L) > 0
     val areaValid get() = (area.toLongOrNull() ?: 0L) > 0
-
     val isRent get() = listingType == ListingType.RENTA
 
-    /**
-     * Campos visibles según operación y tipo:
-     * Departamento: 9 al rentar, 8 al comprar. Casa: 8 al rentar, 7 al comprar. Terreno: 4.
-     * (Mascotas permitidas solo existe al rentar.)
-     */
     val fieldCount: Int
         get() = when (propertyType) {
             PropertyType.DEPARTAMENTO -> if (isRent) 9 else 8
             PropertyType.CASA -> if (isRent) 8 else 7
-            PropertyType.TERRENO -> 4
+            PropertyType.TERRENO -> 3
             null -> 0
         }
 
     val isStep1Valid: Boolean
         get() {
             if (listingType == null || propertyType == null) return false
-            if (!priceValid || colonia == null) return false
+            if (!priceValid || !areaValid) return false
             return when (propertyType) {
                 PropertyType.DEPARTAMENTO ->
                     bedrooms != null && bathrooms != null && parking != null && floor != null
                 PropertyType.CASA ->
                     bedrooms != null && bathrooms != null && parking != null && levels != null
-                PropertyType.TERRENO -> areaValid && landUse != null
+                PropertyType.TERRENO -> landUse != null
             }
         }
 
     val hasLocation get() = latitude != null && longitude != null
 
     val isStep2Valid
-        get() = photos.isNotEmpty() && hasLocation && locationColonia != null && locationConfirmed
+        get() = totalPhotoCount >= 1 &&
+                hasLocation &&
+                locationColonia != null &&
+                locationConfirmed
 
-    /** Título y descripción son obligatorios; las reglas son opcionales. */
-    val isStep3Valid get() = title.isNotBlank() && description.isNotBlank()
+    val descriptionValid get() = description.trim().length >= MIN_DESCRIPTION
+    val isStep3Valid get() = title.isNotBlank() && descriptionValid
 
-    /** Dirección completa para mostrar; calle, número, colonia y C.P. se guardan además por separado. */
     val fullAddress: String
         get() = buildList {
             if (street.isNotBlank()) {
@@ -105,7 +117,6 @@ data class CreateListingState(
             add("Manzanillo, Colima")
         }.joinToString(", ")
 
-    /** Valor de una característica numérica por su clave. */
     fun numberOf(key: String): Int? = when (key) {
         "bedrooms" -> bedrooms
         "bathrooms" -> bathrooms
@@ -124,18 +135,18 @@ data class CreateListingState(
         else -> this
     }
 
-    /** Error visible solo si el usuario ya tocó el campo. */
     fun isInvalid(key: String): Boolean = key in touched && when (key) {
         "price" -> !priceValid
         "area" -> !areaValid
-        "colonia" -> colonia == null
         "bedrooms", "bathrooms", "parking", "floor", "levels" -> numberOf(key) == null
         "landUse" -> landUse == null
         "title" -> title.isBlank()
-        "description" -> description.isBlank()
+        "description" -> !descriptionValid
         else -> false
     }
 
-    /** Para el diálogo "¿Descartar anuncio?". */
-    fun hasData(): Boolean = copy(touched = emptySet()) != CreateListingState()
+    fun hasData(): Boolean {
+        if (isEditing) return true
+        return copy(touched = emptySet()) != CreateListingState()
+    }
 }

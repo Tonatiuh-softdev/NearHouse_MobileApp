@@ -18,6 +18,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.equipo4.nearhome.R
+import com.equipo4.nearhome.ui.theme.NoticeTone
+import com.equipo4.nearhome.ui.theme.noticeColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,9 +31,10 @@ fun ReportConfirmationScreen(
         factory = ReportDetailViewModelFactory(reportId)
     )
     val report by viewModel.report.collectAsState()
+    val successColors = noticeColors(NoticeTone.SUCCESS)
 
     Scaffold(
-        containerColor = Color.White
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -41,7 +44,6 @@ fun ReportConfirmationScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Círculo verde con palomita
             Box(
                 modifier = Modifier
                     .size(80.dp)
@@ -59,12 +61,12 @@ fun ReportConfirmationScreen(
             Spacer(Modifier.height(20.dp))
 
             Surface(
-                color = Color(0xFFDCFCE7),
+                color = successColors.container,
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Text(
                     text = stringResource(R.string.report_attended_label),
-                    color = Color(0xFF15803D),
+                    color = successColors.content,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
@@ -77,7 +79,7 @@ fun ReportConfirmationScreen(
                 text = stringResource(R.string.report_confirmation_title),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF1F2937),
+                color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center
             )
 
@@ -86,7 +88,7 @@ fun ReportConfirmationScreen(
             Text(
                 text = stringResource(R.string.report_confirmation_desc),
                 fontSize = 14.sp,
-                color = Color(0xFF6B7280),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 12.dp)
             )
@@ -97,7 +99,7 @@ fun ReportConfirmationScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF9FAFB)),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     elevation = CardDefaults.cardElevation(0.dp)
                 ) {
                     Column(
@@ -108,18 +110,18 @@ fun ReportConfirmationScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text(stringResource(R.string.report_type), color = Color(0xFF6B7280), fontSize = 14.sp)
-                            Text(report!!.type.label, fontWeight = FontWeight.SemiBold, color = Color(0xFF1F2937), fontSize = 14.sp)
+                            Text(stringResource(R.string.report_type), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
+                            Text(report!!.type.label, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface, fontSize = 14.sp)
                         }
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text(stringResource(R.string.report_result), color = Color(0xFF6B7280), fontSize = 14.sp)
+                            Text(stringResource(R.string.report_result), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
                             Text(
                                 text = if ((report!!.result?.contains("Medida aplicada") == true || report!!.result?.contains("Measure applied") == true)) stringResource(R.string.report_measure_applied) else (report!!.result ?: stringResource(R.string.status_attended)),
                                 fontWeight = FontWeight.SemiBold,
-                                color = Color(0xFF1F2937),
+                                color = MaterialTheme.colorScheme.onSurface,
                                 fontSize = 14.sp,
                                 textAlign = TextAlign.End,
                                 modifier = Modifier.weight(1f)
@@ -129,11 +131,11 @@ fun ReportConfirmationScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text(stringResource(R.string.report_date), color = Color(0xFF6B7280), fontSize = 14.sp)
+                            Text(stringResource(R.string.report_date), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
                             Text(
                                 text = report!!.attendedDate ?: "26 sep - 10:48",
                                 fontWeight = FontWeight.SemiBold,
-                                color = Color(0xFF1F2937),
+                                color = MaterialTheme.colorScheme.onSurface,
                                 fontSize = 14.sp
                             )
                         }
@@ -149,13 +151,15 @@ fun ReportConfirmationScreen(
                     .fillMaxWidth()
                     .height(50.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0B2C4D))
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                )
             ) {
                 Text(
                     text = stringResource(R.string.return_to_list),
                     fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    fontWeight = FontWeight.Bold
                 )
             }
         }

@@ -1,7 +1,7 @@
 package com.equipo4.nearhome.ui.admin.listings
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
+import coil.compose.AsyncImage
 import androidx.compose.material.icons.filled.Error
 import com.equipo4.nearhome.ui.theme.adminAccent
 import androidx.compose.foundation.background
@@ -23,7 +23,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -60,8 +59,8 @@ fun ListingThumbnail(listing: AdminListing, size: Dp, modifier: Modifier = Modif
     val shape = RoundedCornerShape(12.dp)
     val first = listing.images.firstOrNull()
     if (first != null) {
-        Image(
-            painter = painterResource(first),
+        AsyncImage(
+            model = first,
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = modifier.size(size).clip(shape)

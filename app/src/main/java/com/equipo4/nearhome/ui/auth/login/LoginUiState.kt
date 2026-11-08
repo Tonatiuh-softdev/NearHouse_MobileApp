@@ -8,10 +8,16 @@ data class LoginUiState(
     val isPasswordVisible: Boolean = false,
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
-    val isSuccess: Boolean = false
+    val isSuccess: Boolean = false,
+    val googleSuccessMessage: String? = null,
+    val showReactivateDialog: Boolean = false,
+    /** true = la cuenta está por eliminarse (se pregunta si la conserva); false = solo desactivada. */
+    val reactivateIsDeletion: Boolean = false,
+    /** Mensaje de la API para el diálogo (trae la fecha de eliminación). */
+    val reactivateMessage: String? = null,
+    val isReactivating: Boolean = false,
+    val reactivateSuccessMessage: String? = null
 ) {
-    // El botón Entrar solo se activa si el correo tiene formato válido,
-    // la contraseña no está vacía y no se está ejecutando la petición (isLoading)
     val isFormValid: Boolean
         get() = isEmailValid && isPasswordValid && !isLoading
 }

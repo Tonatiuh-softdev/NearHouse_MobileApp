@@ -1,505 +1,314 @@
 package com.equipo4.nearhome.ui.admin.users_crud.detail
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.outlined.Error
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.equipo4.nearhome.R
+import com.equipo4.nearhome.data.repository.fotoUsuarioAdminUrl
+import com.equipo4.nearhome.domain.model.UserDetail
+import com.equipo4.nearhome.ui.admin.users_crud.UserAvatar
 import com.equipo4.nearhome.ui.admin.users_crud.UserRoleTag
 import com.equipo4.nearhome.ui.admin.users_crud.UserStatusBadge
+import com.equipo4.nearhome.domain.model.UserAccountRole
+
+private enum class AccionUsuario { NINGUNA, SUSPENDER, ELIMINAR }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserDetailScreen(
     userId: String,
-    onBackClick: () -> Unit = {},
-    onBlockClick: (String) -> Unit = {},
-    onDeleteClick: (String) -> Unit = {}
+    onBackClick: () -> Unit = {}
 ) {
     val viewModel: UserDetailViewModel = viewModel(
+        key = userId,
         factory = UserDetailViewModelFactory(userId)
     )
-    val user by viewModel.user.collectAsState()
+    val state by viewModel.state.collectAsState()
+    val busy by viewModel.actionBusy.collectAsState()
+    val actionError by viewModel.actionError.collectAsState()
+    var pantalla by remember { mutableStateOf(AccionUsuario.NINGUNA) }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val usuario = (state as? UserDetailUiState.Success)?.user
 
-    val nombre by viewModel.nombre.collectAsState()
-    val primerApellido by viewModel.primerApellido.collectAsState()
-    val segundoApellido by viewModel.segundoApellido.collectAsState()
-    val correo by viewModel.correo.collectAsState()
-    val telefono by viewModel.telefono.collectAsState()
+    // El botón atrás del sistema cierra la confirmación abierta, no sale del detalle
+    BackHandler(enabled = pantalla != AccionUsuario.NINGUNA) {
+        viewModel.limpiarErrorAccion()
+        pantalla = AccionUsuario.NINGUNA
+    }
 
-    val nombreError by viewModel.nombreError.collectAsState()
-    val apellidoError by viewModel.apellidoError.collectAsState()
-    val correoError by viewModel.correoError.collectAsState()
-    val telefonoError by viewModel.telefonoError.collectAsState()
+    // Errores de "Quitar suspensión" se muestran en un Snackbar
+    LaunchedEffect(actionError, pantalla) {
+        val mensaje = actionError
+        if (mensaje != null && pantalla == AccionUsuario.NINGUNA) {
+            snackbarHostState.showSnackbar(mensaje)
+            viewModel.limpiarErrorAccion()
+        }
+    }
 
-    val showGlobalError by viewModel.showGlobalError.collectAsState()
-    val isSavedSuccessfully by viewModel.isSavedSuccessfully.collectAsState()
+    if (usuario != null && pantalla == AccionUsuario.SUSPENDER) {
+        SuspendUserScreen(
+            user = usuario,
+            isSubmitting = busy,
+            errorMessage = actionError,
+            onBackClick = {
+                viewModel.limpiarErrorAccion()
+                pantalla = AccionUsuario.NINGUNA
+            },
+            onConfirm = { motivo ->
+                viewModel.suspender(dias = null, motivo = motivo) {
+                    pantalla = AccionUsuario.NINGUNA
+                }
+            }
+        )
+        return
+    }
 
-    val subtitle = when {
-        showGlobalError -> "Revisa la información"
-        isSavedSuccessfully -> "Información actualizada"
-        else -> "Información de la cuenta"
+    if (usuario != null && pantalla == AccionUsuario.ELIMINAR) {
+        DeleteUserScreen(
+            user = usuario,
+            isSubmitting = busy,
+            errorMessage = actionError,
+            onBackClick = {
+                viewModel.limpiarErrorAccion()
+                pantalla = AccionUsuario.NINGUNA
+            },
+            onConfirm = {
+                viewModel.eliminar {
+                    pantalla = AccionUsuario.NINGUNA
+                    onBackClick()
+                }
+            }
+        )
+        return
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    Column {
-                        Text(
-                            text = "Detalle de usuario",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF1F2937)
-                        )
-                        Text(
-                            text = subtitle,
-                            fontSize = 12.sp,
-                            color = if (showGlobalError) Color(0xFFB91C1C) else Color(0xFF6B7280)
-                        )
-                    }
+                    Text(
+                        text = stringResource(R.string.admin_user_detail_title),
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                 },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Regresar",
-                            tint = Color(0xFF1F2937)
+                            contentDescription = stringResource(R.string.common_back),
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.White)
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface)
             )
         },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         bottomBar = {
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                color = Color.White,
-                shadowElevation = 8.dp
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .navigationBarsPadding()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    Button(
-                        onClick = {
-                            viewModel.saveChanges {
-                                // Guardado exitoso
-                            }
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(50.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0B2C4D))
-                    ) {
-                        Text(
-                            text = if (showGlobalError) "Reintentar guardar" else "Guardar cambios",
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White
-                        )
-                    }
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        OutlinedButton(
-                            onClick = { onBlockClick(userId) },
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(46.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFF0B2C4D)),
-                            border = BorderStroke(1.dp, Color(0xFFD1D5DB))
-                        ) {
-                            Text(
-                                text = "Bloquear / Suspender",
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Medium,
-                                maxLines = 1
-                            )
-                        }
-
-                        OutlinedButton(
-                            onClick = { onDeleteClick(userId) },
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(46.dp),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color(0xFFDC2626)),
-                            border = BorderStroke(1.dp, Color(0xFFDC2626))
-                        ) {
-                            Text(
-                                text = "Eliminar cuenta",
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Medium,
-                                maxLines = 1
-                            )
-                        }
-                    }
-                }
+            if (usuario != null && !usuario.role.esAdministrador()) {
+                UserActionsBar(
+                    status = usuario.status,
+                    onBlock = { pantalla = AccionUsuario.SUSPENDER },
+                    onUnsuspend = { viewModel.levantarSuspension { } },
+                    onDelete = { pantalla = AccionUsuario.ELIMINAR }
+                )
             }
         },
-        containerColor = Color(0xFFF9FAFB)
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
-        if (user == null) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator(color = Color(0xFF0B2C4D))
+        when (val estado = state) {
+            is UserDetailUiState.Loading -> {
+                Box(
+                    modifier = Modifier.fillMaxSize().padding(innerPadding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                }
             }
-        } else {
-            val currentUser = user!!
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .verticalScroll(rememberScrollState())
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                // Aviso rojo de error global
-                if (showGlobalError) {
-                    Surface(
-                        color = Color(0xFFFEE2E2),
-                        shape = RoundedCornerShape(12.dp),
-                        border = BorderStroke(1.dp, Color(0xFFEF4444))
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(14.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(32.dp)
-                                    .background(Color(0xFFDC2626), CircleShape),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Outlined.Error,
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
-                            Column {
-                                Text(
-                                    text = "No se guardaron los cambios",
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF991B1B)
-                                )
-                                Text(
-                                    text = "Revisa los campos marcados e inténtalo de nuevo.",
-                                    fontSize = 12.sp,
-                                    color = Color(0xFF7F1D1D)
-                                )
-                            }
-                        }
-                    }
-                }
 
-                // Aviso verde de éxito (Cambios guardados con palomita)
-                if (isSavedSuccessfully && !showGlobalError) {
-                    Surface(
-                        color = Color(0xFFDCFCE7),
-                        shape = RoundedCornerShape(12.dp),
-                        border = BorderStroke(1.dp, Color(0xFF16A34A))
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(14.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(32.dp)
-                                    .background(Color(0xFF16A34A), CircleShape),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Check,
-                                    contentDescription = null,
-                                    tint = Color.White,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
-                            Column {
-                                Text(
-                                    text = "Cambios guardados",
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color(0xFF166534)
-                                )
-                                Text(
-                                    text = "La información de ${currentUser.name} se actualizó correctamente.",
-                                    fontSize = 12.sp,
-                                    color = Color(0xFF14532D)
-                                )
-                            }
-                        }
-                    }
-                }
-
-                // Tarjeta de usuario principal
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    elevation = CardDefaults.cardElevation(0.dp)
+            is UserDetailUiState.Error -> {
+                Column(
+                    modifier = Modifier.fillMaxSize().padding(innerPadding).padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        if (currentUser.avatarRes != null) {
-                            Image(
-                                painter = painterResource(id = currentUser.avatarRes),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(60.dp)
-                                    .clip(CircleShape),
-                                contentScale = ContentScale.Crop
-                            )
-                        } else {
-                            Box(
-                                modifier = Modifier
-                                    .size(60.dp)
-                                    .background(Color(0xFF0B2C4D), CircleShape),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = currentUser.initials,
-                                    color = Color.White,
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-                        }
-
-                        Spacer(Modifier.width(16.dp))
-
-                        Column {
-                            Text(
-                                text = currentUser.name,
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = Color(0xFF1F2937)
-                            )
-                            Spacer(Modifier.height(2.dp))
-                            Text(
-                                text = currentUser.email,
-                                fontSize = 13.sp,
-                                color = Color(0xFF6B7280)
-                            )
-                            Spacer(Modifier.height(6.dp))
-                            UserStatusBadge(currentUser.status, showBackground = false)
-                        }
-                    }
-                }
-
-                // Franja de Rol, Estatus y Registro
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    elevation = CardDefaults.cardElevation(0.dp)
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column {
-                            Text("ROL", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color(0xFF9CA3AF))
-                            Spacer(Modifier.height(4.dp))
-                            UserRoleTag(currentUser.role)
-                        }
-                        Column {
-                            Text("ESTATUS", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color(0xFF9CA3AF))
-                            Spacer(Modifier.height(4.dp))
-                            UserStatusBadge(currentUser.status, showBackground = true)
-                        }
-                        Column {
-                            Text("REGISTRO", fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color(0xFF9CA3AF))
-                            Spacer(Modifier.height(4.dp))
-                            Text(currentUser.registrationDate, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = Color(0xFF1F2937))
-                        }
-                    }
-                }
-
-                // Formulario editable
-                Text("Información personal", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1F2937))
-
-                // Fila 1: Nombre(s) y Primer apellido
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        val isNomError = nombreError != null
-                        val nomContainerColor = if (isNomError) Color(0xFFFEE2E2) else Color.White
-                        val nomLabelColor = if (isNomError) Color(0xFFB91C1C) else Color(0xFF374151)
-
-                        Text("Nombre(s)", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = nomLabelColor)
-                        Spacer(Modifier.height(6.dp))
-                        OutlinedTextField(
-                            value = nombre,
-                            onValueChange = { viewModel.nombre.value = it },
-                            isError = isNomError,
-                            shape = RoundedCornerShape(12.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = if (isNomError) Color(0xFFEF4444) else Color(0xFF0B2C4D),
-                                unfocusedBorderColor = if (isNomError) Color(0xFFEF4444) else Color(0xFFD1D5DB),
-                                focusedContainerColor = nomContainerColor,
-                                unfocusedContainerColor = nomContainerColor
-                            ),
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        if (nombreError != null) {
-                            Text(nombreError!!, fontSize = 12.sp, color = Color(0xFFB91C1C))
-                        }
-                    }
-
-                    Column(modifier = Modifier.weight(1f)) {
-                        val isApError = apellidoError != null
-                        val apContainerColor = if (isApError) Color(0xFFFEE2E2) else Color.White
-                        val apLabelColor = if (isApError) Color(0xFFB91C1C) else Color(0xFF374151)
-
-                        Text("Primer apellido", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = apLabelColor)
-                        Spacer(Modifier.height(6.dp))
-                        OutlinedTextField(
-                            value = primerApellido,
-                            onValueChange = { viewModel.primerApellido.value = it },
-                            isError = isApError,
-                            shape = RoundedCornerShape(12.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = if (isApError) Color(0xFFEF4444) else Color(0xFF0B2C4D),
-                                unfocusedBorderColor = if (isApError) Color(0xFFEF4444) else Color(0xFFD1D5DB),
-                                focusedContainerColor = apContainerColor,
-                                unfocusedContainerColor = apContainerColor
-                            ),
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        if (apellidoError != null) {
-                            Text(apellidoError!!, fontSize = 12.sp, color = Color(0xFFB91C1C))
-                        }
-                    }
-                }
-
-                // Segundo apellido (opcional)
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    Text("Segundo apellido (opcional)", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Color(0xFF374151))
-                    Spacer(Modifier.height(6.dp))
-                    OutlinedTextField(
-                        value = segundoApellido,
-                        onValueChange = { viewModel.segundoApellido.value = it },
-                        shape = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color(0xFF0B2C4D),
-                            unfocusedBorderColor = Color(0xFFD1D5DB),
-                            focusedContainerColor = Color.White,
-                            unfocusedContainerColor = Color.White
-                        ),
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
+                    Text(
+                        text = estado.mensaje,
+                        color = MaterialTheme.colorScheme.error,
+                        textAlign = TextAlign.Center
                     )
-                }
-
-                // Correo electrónico
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    val isEmailError = correoError != null
-                    val emailContainerColor = if (isEmailError) Color(0xFFFEE2E2) else Color.White
-                    val emailLabelColor = if (isEmailError) Color(0xFFB91C1C) else Color(0xFF374151)
-
-                    Text("Correo electrónico", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = emailLabelColor)
-                    Spacer(Modifier.height(6.dp))
-                    OutlinedTextField(
-                        value = correo,
-                        onValueChange = { viewModel.correo.value = it },
-                        isError = isEmailError,
-                        shape = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = if (isEmailError) Color(0xFFEF4444) else Color(0xFF0B2C4D),
-                            unfocusedBorderColor = if (isEmailError) Color(0xFFEF4444) else Color(0xFFD1D5DB),
-                            focusedContainerColor = emailContainerColor,
-                            unfocusedContainerColor = emailContainerColor
-                        ),
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    if (correoError != null) {
-                        Text(correoError!!, fontSize = 12.sp, color = Color(0xFFB91C1C))
+                    Spacer(Modifier.height(12.dp))
+                    OutlinedButton(onClick = viewModel::cargar) {
+                        Text(stringResource(R.string.admin_users_retry))
                     }
                 }
+            }
 
-                // Teléfono
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    val isPhoneError = telefonoError != null
-                    val phoneContainerColor = if (isPhoneError) Color(0xFFFEE2E2) else Color.White
-                    val phoneLabelColor = if (isPhoneError) Color(0xFFB91C1C) else Color(0xFF374151)
-
-                    Text("Teléfono", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = phoneLabelColor)
-                    Spacer(Modifier.height(6.dp))
-                    OutlinedTextField(
-                        value = telefono,
-                        onValueChange = { viewModel.telefono.value = it },
-                        isError = isPhoneError,
-                        shape = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = if (isPhoneError) Color(0xFFEF4444) else Color(0xFF0B2C4D),
-                            unfocusedBorderColor = if (isPhoneError) Color(0xFFEF4444) else Color(0xFFD1D5DB),
-                            focusedContainerColor = phoneContainerColor,
-                            unfocusedContainerColor = phoneContainerColor
-                        ),
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    if (telefonoError != null) {
-                        Text(telefonoError!!, fontSize = 12.sp, color = Color(0xFFB91C1C))
-                    }
-                }
-
-                Spacer(Modifier.height(40.dp))
+            is UserDetailUiState.Success -> {
+                DetalleContenido(
+                    user = estado.user,
+                    modifier = Modifier.padding(innerPadding)
+                )
             }
         }
+    }
+}
+
+private fun UserAccountRole.esAdministrador(): Boolean =
+    this == UserAccountRole.ADMINISTRADOR || this == UserAccountRole.SUPER_ADMIN
+
+@Composable
+private fun DetalleContenido(user: UserDetail, modifier: Modifier = Modifier) {
+    val nombreCompleto = listOfNotNull(user.name, user.firstSurname, user.secondSurname).joinToString(" ")
+
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        SeccionCard(titulo = null) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                UserAvatar(
+                    name = nombreCompleto,
+                    photoUrl = fotoUsuarioAdminUrl(user.id),
+                    size = 64.dp
+                )
+                Spacer(Modifier.width(14.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = nombreCompleto,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = user.email,
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(Modifier.height(6.dp))
+                    UserStatusBadge(user.status)
+                }
+            }
+        }
+
+        SeccionCard(titulo = stringResource(R.string.admin_user_section_account)) {
+            FilaDato(stringResource(R.string.admin_user_label_email), user.email)
+            FilaDato(stringResource(R.string.admin_user_label_phone), user.phone)
+            FilaDatoContenido(stringResource(R.string.admin_user_label_role)) { UserRoleTag(user.role) }
+            FilaDatoContenido(stringResource(R.string.admin_user_label_status)) { UserStatusBadge(user.status) }
+            FilaDato(stringResource(R.string.admin_user_label_registered), user.registrationDate)
+        }
+
+        SeccionCard(titulo = stringResource(R.string.admin_user_section_name)) {
+            FilaDato(stringResource(R.string.admin_user_label_name), user.name)
+            FilaDato(stringResource(R.string.admin_user_label_first_surname), user.firstSurname)
+            FilaDato(
+                stringResource(R.string.admin_user_label_second_surname),
+                user.secondSurname ?: "—"
+            )
+        }
+
+        SeccionCard(titulo = stringResource(R.string.admin_user_section_plan)) {
+            val plan = user.plan
+            if (plan == null) {
+                Text(
+                    text = stringResource(R.string.admin_user_no_plan),
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            } else {
+                FilaDato(stringResource(R.string.admin_user_label_plan), plan.name)
+                FilaDato(stringResource(R.string.admin_user_label_expires), plan.expiresAt ?: "—")
+            }
+        }
+
+        SeccionCard(titulo = stringResource(R.string.admin_user_section_activity)) {
+            FilaDato(stringResource(R.string.admin_user_label_review), user.reviewCount.toString())
+            FilaDato(stringResource(R.string.admin_user_label_published), user.publishedCount.toString())
+            FilaDato(stringResource(R.string.admin_user_label_rejected), user.rejectedCount.toString())
+            FilaDato(stringResource(R.string.admin_user_label_pending_reports), user.pendingReportsCount.toString())
+        }
+
+        Spacer(Modifier.height(24.dp))
+    }
+}
+
+@Composable
+private fun SeccionCard(
+    titulo: String?,
+    contenido: @Composable ColumnScope.() -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            if (titulo != null) {
+                Text(
+                    text = titulo,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+            contenido()
+        }
+    }
+}
+
+@Composable
+private fun FilaDato(etiqueta: String, valor: String) {
+    FilaDatoContenido(etiqueta) {
+        Text(
+            text = valor,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.End
+        )
+    }
+}
+
+@Composable
+private fun FilaDatoContenido(etiqueta: String, valor: @Composable () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = etiqueta,
+            fontSize = 13.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(Modifier.width(12.dp))
+        valor()
     }
 }

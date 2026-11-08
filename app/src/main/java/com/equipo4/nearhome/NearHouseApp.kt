@@ -1,17 +1,24 @@
 package com.equipo4.nearhome
 
 import android.graphics.Color
+import android.widget.Toast
 import com.equipo4.nearhome.ui.theme.NearHomeTheme
+import androidx.compose.foundation.isSystemInDarkTheme
+import com.equipo4.nearhome.data.local.SettingsManager
 import android.net.Uri
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
+import com.equipo4.nearhome.data.repository.Repositories
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -31,16 +38,10 @@ import com.equipo4.nearhome.ui.admin.reports.ReportsScreen
 import com.equipo4.nearhome.ui.admin.reports.ReportDetailScreen
 import com.equipo4.nearhome.ui.admin.reports.ReportConfirmationScreen
 import com.equipo4.nearhome.ui.admin.users_crud.UsersListScreen
-import com.equipo4.nearhome.ui.admin.users_crud.UsersListViewModel
-import com.equipo4.nearhome.ui.admin.users_crud.FilterUsersScreen
-import com.equipo4.nearhome.ui.admin.users_crud.FilterUsersViewModel
-import com.equipo4.nearhome.ui.admin.users_crud.FilterUsersViewModelFactory
 import com.equipo4.nearhome.ui.admin.users_crud.detail.UserDetailScreen
-import com.equipo4.nearhome.ui.admin.users_crud.block.BlockUserScreen
-import com.equipo4.nearhome.ui.admin.users_crud.delete.DeleteUserScreen
 import com.equipo4.nearhome.ui.auth.completeprofile.CompleteProfileScreen
-import com.equipo4.nearhome.ui.auth.forgot_password.ForgotPasswordScreen
-import com.equipo4.nearhome.ui.auth.forgot_password.ForgotPasswordViewModel
+import com.equipo4.nearhome.ui.auth.recover.RecoverPasswordScreen
+import com.equipo4.nearhome.ui.auth.recover.RecoverPasswordViewModel
 import com.equipo4.nearhome.ui.auth.login.LoginScreen
 import com.equipo4.nearhome.ui.auth.register.SignUpScreen
 import com.equipo4.nearhome.ui.auth.verification.PhoneVerificationScreen
@@ -49,13 +50,30 @@ import com.equipo4.nearhome.ui.home.map.MapScreen
 import com.equipo4.nearhome.ui.home.filter.SearchFiltersScreen
 import com.equipo4.nearhome.ui.legal.PoliticaPrivacidadScreen
 import com.equipo4.nearhome.ui.legal.TerminosCondicionesScreen
+import com.equipo4.nearhome.ui.notifications.NotificationsScreen
+import com.equipo4.nearhome.ui.notifications.NotificationsViewModel
+import com.equipo4.nearhome.data.repository.NotificacionesRepositoryFalso
 import com.equipo4.nearhome.ui.profile.ProfileScreen
+import com.equipo4.nearhome.ui.profile.UserRole
+import com.equipo4.nearhome.ui.profile.account.AccountAdminRoute
+import com.equipo4.nearhome.ui.profile.account.AccountAdminViewModel
+import com.equipo4.nearhome.ui.profile.seller.EditProfileScreen
+import com.equipo4.nearhome.ui.profile.seller.MyListingsScreen
+import com.equipo4.nearhome.ui.subscription.CheckoutScreen
+import com.equipo4.nearhome.ui.subscription.ChoosePlanScreen
 import com.equipo4.nearhome.ui.saved.SavedScreen
 import com.equipo4.nearhome.ui.publicacion.detail.DetailPublicacionScreen
+import com.equipo4.nearhome.ui.publicacion.report.ReportCategoryScreen
+import com.equipo4.nearhome.ui.publicacion.report.ReportReasonScreen
+import com.equipo4.nearhome.ui.publicacion.report.ReportViewModel
 import com.equipo4.nearhome.ui.splash.SplashScreen
 import com.equipo4.nearhome.data.local.SessionManager
+import com.equipo4.nearhome.data.session.CurrentUserStore
+import com.equipo4.nearhome.di.NetworkModule
+import com.equipo4.nearhome.network.AuthApi
 import androidx.compose.runtime.LaunchedEffect
 import androidx.navigation.compose.navigation
+import kotlinx.coroutines.launch
 import com.equipo4.nearhome.ui.createlisting.CreateListingStep1Screen
 import com.equipo4.nearhome.ui.createlisting.CreateListingViewModel
 import com.equipo4.nearhome.ui.createlisting.canCreateListings
@@ -63,6 +81,31 @@ import com.equipo4.nearhome.ui.createlisting.CreateListingStep2Screen
 import com.equipo4.nearhome.ui.createlisting.CreateListingStep3Screen
 import com.equipo4.nearhome.ui.createlisting.CreateListingStep4Screen
 import com.equipo4.nearhome.ui.createlisting.CreateListingPreviewScreen
+import com.equipo4.nearhome.ui.auth.CompletarPerfilGoogleScreen
+import com.equipo4.nearhome.ui.auth.GoogleAuthState
+import com.equipo4.nearhome.ui.auth.GoogleAuthViewModel
+import com.equipo4.nearhome.ui.auth.GoogleAuthViewModelFactory
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import com.equipo4.nearhome.R
+import com.equipo4.nearhome.ui.admin.users_crud.UsersListScreen
 
 object AppRoutes {
     const val SPLASH = "splash"
@@ -70,13 +113,23 @@ object AppRoutes {
     const val SIGN_UP = "signup"
     const val FORGOT_PASSWORD = "forgot_password"
     const val COMPLETE_PROFILE = "complete_profile"
+    const val COMPLETAR_PERFIL_GOOGLE = "completar_perfil_google"
     const val PHONE_VERIFICATION = "phone_verification"
     const val HOME = "home"
     const val MAP = "home_map"
     const val SEARCH_FILTERS = "search_filters"
     const val SAVED = "saved"
+    const val NOTIFICATIONS = "notifications"
     const val PROFILE = "profile"
+    const val ACCOUNT_ADMIN = "account_admin"
+    const val MY_LISTINGS = "my_listings"
+    const val CHOOSE_PLAN = "choose_plan"
+    const val CHECKOUT = "checkout"
+    const val EDIT_PROFILE = "edit_profile"
     const val PUBLICACION_DETAIL = "publicacion_detail"
+    const val REPORT_GRAPH = "report_graph"
+    const val REPORT_CATEGORY = "report_category"
+    const val REPORT_REASON = "report_reason"
     const val TERMS_AND_CONDITIONS = "terms_and_conditions"
     const val PRIVACY_POLICY = "privacy_policy"
     const val ADMIN_PANEL = "admin_panel"
@@ -100,6 +153,8 @@ object AppRoutes {
     const val CREATE_LISTING_STEP3 = "create_listing_step3"
     const val CREATE_LISTING_STEP4 = "create_listing_step4"
     const val CREATE_LISTING_PREVIEW = "create_listing_preview"
+    const val SUBSCRIPTION = "subscription"
+    const val CREATE_LISTING_EDIT = "create_listing_edit/{listingId}"
 }
 
 class MainActivity : AppCompatActivity() {
@@ -115,9 +170,18 @@ class MainActivity : AppCompatActivity() {
                 darkScrim = Color.TRANSPARENT
             )
         )
+
+        Repositories.init(applicationContext)
+
         super.onCreate(savedInstanceState)
         setContent {
-            NearHomeTheme {
+            val context = LocalContext.current
+            remember { SettingsManager(context) }
+            val darkModeState by SettingsManager.darkModeState.collectAsState()
+            val systemInDark = isSystemInDarkTheme()
+            val useDarkTheme = darkModeState ?: systemInDark
+
+            NearHomeTheme(darkTheme = useDarkTheme) {
                 NearHouseApp()
             }
         }
@@ -129,12 +193,81 @@ fun NearHouseApp() {
     val navController = rememberNavController()
     val context = LocalContext.current
     val sessionManager = remember { SessionManager(context) }
+    val scope = rememberCoroutineScope()
+    val authApi = remember {
+        NetworkModule.provideRetrofit(NetworkModule.provideOkHttpClient(sessionManager))
+            .create(AuthApi::class.java)
+    }
+
+    // ViewModel global para la autenticación con Google usando su Factory
+    val googleAuthViewModel: GoogleAuthViewModel = viewModel(
+        factory = GoogleAuthViewModelFactory(context)
+    )
+    val googleAuthState by googleAuthViewModel.uiState.collectAsState()
+
+    // Escucha global de respuestas de la API de Google
+    LaunchedEffect(googleAuthState) {
+        when (googleAuthState) {
+            is GoogleAuthState.SessionSuccess -> {
+                sessionManager.setLoggedIn(true)
+                navController.navigate(AppRoutes.HOME) {
+                    popUpTo(AppRoutes.LOGIN) { inclusive = true }
+                }
+                googleAuthViewModel.reiniciarEstado()
+            }
+            is GoogleAuthState.RequiresRegistration -> {
+                navController.navigate(AppRoutes.COMPLETAR_PERFIL_GOOGLE)
+            }
+            is GoogleAuthState.Error -> {
+                Toast.makeText(context, (googleAuthState as GoogleAuthState.Error).mensaje, Toast.LENGTH_LONG).show()
+                googleAuthViewModel.reiniciarEstado()
+            }
+            else -> {}
+        }
+    }
+
+    // Entró con Google a una cuenta desactivada o por eliminarse: se pregunta antes de entrar
+    (googleAuthState as? GoogleAuthState.RequiresReactivation)?.let { estado ->
+        AlertDialog(
+            onDismissRequest = { googleAuthViewModel.reiniciarEstado() },
+            title = {
+                Text(
+                    stringResource(
+                        if (estado.esEliminacion) R.string.login_keep_title else R.string.login_reactivate_title
+                    )
+                )
+            },
+            text = {
+                Text(
+                    if (estado.esEliminacion) {
+                        estado.mensaje ?: stringResource(R.string.login_keep_title)
+                    } else {
+                        stringResource(R.string.login_reactivate_text)
+                    }
+                )
+            },
+            confirmButton = {
+                Button(onClick = { googleAuthViewModel.procesarTokenGoogle(estado.idToken, reactivar = true) }) {
+                    Text(
+                        stringResource(
+                            if (estado.esEliminacion) R.string.login_keep_confirm else R.string.login_reactivate_confirm
+                        )
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { googleAuthViewModel.reiniciarEstado() }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
 
     NavHost(
         navController = navController,
         startDestination = AppRoutes.SPLASH
     ) {
-        // Pantalla 0: Animacion
+        // Pantalla 0: Animación
         composable(AppRoutes.SPLASH) {
             SplashScreen(
                 onFinished = { isLoggedIn ->
@@ -157,14 +290,17 @@ fun NearHouseApp() {
                 onNavigateToRegister = {
                     navController.navigate(AppRoutes.SIGN_UP)
                 },
-                onNavigateToForgotPassword = {
-                    navController.navigate(AppRoutes.FORGOT_PASSWORD)
+                onNavigateToForgotPassword = { prefilledEmail ->
+                    navController.navigate("${AppRoutes.FORGOT_PASSWORD}?email=${prefilledEmail.trim()}")
                 },
                 onLoginSuccess = {
                     sessionManager.setLoggedIn(true)
                     navController.navigate(AppRoutes.HOME) {
                         popUpTo(AppRoutes.LOGIN) { inclusive = true }
                     }
+                },
+                onGoogleAuthTokenReceived = { token ->
+                    googleAuthViewModel.procesarTokenGoogle(token)
                 }
             )
         }
@@ -185,6 +321,9 @@ fun NearHouseApp() {
                 },
                 onNavigateToPrivacy = {
                     navController.navigate(AppRoutes.PRIVACY_POLICY)
+                },
+                onGoogleAuthTokenReceived = { token ->
+                    googleAuthViewModel.procesarTokenGoogle(token)
                 }
             )
         }
@@ -207,7 +346,7 @@ fun NearHouseApp() {
             )
         }
 
-        // Pantalla 3: Completa tu Perfil
+        // Pantalla 3: Completa tu Perfil tradicional
         composable(AppRoutes.COMPLETE_PROFILE) {
             CompleteProfileScreen(
                 onCompleteProfileSuccess = { phoneNumber ->
@@ -215,6 +354,33 @@ fun NearHouseApp() {
                     navController.navigate("${AppRoutes.PHONE_VERIFICATION}/$encodedPhone")
                 }
             )
+        }
+
+        // Pantalla 3b: Completar Perfil con Google (Caso C - Usuario nuevo)
+        composable(AppRoutes.COMPLETAR_PERFIL_GOOGLE) {
+            val state = googleAuthState
+            var proofDataSaved by remember { mutableStateOf<com.equipo4.nearhome.data.remote.dto.GoogleProofResponse?>(null) }
+
+            if (state is GoogleAuthState.RequiresRegistration) {
+                proofDataSaved = state.proofData
+            }
+
+            proofDataSaved?.let { proofData ->
+                CompletarPerfilGoogleScreen(
+                    proofData = proofData,
+                    viewModel = googleAuthViewModel,
+                    onRegistroExitoso = {
+                        sessionManager.setLoggedIn(true)
+                        navController.navigate(AppRoutes.HOME) {
+                            popUpTo(AppRoutes.LOGIN) { inclusive = true }
+                        }
+                    },
+                    onVolverAlLogin = {
+                        googleAuthViewModel.reiniciarEstado()
+                        navController.popBackStack(AppRoutes.LOGIN, inclusive = false)
+                    }
+                )
+            }
         }
 
         // Pantalla 4: Verificación de Teléfono
@@ -234,17 +400,22 @@ fun NearHouseApp() {
         }
 
         // Pantalla 5: Recuperación de contraseña
-        composable(AppRoutes.FORGOT_PASSWORD) {
-            val forgotPasswordViewModel: ForgotPasswordViewModel = viewModel()
-            ForgotPasswordScreen(
-                viewModel = forgotPasswordViewModel,
-                onNavigateToLogin = {
+        composable(
+            route = "${AppRoutes.FORGOT_PASSWORD}?email={email}",
+            arguments = listOf(navArgument("email") { type = NavType.StringType; defaultValue = "" })
+        ) { entry ->
+            val prefilledEmail = entry.arguments?.getString("email") ?: ""
+            val recoverViewModel: RecoverPasswordViewModel = viewModel()
+            val context = LocalContext.current
+            RecoverPasswordScreen(
+                viewModel = recoverViewModel,
+                prefilledEmail = prefilledEmail,
+                onNavigateBack = {
                     navController.popBackStack()
                 },
-                onNavigateToSignUp = {
-                    navController.navigate(AppRoutes.SIGN_UP) {
-                        popUpTo(AppRoutes.LOGIN) { inclusive = false }
-                    }
+                onSuccessFinished = { msg ->
+                    Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                    navController.popBackStack(AppRoutes.LOGIN, inclusive = false)
                 }
             )
         }
@@ -253,18 +424,38 @@ fun NearHouseApp() {
         val onBottomTab: (Int) -> Unit = { index ->
             when (index) {
                 0 -> navController.navigate(AppRoutes.HOME) {
-                    popUpTo(AppRoutes.HOME) { inclusive = false }
+                    popUpTo(AppRoutes.HOME) {
+                        inclusive = false
+                        saveState = true
+                    }
                     launchSingleTop = true
+                    restoreState = true
                 }
                 1 -> navController.navigate(AppRoutes.SAVED) {
-                    popUpTo(AppRoutes.HOME) { inclusive = false }
+                    popUpTo(AppRoutes.HOME) {
+                        inclusive = false
+                        saveState = true
+                    }
                     launchSingleTop = true
+                    restoreState = true
+                }
+                2 -> navController.navigate(AppRoutes.NOTIFICATIONS) {
+                    popUpTo(AppRoutes.HOME) {
+                        inclusive = false
+                        saveState = true
+                    }
+                    launchSingleTop = true
+                    restoreState = true
                 }
                 3 -> navController.navigate(AppRoutes.PROFILE) {
-                    popUpTo(AppRoutes.HOME) { inclusive = false }
+                    popUpTo(AppRoutes.HOME) {
+                        inclusive = false
+                        saveState = true
+                    }
                     launchSingleTop = true
+                    restoreState = true
                 }
-                else -> Unit // 2 Notificaciones: aún sin pantalla
+                else -> Unit
             }
         }
 
@@ -293,11 +484,55 @@ fun NearHouseApp() {
             )
         }
 
-        // Pantalla: Perfil (Vendedor/Arrendador/Admin)
+        // Pantalla: Notificaciones
+        composable(AppRoutes.NOTIFICATIONS) {
+            val notificationsRepository = remember { NotificacionesRepositoryFalso() }
+            val viewModel: NotificationsViewModel = viewModel(
+                factory = object : ViewModelProvider.Factory {
+                    @Suppress("UNCHECKED_CAST")
+                    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                        return NotificationsViewModel(notificationsRepository) as T
+                    }
+                }
+            )
+            NotificationsScreen(
+                viewModel = viewModel,
+                onNavigate = { route ->
+                    when {
+                        route == "account_management/current_plan" -> {
+                            navController.navigate(AppRoutes.ACCOUNT_ADMIN)
+                        }
+                        route.startsWith("publication_detail/") -> {
+                            val id = route.removePrefix("publication_detail/")
+                            if (id.isNotEmpty()) {
+                                navController.navigate("${AppRoutes.PUBLICACION_DETAIL}/$id")
+                            }
+                        }
+                        else -> {
+                            navController.navigate(route)
+                        }
+                    }
+                },
+                onBottomTabSelected = onBottomTab
+            )
+        }
+
+        // Pantalla: Perfil
         composable(AppRoutes.PROFILE) {
             ProfileScreen(
-                onMyListingsClick = { navController.navigate(AppRoutes.CREATE_LISTING_GRAPH) },
-                onAccountClick = {},
+                onMyListingsClick = {
+                    scope.launch {
+                        if (CurrentUserStore.roleOrNull() == null) {
+                            CurrentUserStore.refresh(authApi)
+                        }
+                        when (CurrentUserStore.roleOrNull()) {
+                            UserRole.COMPRADOR -> navController.navigate(AppRoutes.SUBSCRIPTION)
+                            null -> Unit // sin datos no se decide, para no mandar a un vendedor a suscripciones
+                            else -> navController.navigate(AppRoutes.MY_LISTINGS)
+                        }
+                    }
+                },
+                onAccountClick = { navController.navigate(AppRoutes.ACCOUNT_ADMIN) },
                 onAdminPanelClick = {
                     navController.navigate(AppRoutes.ADMIN_PANEL)
                 },
@@ -305,11 +540,13 @@ fun NearHouseApp() {
                 onPrivacyClick = { navController.navigate(AppRoutes.PRIVACY_POLICY) },
                 onLogoutClick = {
                     sessionManager.clearSession()
+                    CurrentUserStore.clear()
                     navController.navigate(AppRoutes.LOGIN) {
                         popUpTo(0) { inclusive = true }
                     }
                 },
                 onSessionExpired = {
+                    CurrentUserStore.clear()
                     navController.navigate(AppRoutes.LOGIN) {
                         popUpTo(0) { inclusive = true }
                     }
@@ -318,30 +555,69 @@ fun NearHouseApp() {
             )
         }
 
-        // Flujo: Crear anuncio (sub-gráfico con un solo ViewModel compartido)
+        // Pantalla: Mis Anuncios (Vendedor / Admin / SuperAdmin)
+        composable(AppRoutes.MY_LISTINGS) {
+            MyListingsScreen(
+                onBackClick = { navController.popBackStack() },
+                onEditProfileClick = { navController.navigate(AppRoutes.EDIT_PROFILE) },
+                onCreateListingClick = { navController.navigate(AppRoutes.CREATE_LISTING_GRAPH) },
+                onEditListingClick = { id -> navController.navigate("create_listing_edit/$id") },
+                onPropertyClick = { propertyId ->
+                    navController.navigate("${AppRoutes.PUBLICACION_DETAIL}/$propertyId")
+                },
+                onBottomTabSelected = onBottomTab
+            )
+        }
+
+        // Pantalla: Editar Perfil (Vendedor / Admin / SuperAdmin)
+        composable(AppRoutes.EDIT_PROFILE) {
+            EditProfileScreen(
+                onNavigateToMyListingsWithSnackbar = { message ->
+                    if (message.isNotEmpty()) {
+                        navController.previousBackStackEntry
+                            ?.savedStateHandle
+                            ?.set("snackbar_msg", message)
+                    }
+                    navController.popBackStack()
+                },
+                onNavigateToAccount = {
+                    navController.navigate(AppRoutes.PROFILE) {
+                        popUpTo(AppRoutes.EDIT_PROFILE) { inclusive = true }
+                    }
+                },
+                onBottomTabSelected = onBottomTab
+            )
+        }
+
+        // Flujo: Crear anuncio
         navigation(
             route = AppRoutes.CREATE_LISTING_GRAPH,
             startDestination = AppRoutes.CREATE_LISTING_STEP1
         ) {
             composable(AppRoutes.CREATE_LISTING_STEP1) { entry ->
-                val canCreate = remember { canCreateListings(sessionManager.getUserRole()) }
-                // Comprador: se cierra el flujo y regresa a Cuenta
+                val canCreate = remember { canCreateListings(CurrentUserStore.roleOrNull()) }
                 LaunchedEffect(canCreate) {
                     if (!canCreate) navController.popBackStack(AppRoutes.PROFILE, inclusive = false)
                 }
                 if (canCreate) {
-                    val parent = remember(entry) { navController.getBackStackEntry(AppRoutes.CREATE_LISTING_GRAPH) }
+                    val parent = remember(entry) {
+                        navController.getBackStackEntry(AppRoutes.CREATE_LISTING_GRAPH)
+                    }
                     val vm: CreateListingViewModel = viewModel(parent)
                     CreateListingStep1Screen(
                         viewModel = vm,
-                        onExit = { navController.popBackStack(AppRoutes.CREATE_LISTING_GRAPH, inclusive = true) },
+                        onExit = {
+                            navController.popBackStack(AppRoutes.CREATE_LISTING_GRAPH, inclusive = true)
+                        },
                         onContinue = { navController.navigate(AppRoutes.CREATE_LISTING_STEP2) },
                         onBottomTabSelected = onBottomTab
                     )
                 }
             }
             composable(AppRoutes.CREATE_LISTING_STEP2) { entry ->
-                val parent = remember(entry) { navController.getBackStackEntry(AppRoutes.CREATE_LISTING_GRAPH) }
+                val parent = remember(entry) {
+                    navController.getBackStackEntry(AppRoutes.CREATE_LISTING_GRAPH)
+                }
                 val vm: CreateListingViewModel = viewModel(parent)
                 CreateListingStep2Screen(
                     viewModel = vm,
@@ -351,7 +627,9 @@ fun NearHouseApp() {
                 )
             }
             composable(AppRoutes.CREATE_LISTING_STEP3) { entry ->
-                val parent = remember(entry) { navController.getBackStackEntry(AppRoutes.CREATE_LISTING_GRAPH) }
+                val parent = remember(entry) {
+                    navController.getBackStackEntry(AppRoutes.CREATE_LISTING_GRAPH)
+                }
                 val vm: CreateListingViewModel = viewModel(parent)
                 CreateListingStep3Screen(
                     viewModel = vm,
@@ -361,30 +639,208 @@ fun NearHouseApp() {
                 )
             }
             composable(AppRoutes.CREATE_LISTING_STEP4) { entry ->
-                val parent = remember(entry) { navController.getBackStackEntry(AppRoutes.CREATE_LISTING_GRAPH) }
+                val parent = remember(entry) {
+                    navController.getBackStackEntry(AppRoutes.CREATE_LISTING_GRAPH)
+                }
                 val vm: CreateListingViewModel = viewModel(parent)
                 CreateListingStep4Screen(
                     viewModel = vm,
                     onBack = { navController.popBackStack() },
-                    onEditData = { navController.popBackStack(AppRoutes.CREATE_LISTING_STEP1, inclusive = false) },
-                    onEditContent = { navController.popBackStack(AppRoutes.CREATE_LISTING_STEP3, inclusive = false) },
+                    onEditData = {
+                        navController.popBackStack(AppRoutes.CREATE_LISTING_STEP1, inclusive = false)
+                    },
+                    onEditContent = {
+                        navController.popBackStack(AppRoutes.CREATE_LISTING_STEP3, inclusive = false)
+                    },
                     onContinue = { navController.navigate(AppRoutes.CREATE_LISTING_PREVIEW) },
                     onBottomTabSelected = onBottomTab
                 )
             }
             composable(AppRoutes.CREATE_LISTING_PREVIEW) { entry ->
-                val parent = remember(entry) { navController.getBackStackEntry(AppRoutes.CREATE_LISTING_GRAPH) }
+                val parent = remember(entry) {
+                    navController.getBackStackEntry(AppRoutes.CREATE_LISTING_GRAPH)
+                }
                 val vm: CreateListingViewModel = viewModel(parent)
                 CreateListingPreviewScreen(
                     viewModel = vm,
                     onBack = { navController.popBackStack() },
-                    onEdit = { navController.popBackStack(AppRoutes.CREATE_LISTING_STEP1, inclusive = false) },
+                    onEdit = {
+                        navController.popBackStack(AppRoutes.CREATE_LISTING_STEP1, inclusive = false)
+                    },
                     onFinished = {
                         vm.reset()
-                        navController.popBackStack(AppRoutes.CREATE_LISTING_GRAPH, inclusive = true)
+                        navController.navigate(AppRoutes.MY_LISTINGS) {
+                            popUpTo(AppRoutes.CREATE_LISTING_GRAPH) { inclusive = true }
+                        }
                     }
                 )
             }
+        }
+
+        // Flujo: Editar anuncio (mismas pantallas, ViewModel con datos precargados)
+        navigation(
+            route = AppRoutes.CREATE_LISTING_EDIT,
+            startDestination = AppRoutes.CREATE_LISTING_STEP1,
+            arguments = listOf(navArgument("listingId") { type = NavType.StringType })
+        ) {
+            composable(AppRoutes.CREATE_LISTING_STEP1) { entry ->
+                val canCreate = remember { canCreateListings(CurrentUserStore.roleOrNull()) }
+                LaunchedEffect(canCreate) {
+                    if (!canCreate) navController.popBackStack(AppRoutes.PROFILE, inclusive = false)
+                }
+                if (canCreate) {
+                    val parent = remember(entry) {
+                        navController.getBackStackEntry(AppRoutes.CREATE_LISTING_EDIT)
+                    }
+                    val vm: CreateListingViewModel = viewModel(parent)
+                    val listingId = parent.arguments?.getString("listingId")?.toIntOrNull()
+                    val ctx = LocalContext.current
+
+                    LaunchedEffect(listingId) {
+                        if (listingId != null) vm.loadForEdit(ctx, listingId)
+                    }
+
+                    val state by vm.state.collectAsState()
+                    when {
+                        state.loadingEdit -> {
+                            Box(
+                                Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator()
+                            }
+                        }
+                        state.loadEditError != null -> {
+                            Column(
+                                Modifier
+                                    .fillMaxSize()
+                                    .padding(24.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Text(state.loadEditError!!)
+                                Spacer(Modifier.height(12.dp))
+                                OutlinedButton(
+                                    onClick = {
+                                        navController.popBackStack(
+                                            AppRoutes.CREATE_LISTING_EDIT,
+                                            inclusive = true
+                                        )
+                                    }
+                                ) {
+                                    Text(stringResource(R.string.common_back))
+                                }
+                            }
+                        }
+                        else -> {
+                            CreateListingStep1Screen(
+                                viewModel = vm,
+                                onExit = {
+                                    navController.popBackStack(
+                                        AppRoutes.CREATE_LISTING_EDIT,
+                                        inclusive = true
+                                    )
+                                },
+                                onContinue = {
+                                    navController.navigate(AppRoutes.CREATE_LISTING_STEP2)
+                                },
+                                onBottomTabSelected = onBottomTab
+                            )
+                        }
+                    }
+                }
+            }
+
+            composable(AppRoutes.CREATE_LISTING_STEP2) { entry ->
+                val parent = remember(entry) {
+                    navController.getBackStackEntry(AppRoutes.CREATE_LISTING_EDIT)
+                }
+                val vm: CreateListingViewModel = viewModel(parent)
+                CreateListingStep2Screen(
+                    viewModel = vm,
+                    onBack = { navController.popBackStack() },
+                    onContinue = { navController.navigate(AppRoutes.CREATE_LISTING_STEP3) },
+                    onBottomTabSelected = onBottomTab
+                )
+            }
+
+            composable(AppRoutes.CREATE_LISTING_STEP3) { entry ->
+                val parent = remember(entry) {
+                    navController.getBackStackEntry(AppRoutes.CREATE_LISTING_EDIT)
+                }
+                val vm: CreateListingViewModel = viewModel(parent)
+                CreateListingStep3Screen(
+                    viewModel = vm,
+                    onBack = { navController.popBackStack() },
+                    onContinue = { navController.navigate(AppRoutes.CREATE_LISTING_STEP4) },
+                    onBottomTabSelected = onBottomTab
+                )
+            }
+
+            composable(AppRoutes.CREATE_LISTING_STEP4) { entry ->
+                val parent = remember(entry) {
+                    navController.getBackStackEntry(AppRoutes.CREATE_LISTING_EDIT)
+                }
+                val vm: CreateListingViewModel = viewModel(parent)
+                CreateListingStep4Screen(
+                    viewModel = vm,
+                    onBack = { navController.popBackStack() },
+                    onEditData = {
+                        navController.popBackStack(AppRoutes.CREATE_LISTING_STEP1, inclusive = false)
+                    },
+                    onEditContent = {
+                        navController.popBackStack(AppRoutes.CREATE_LISTING_STEP3, inclusive = false)
+                    },
+                    onContinue = { navController.navigate(AppRoutes.CREATE_LISTING_PREVIEW) },
+                    onBottomTabSelected = onBottomTab
+                )
+            }
+
+            composable(AppRoutes.CREATE_LISTING_PREVIEW) { entry ->
+                val parent = remember(entry) {
+                    navController.getBackStackEntry(AppRoutes.CREATE_LISTING_EDIT)
+                }
+                val vm: CreateListingViewModel = viewModel(parent)
+                CreateListingPreviewScreen(
+                    viewModel = vm,
+                    onBack = { navController.popBackStack() },
+                    onEdit = {
+                        navController.popBackStack(AppRoutes.CREATE_LISTING_STEP1, inclusive = false)
+                    },
+                    onFinished = {
+                        vm.reset()
+                        navController.navigate(AppRoutes.MY_LISTINGS) {
+                            popUpTo(AppRoutes.CREATE_LISTING_EDIT) { inclusive = true }
+                        }
+                    }
+                )
+            }
+        }
+
+        // Pantalla: Detalle de publicación (única ruta)
+        composable(
+            route = "${AppRoutes.PUBLICACION_DETAIL}/{publicacionId}",
+            arguments = listOf(navArgument("publicacionId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val publicacionId = backStackEntry.arguments?.getString("publicacionId") ?: ""
+
+            DetailPublicacionScreen(
+                publicacionId = publicacionId,
+                onBackClick = { navController.popBackStack() },
+                onReportClick = {
+                    if (!sessionManager.isLoggedIn()) {
+                        navController.navigate(AppRoutes.LOGIN)
+                    } else {
+                        navController.navigate("${AppRoutes.REPORT_GRAPH}/$publicacionId")
+                    }
+                },
+                onEditClick = {
+                    navController.navigate("create_listing_edit/$publicacionId")
+                },
+                onSellerClick = { sellerId ->
+                    // TODO: pantalla de perfil del anunciante (sellerId)
+                }
+            )
         }
 
         // Pantalla: Panel de administración
@@ -419,18 +875,10 @@ fun NearHouseApp() {
             )
         }
 
-        // Pantalla: Usuarios (Admin)
+        // Pantalla: Usuarios (Admin). Lista real con búsqueda, filtros por rol y estatus, y paginación
         composable(AppRoutes.ADMIN_USERS) {
-            val parentEntry = remember { navController.getBackStackEntry(AppRoutes.ADMIN_USERS) }
-            val usersViewModel: UsersListViewModel = viewModel(parentEntry)
             UsersListScreen(
-                viewModel = usersViewModel,
-                onBackClick = {
-                    navController.popBackStack()
-                },
-                onFilterClick = {
-                    navController.navigate(AppRoutes.ADMIN_USERS_FILTER)
-                },
+                onBackClick = { navController.popBackStack() },
                 onUserClick = { userId ->
                     navController.navigate("${AppRoutes.ADMIN_USER_DETAIL}/$userId")
                 },
@@ -438,29 +886,7 @@ fun NearHouseApp() {
             )
         }
 
-        // Pantalla: Filtrar Usuarios
-        composable(AppRoutes.ADMIN_USERS_FILTER) {
-            val parentEntry = remember { navController.getBackStackEntry(AppRoutes.ADMIN_USERS) }
-            val usersViewModel: UsersListViewModel = viewModel(parentEntry)
-            val initialRoles by usersViewModel.selectedRolesFilter.collectAsState()
-            val initialStatuses by usersViewModel.selectedStatusesFilter.collectAsState()
-            val filterViewModel: FilterUsersViewModel = viewModel(
-                factory = FilterUsersViewModelFactory(initialRoles, initialStatuses)
-            )
-
-            FilterUsersScreen(
-                viewModel = filterViewModel,
-                onBackClick = {
-                    navController.popBackStack()
-                },
-                onApplyFilters = { roles, statuses ->
-                    usersViewModel.applyFilters(roles, statuses)
-                    navController.popBackStack()
-                }
-            )
-        }
-
-        // Pantalla: Detalle de Usuario (Admin)
+        // Pantalla: Detalle de usuario (Admin), solo lectura
         composable(
             route = "${AppRoutes.ADMIN_USER_DETAIL}/{userId}",
             arguments = listOf(navArgument("userId") { type = NavType.StringType })
@@ -468,39 +894,7 @@ fun NearHouseApp() {
             val userId = backStackEntry.arguments?.getString("userId") ?: ""
             UserDetailScreen(
                 userId = userId,
-                onBackClick = { navController.popBackStack() },
-                onBlockClick = { id -> navController.navigate("${AppRoutes.ADMIN_USER_BLOCK}/$id") },
-                onDeleteClick = { id -> navController.navigate("${AppRoutes.ADMIN_USER_DELETE}/$id") }
-            )
-        }
-
-        // Pantalla: Bloquear / Suspender Usuario
-        composable(
-            route = "${AppRoutes.ADMIN_USER_BLOCK}/{userId}",
-            arguments = listOf(navArgument("userId") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val userId = backStackEntry.arguments?.getString("userId") ?: ""
-            BlockUserScreen(
-                userId = userId,
-                onBackClick = { navController.popBackStack() },
-                onBlockSuccess = { _ ->
-                    navController.popBackStack()
-                }
-            )
-        }
-
-        // Pantalla: Eliminar Usuario
-        composable(
-            route = "${AppRoutes.ADMIN_USER_DELETE}/{userId}",
-            arguments = listOf(navArgument("userId") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val userId = backStackEntry.arguments?.getString("userId") ?: ""
-            DeleteUserScreen(
-                userId = userId,
-                onBackClick = { navController.popBackStack() },
-                onDeleteSuccess = { _ ->
-                    navController.popBackStack(AppRoutes.ADMIN_USERS, inclusive = false)
-                }
+                onBackClick = { navController.popBackStack() }
             )
         }
 
@@ -601,12 +995,10 @@ fun NearHouseApp() {
                     action = action,
                     onBackClick = { navController.popBackStack() },
                     onConfirmed = { message ->
-                        // Regresa al Detalle con el aviso verde.
                         navController.previousBackStackEntry?.savedStateHandle?.set(AppRoutes.LISTING_MESSAGE, message)
                         navController.popBackStack()
                     },
                     onDeleted = { message ->
-                        // Borra Detalle y Eliminar del historial y vuelve a la lista.
                         navController.getBackStackEntry(AppRoutes.ADMIN_LISTINGS)
                             .savedStateHandle[AppRoutes.LISTING_MESSAGE] = message
                         navController.popBackStack(AppRoutes.ADMIN_LISTINGS, inclusive = false)
@@ -615,7 +1007,7 @@ fun NearHouseApp() {
             }
         }
 
-        // Pantalla 6b: Home (Mapa de inmuebles)
+        // Pantalla: Mapa de inmuebles
         composable(AppRoutes.MAP) {
             MapScreen(
                 onToggleToList = {
@@ -642,21 +1034,85 @@ fun NearHouseApp() {
             )
         }
 
-        // Pantalla 7: Detalle de Publicación
-        composable(
-            route = "${AppRoutes.PUBLICACION_DETAIL}/{publicacionId}",
+        // Flujo: Reportar publicación (el ViewModel se comparte entre las dos pantallas)
+        navigation(
+            route = "${AppRoutes.REPORT_GRAPH}/{publicacionId}",
+            startDestination = AppRoutes.REPORT_CATEGORY,
             arguments = listOf(navArgument("publicacionId") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val publicacionId = backStackEntry.arguments?.getString("publicacionId") ?: ""
+        ) {
+            composable(AppRoutes.REPORT_CATEGORY) { entry ->
+                // El id llega al grafo padre, no a las pantallas hijas
+                val parentEntry = remember(entry) {
+                    navController.getBackStackEntry("${AppRoutes.REPORT_GRAPH}/{publicacionId}")
+                }
+                val publicacionId = parentEntry.arguments?.getString("publicacionId") ?: ""
+                val reportViewModel: ReportViewModel = viewModel(parentEntry)
 
-            DetailPublicacionScreen(
-                publicacionId = publicacionId,
-                onBackClick = {
-                    navController.popBackStack()
+                LaunchedEffect(publicacionId) {
+                    reportViewModel.initPublicacion(publicacionId)
+                }
+
+                ReportCategoryScreen(
+                    viewModel = reportViewModel,
+                    onBackClick = { navController.popBackStack() },
+                    onCategorySelected = { navController.navigate(AppRoutes.REPORT_REASON) }
+                )
+            }
+
+            composable(AppRoutes.REPORT_REASON) { entry ->
+                val parentEntry = remember(entry) {
+                    navController.getBackStackEntry("${AppRoutes.REPORT_GRAPH}/{publicacionId}")
+                }
+                val publicacionId = parentEntry.arguments?.getString("publicacionId") ?: ""
+                val reportViewModel: ReportViewModel = viewModel(parentEntry)
+
+                ReportReasonScreen(
+                    viewModel = reportViewModel,
+                    publicacionId = publicacionId,
+                    onBackClick = { navController.popBackStack() },
+                    onReportSubmitted = {
+                        // Cierra todo el flujo y regresa al detalle de la publicación
+                        navController.popBackStack("${AppRoutes.REPORT_GRAPH}/{publicacionId}", inclusive = true)
+                    }
+                )
+            }
+        }
+
+        composable(AppRoutes.ACCOUNT_ADMIN) {
+            AccountAdminRoute(
+                viewModel = viewModel(),
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToPlans = { navController.navigate(AppRoutes.SUBSCRIPTION) },
+                onNavigateToLogin = { msg ->
+                    CurrentUserStore.clear()
+                    sessionManager.clearSession()
+                    navController.navigate(AppRoutes.LOGIN) {
+                        popUpTo(0) { inclusive = true }
+                    }
                 },
-                onReportClick = {
-                },
-                onEditClick = {
+                onBottomTabSelected = onBottomTab
+            )
+        }
+
+        composable(AppRoutes.SUBSCRIPTION) {
+            ChoosePlanScreen(
+                onBackClick = { navController.popBackStack() },
+                onPlanSelected = { plan -> navController.navigate("${AppRoutes.CHECKOUT}/${plan.id}") },
+                onFreeTrialActivated = {
+                    navController.popBackStack(AppRoutes.ACCOUNT_ADMIN, inclusive = false)
+                }
+            )
+        }
+
+        composable(
+            route = "${AppRoutes.CHECKOUT}/{planId}",
+            arguments = listOf(navArgument("planId") { type = NavType.IntType })
+        ) { entry ->
+            CheckoutScreen(
+                planId = entry.arguments?.getInt("planId") ?: 0,
+                onBackClick = { navController.popBackStack() },
+                onSuccessFinished = {
+                    navController.popBackStack(AppRoutes.ACCOUNT_ADMIN, inclusive = false)
                 }
             )
         }

@@ -11,8 +11,8 @@ import com.equipo4.nearhome.util.AppStrings
 import com.equipo4.nearhome.R
 
 data class PropertyFilterState(
-    val listingType: ListingType = ListingType.VENTA,
-    val propertyType: PropertyType? = null,
+    val listingType: ListingType? = null,
+    val propertyTypes: Set<PropertyType> = emptySet(),
     val minPrice: Double? = null,
     val maxPrice: Double? = null,
     val selectedColonias: Set<String> = emptySet(),
@@ -29,12 +29,15 @@ data class PropertyFilterState(
     val maxSuperficie: Double? = null,
     val usoSuelo: String? = null
 ) {
-    fun reset(): PropertyFilterState = PropertyFilterState(listingType = this.listingType)
+    fun reset(): PropertyFilterState = PropertyFilterState(
+        listingType = null,
+        propertyTypes = emptySet()
+    )
 
     fun getSelectedCount(): Int {
         var count = 0
-        if (propertyType != null) count++
-        if (listingType == ListingType.RENTA) count++
+        if (propertyTypes.isNotEmpty()) count++
+        if (listingType != null) count++
         if (minPrice != null || maxPrice != null) count++
         if (selectedColonias.isNotEmpty()) count++
         if (bedrooms.isNotEmpty()) count++
@@ -90,10 +93,10 @@ private fun matchMultiSelect(propVal: Int?, selected: Set<Int>): Boolean {
 
 fun Property.matchesFilter(filter: PropertyFilterState): Boolean {
     // 1. Listing Type
-    if (this.listingType != filter.listingType) return false
+    if (filter.listingType != null && this.listingType != filter.listingType) return false
 
-    // 2. Property Type
-    if (filter.propertyType != null && this.type != filter.propertyType) return false
+    // 2. Property Types
+    if (filter.propertyTypes.isNotEmpty() && this.type !in filter.propertyTypes) return false
 
     // 3. Price
     if (filter.minPrice != null && this.price < filter.minPrice) return false
@@ -105,20 +108,20 @@ fun Property.matchesFilter(filter: PropertyFilterState): Boolean {
     // 5. Characteristics based on Property Type
     when (this.type) {
         PropertyType.CASA -> {
-            if (!matchMultiSelect(this.bedrooms, filter.bedrooms)) return false
-            if (!matchMultiSelect(this.bathrooms, filter.bathrooms)) return false
-            if (!matchMultiSelect(this.garages, filter.garages)) return false
-            if (!matchMultiSelect(this.niveles, filter.niveles)) return false
+            if (filter.bedrooms.isNotEmpty() && !matchMultiSelect(this.bedrooms, filter.bedrooms)) return false
+            if (filter.bathrooms.isNotEmpty() && !matchMultiSelect(this.bathrooms, filter.bathrooms)) return false
+            if (filter.garages.isNotEmpty() && !matchMultiSelect(this.garages, filter.garages)) return false
+            if (filter.niveles.isNotEmpty() && !matchMultiSelect(this.niveles, filter.niveles)) return false
             if (filter.jardinPatio && !this.jardinPatio) return false
-            if (filter.listingType == ListingType.RENTA && filter.mascotasPermitidas && !this.mascotasPermitidas) return false
+            if (this.listingType == ListingType.RENTA && filter.mascotasPermitidas && !this.mascotasPermitidas) return false
         }
         PropertyType.DEPARTAMENTO -> {
-            if (!matchMultiSelect(this.bedrooms, filter.bedrooms)) return false
-            if (!matchMultiSelect(this.bathrooms, filter.bathrooms)) return false
-            if (!matchMultiSelect(this.garages, filter.garages)) return false
-            if (!matchMultiSelect(this.piso, filter.piso)) return false
+            if (filter.bedrooms.isNotEmpty() && !matchMultiSelect(this.bedrooms, filter.bedrooms)) return false
+            if (filter.bathrooms.isNotEmpty() && !matchMultiSelect(this.bathrooms, filter.bathrooms)) return false
+            if (filter.garages.isNotEmpty() && !matchMultiSelect(this.garages, filter.garages)) return false
+            if (filter.piso.isNotEmpty() && !matchMultiSelect(this.piso, filter.piso)) return false
             if (filter.amueblado && !this.amueblado) return false
-            if (filter.listingType == ListingType.RENTA) {
+            if (this.listingType == ListingType.RENTA) {
                 if (filter.mascotasPermitidas && !this.mascotasPermitidas) return false
                 if (filter.elevador && !this.elevador) return false
             }
@@ -127,7 +130,7 @@ fun Property.matchesFilter(filter: PropertyFilterState): Boolean {
             val superficie = this.superficieSqM ?: this.areaSqM.toDouble()
             if (filter.minSuperficie != null && superficie < filter.minSuperficie) return false
             if (filter.maxSuperficie != null && superficie > filter.maxSuperficie) return false
-            if (filter.usoSuelo != null && !this.usoSuelo.equals(filter.usoSuelo, ignoreCase = true)) return false
+            if (filter.usoSuelo != null && !this.usoSuelo.isNullOrEmpty() && !this.usoSuelo.equals(filter.usoSuelo, ignoreCase = true)) return false
         }
     }
 
@@ -135,14 +138,21 @@ fun Property.matchesFilter(filter: PropertyFilterState): Boolean {
 }
 
 fun PropertyFilterState.buildSummaryText(): String {
-    val modeStr = AppStrings.get(if (listingType == ListingType.VENTA) R.string.filter_summary_for_sale else R.string.filter_summary_for_rent)
-    val typeStr = when (propertyType) {
-        PropertyType.CASA -> AppStrings.get(R.string.search_filters_type_house)
-        PropertyType.DEPARTAMENTO -> AppStrings.get(R.string.search_filters_type_apartment)
-        PropertyType.TERRENO -> AppStrings.get(R.string.search_filters_type_land)
-        null -> AppStrings.get(R.string.filter_summary_properties)
+    val modeStr = when (listingType) {
+        ListingType.VENTA -> AppStrings.get(R.string.filter_summary_for_sale)
+        ListingType.RENTA -> AppStrings.get(R.string.filter_summary_for_rent)
+        null -> ""
     }
-    val typeForm = "$typeStr $modeStr"
+    val typeStr = when {
+        propertyTypes.size == 1 -> when (propertyTypes.first()) {
+            PropertyType.CASA -> AppStrings.get(R.string.search_filters_type_house)
+            PropertyType.DEPARTAMENTO -> AppStrings.get(R.string.search_filters_type_apartment)
+            PropertyType.TERRENO -> AppStrings.get(R.string.search_filters_type_land)
+        }
+        propertyTypes.size > 1 -> "${propertyTypes.size} tipos"
+        else -> AppStrings.get(R.string.filter_summary_properties)
+    }
+    val typeForm = "$typeStr $modeStr".trim()
 
     val details = mutableListOf<String>()
     if (selectedColonias.isNotEmpty()) {

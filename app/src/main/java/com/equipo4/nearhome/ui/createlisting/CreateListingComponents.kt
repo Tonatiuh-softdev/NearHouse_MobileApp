@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import com.equipo4.nearhome.R
 import java.text.NumberFormat
 import java.util.Locale
+import com.equipo4.nearhome.ui.common.NearHomeDialog
 
 /** Barra superior + "Paso X de 4" + porcentaje + barra de 4 segmentos. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -70,19 +71,17 @@ fun StepHeader(title: String, step: Int, onBack: () -> Unit, totalSteps: Int = 4
     }
 }
 
-/** Diálogo "¿Descartar anuncio?". */
+/** Diálogo "¿Descartar anuncio?" con el estilo de la app. Lo usan los pasos 1 a 4. */
 @Composable
 fun DiscardDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.create_listing_discard_title)) },
-        text = { Text(stringResource(R.string.create_listing_discard_body)) },
-        confirmButton = {
-            TextButton(onClick = onConfirm) { Text(stringResource(R.string.create_listing_discard_confirm)) }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(R.string.create_listing_discard_keep)) }
-        }
+    NearHomeDialog(
+        title = stringResource(R.string.create_listing_discard_title),
+        message = stringResource(R.string.create_listing_discard_body),
+        confirmText = stringResource(R.string.create_listing_discard_confirm),
+        onConfirm = onConfirm,
+        dismissText = stringResource(R.string.create_listing_discard_keep),
+        onDismiss = onDismiss,
+        destructive = true
     )
 }
 

@@ -1,13 +1,19 @@
 package com.equipo4.nearhome.ui.auth.register
 
 import android.app.Application
+import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.equipo4.nearhome.R
 import com.equipo4.nearhome.data.local.SessionManager
+import com.equipo4.nearhome.data.model.RegistroTemporal
+import com.equipo4.nearhome.data.remote.GoogleAuthManager
 import com.equipo4.nearhome.di.NetworkModule
 import com.equipo4.nearhome.network.AuthApi
 import com.equipo4.nearhome.network.RequestCodigoCorreo
 import com.equipo4.nearhome.network.VerifyCodigoCorreoRequest
+import com.equipo4.nearhome.util.AppStrings
+import com.equipo4.nearhome.util.mensajeDeErrorApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,13 +21,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.json.JSONObject
 import java.io.IOException
-import com.equipo4.nearhome.data.model.RegistroTemporal
-
-import com.equipo4.nearhome.util.AppStrings
-import com.equipo4.nearhome.R
-
 
 class SignUpViewModel(
     application: Application
@@ -51,6 +51,41 @@ class SignUpViewModel(
 
     fun onTermsAcceptedChanged(isAccepted: Boolean) {
         _uiState.update { it.copy(isTermsAccepted = isAccepted, showTermsError = false) }
+    }
+
+    /**
+     * Entregable 1: Inicia la autenticación de Google desde la pantalla de Registro
+     */
+    fun onGoogleLoginClicked(context: Context, onTokenReceived: (String) -> Unit) {
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    isLoading = true,
+                    emailErrorMessage = null,
+                    googleSuccessMessage = null
+                )
+            }
+
+            val googleAuthManager = GoogleAuthManager(context)
+            val result = googleAuthManager.getFirebaseIdToken()
+
+            result.fold(
+                onSuccess = { firebaseToken ->
+                    _uiState.update { it.copy(isLoading = false) }
+                    if (firebaseToken != null) {
+                        onTokenReceived(firebaseToken)
+                    }
+                },
+                onFailure = { error ->
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            emailErrorMessage = error.message ?: "No se pudo iniciar sesión con Google. Inténtalo de nuevo."
+                        )
+                    }
+                }
+            )
+        }
     }
 
     fun onSubmitForm() {
@@ -166,13 +201,24 @@ class SignUpViewModel(
                     RequestCodigoCorreo(correo = RegistroTemporal.correo.orEmpty())
                 )
                 if (response.isSuccessful) {
-                    _uiState.update { it.copy(isLoading = false) }
+                    _uiState.update { it.copy(isLoading = false, isOtpError = false, otpErrorMessage = null) }
                     startResendTimer()
                 } else {
-                    _uiState.update { it.copy(isLoading = false) }
+                    // Por ejemplo 429: "Espera 20 segundos antes de pedir otro código."
+                    val mensaje = parseError(
+                        response.errorBody()?.string(),
+                        AppStrings.get(R.string.error_server_connection)
+                    )
+                    _uiState.update { it.copy(isLoading = false, isOtpError = true, otpErrorMessage = mensaje) }
                 }
             } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false) }
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        isOtpError = true,
+                        otpErrorMessage = AppStrings.get(R.string.signup_error_network)
+                    )
+                }
             }
         }
     }
@@ -184,10 +230,11 @@ class SignUpViewModel(
 
     private fun startResendTimer() {
         timerJob?.cancel()
-        _uiState.update { it.copy(canResendCode = false, resendCountdown = 30) }
+        // La API solo deja pedir otro código cada 60 segundos
+        _uiState.update { it.copy(canResendCode = false, resendCountdown = ESPERA_REENVIO_SEGUNDOS) }
 
         timerJob = viewModelScope.launch {
-            for (i in 30 downTo 1) {
+            for (i in ESPERA_REENVIO_SEGUNDOS downTo 1) {
                 _uiState.update { it.copy(resendCountdown = i) }
                 delay(1000)
             }
@@ -195,17 +242,16 @@ class SignUpViewModel(
         }
     }
 
-    private fun parseError(jsonError: String?, defaultMessage: String): String {
-        return try {
-            val json = JSONObject(jsonError ?: "")
-            json.optString("error", defaultMessage)
-        } catch (e: Exception) {
-            defaultMessage
-        }
-    }
+    // Usa "detalles" de la API cuando vienen (por ejemplo "Te quedan 4 intentos") y si no, "error"
+    private fun parseError(jsonError: String?, defaultMessage: String): String =
+        mensajeDeErrorApi(jsonError, defaultMessage)
 
     override fun onCleared() {
         super.onCleared()
         timerJob?.cancel()
+    }
+
+    private companion object {
+        const val ESPERA_REENVIO_SEGUNDOS = 60
     }
 }
