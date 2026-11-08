@@ -92,12 +92,6 @@
     <string name="edit_profile_camera_permission_message">We need access to your camera to take your new profile picture.</string>
     <string name="edit_profile_open_settings">Open settings</string>
 
-    <!-- Recorte circular de foto de perfil -->
-    <string name="crop_photo_title">Adjust photo</string>
-    <string name="crop_photo_hint">Drag and pinch to frame your photo inside the circle</string>
-    <string name="crop_photo_confirm">Use photo</string>
-    <string name="crop_photo_error">Couldn\'t open the image. Try another one.</string>
-
     <!-- Suscripción y Planes -->
     <string name="choose_plan_title">Choose your plan</string>
     <string name="choose_plan_header_title">Start publishing your properties!</string>
@@ -925,7 +919,7 @@
     <string name="deactivate_account_title">Temporarily deactivate account</string>
     <string name="deactivate_account_subtitle">Pause your listings and profile. You can return whenever you want.</string>
     <string name="delete_account_title">Permanently delete account</string>
-    <string name="delete_account_subtitle">Your account will be deleted in 30 days. Sign in before then to keep it.</string>
+    <string name="delete_account_subtitle">This action is irreversible and will erase all your data.</string>
 
     <!-- Actions and Dialogs -->
     <string name="coming_soon">Coming soon</string>
@@ -937,7 +931,7 @@
     <string name="dialog_deactivate_title">Deactivate your account?</string>
     <string name="dialog_deactivate_text">Your listings and profile will no longer be visible. You can reactivate your account anytime by logging back in.</string>
     <string name="dialog_delete_title">Delete your account?</string>
-    <string name="dialog_delete_text">Your listings will be hidden starting today. In 30 days your profile, listings, and all your data will be deleted. If you change your mind, sign in before that date.</string>
+    <string name="dialog_delete_text">Your profile, listings, and all your data will be permanently deleted. This action cannot be undone.</string>
     <string name="dialog_delete_placeholder">Type DELETE to confirm</string>
 
     <!-- Plans (API) -->
@@ -1119,20 +1113,6 @@
     <string name="notif_title_recently_published">Recently published properties \uF195</string>
     <string name="notif_body_recently_published">Based on your search, we think you will like this property.</string>
 
-    <!-- Deactivate / delete account -->
-    <string name="acc_current_password">Current password</string>
-    <string name="acc_toggle_password_cd">Show or hide password</string>
-    <string name="acc_google_hint">Your account signs in with Google. To confirm, choose your Google account.</string>
-    <string name="acc_confirm_google">Confirm with Google</string>
-    <string name="acc_delete_scheduled_msg">Your account will be deleted on %1$s. If you change your mind, sign in before that date.</string>
-    <!-- Signing in with a deactivated account or one scheduled for deletion -->
-    <string name="login_reactivate_title">Account deactivated</string>
-    <string name="login_reactivate_text">Your account is deactivated. Do you want to reactivate it?</string>
-    <string name="login_reactivate_confirm">Reactivate</string>
-    <string name="login_keep_title">Your account is scheduled for deletion</string>
-    <string name="login_keep_confirm">Keep my account</string>
-    <string name="login_reactivated_msg">Your account is active again</string>
-    <string name="login_kept_msg">Done, your account will not be deleted</string>
     <!-- User panel -->
     <string name="admin_users_title">Users</string>
     <string name="admin_users_total_accounts">%1$d registered accounts</string>

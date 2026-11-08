@@ -79,7 +79,7 @@ fun ProfileScreen(
 fun ProfileContent(
     uiState: ProfileUiState,
     onLanguageSelected: (String) -> Unit = {},
-    onDarkModeSelected: (Boolean) -> Unit = {},
+    onDarkModeSelected: (Boolean?) -> Unit = {},
     onMyListingsClick: () -> Unit = {},
     onAccountClick: () -> Unit = {},
     onAdminPanelClick: () -> Unit = {},
@@ -173,6 +173,7 @@ fun ProfileContent(
 
     val darkOnLabel = stringResource(R.string.dark_mode_on)
     val darkOffLabel = stringResource(R.string.dark_mode_off)
+    val darkSystemLabel = stringResource(R.string.dark_mode_system)
     when (openSheet) {
         SettingSheetType.LANGUAGE -> SettingSheet(
             title = stringResource(R.string.profile_language),
@@ -185,9 +186,21 @@ fun ProfileContent(
         SettingSheetType.DARK_MODE -> SettingSheet(
             title = stringResource(R.string.profile_dark_mode),
             subtitle = stringResource(R.string.profile_dark_mode_subtitle),
-            options = listOf(darkOnLabel, darkOffLabel),
-            selected = if (uiState.darkModeEnabled) darkOnLabel else darkOffLabel,
-            onSelect = { onDarkModeSelected(it == darkOnLabel) },
+            options = listOf(darkSystemLabel, darkOnLabel, darkOffLabel),
+            selected = when (uiState.darkMode) {
+                true -> darkOnLabel
+                false -> darkOffLabel
+                null -> darkSystemLabel
+            },
+            onSelect = {
+                onDarkModeSelected(
+                    when (it) {
+                        darkOnLabel -> true
+                        darkOffLabel -> false
+                        else -> null
+                    }
+                )
+            },
             onDismiss = { openSheet = null }
         )
         null -> Unit
