@@ -34,7 +34,6 @@
     <string name="report_error_not_available">Esta publicación ya no está disponible.</string>
     <string name="report_error_own">No puedes reportar tu propia publicación.</string>
     <string name="report_evidence_title">Sube hasta 5 imágenes como evidencia (opcional)</string>
-
     <plurals name="pending_reports_subtitle">
         <item quantity="one">1 pendiente por revisar</item>
         <item quantity="other">%d pendientes por revisar</item>
@@ -47,25 +46,21 @@
         <item quantity="one">1 filtro seleccionado</item>
         <item quantity="other">%d filtros seleccionados</item>
     </plurals>
-
-    <!-- Comunes -->
+    <!--  Comunes  -->
     <string name="common_back">Regresar</string>
     <string name="common_close">Cerrar</string>
-
-    <!-- Roles -->
+    <!--  Roles  -->
     <string name="role_buyer">Comprador</string>
     <string name="role_seller">Vendedor</string>
     <string name="role_admin">Administrador</string>
     <string name="role_super_admin">Super administrador</string>
     <string name="profile_role_sheet_title">Rol de usuario</string>
     <string name="profile_role_sheet_subtitle">Solo para pruebas: cambia el rol para ver las vistas de cada usuario.</string>
-
-    <!-- Perfil -->
+    <!--  Perfil  -->
     <string name="profile_default_name">Usuario</string>
     <string name="profile_section_profile">Perfil</string>
     <string name="profile_my_listings">Mis anuncios</string>
-
-    <!-- Editar Perfil -->
+    <!--  Editar Perfil  -->
     <string name="edit_profile_back">Regresar</string>
     <string name="edit_profile_close">Cerrar</string>
     <string name="edit_profile_cancel">Cancelar</string>
@@ -75,24 +70,19 @@
     <string name="edit_profile_first_last_name">Primer Apellido</string>
     <string name="edit_profile_second_last_name">Segundo Apellido</string>
     <string name="edit_profile_optional_hint">(opcional)</string>
-
     <string name="edit_profile_option_camera">Cámara</string>
     <string name="edit_profile_option_gallery">Galería</string>
     <string name="edit_profile_option_delete_photo">Eliminar foto</string>
-
     <string name="edit_profile_error_required">Este campo es obligatorio</string>
     <string name="edit_profile_error_only_letters">Solo se permiten letras y espacios</string>
     <string name="edit_profile_updated_success">Perfil actualizado</string>
-
     <string name="edit_profile_discard_title">¿Descartar cambios?</string>
     <string name="edit_profile_discard_message">Tienes cambios sin guardar. Si sales ahora, se perderán.</string>
     <string name="edit_profile_discard_confirm">Descartar</string>
-
     <string name="edit_profile_camera_permission_title">Permiso de cámara requerido</string>
     <string name="edit_profile_camera_permission_message">Necesitamos acceso a tu cámara para tomar tu nueva foto de perfil.</string>
     <string name="edit_profile_open_settings">Abrir ajustes</string>
-
-    <!-- Suscripción y Planes -->
+    <!--  Suscripción y Planes  -->
     <string name="choose_plan_title">Elige tu plan</string>
     <string name="choose_plan_header_title">¡Empieza a publicar tus inmuebles!</string>
     <string name="choose_plan_header_subtitle">Elige un plan y comienza a ofrecer propiedades en NearHouse.</string>
@@ -112,7 +102,6 @@
     <string name="most_popular">Más popular</string>
     <string name="free_month_btn">1er mes gratis</string>
     <string name="choose_plan_btn">Elegir este plan</string>
-
     <string name="free_trial_title">Prueba gratuita</string>
     <string name="confirm_payment_title">Confirmar pago</string>
     <string name="free_trial_banner_title">No se te cobrará durante tu primer mes</string>
@@ -144,6 +133,7 @@
     <string name="language_english">Inglés</string>
     <string name="dark_mode_on">Activado</string>
     <string name="dark_mode_off">Desactivado</string>
+    <string name="dark_mode_system">Tema del sistema</string>
     <string name="profile_section_info">Información</string>
     <string name="profile_terms">Términos y condiciones</string>
     <string name="profile_privacy">Política de privacidad</string>
@@ -153,11 +143,9 @@
     <string name="profile_dark_mode_subtitle">Elige cómo quieres ver la aplicación.</string>
     <string name="logout_confirm_message">¿Estás seguro de que quieres cerrar sesión?</string>
     <string name="logout_cancel">No</string>
-
-    <!-- Panel de administración -->
+    <!--  Panel de administración  -->
     <string name="admin_panel_title">Panel de administración</string>
-
-    <!-- Anuncios (administración) -->
+    <!--  Anuncios (administración)  -->
     <string name="listings_title">Anuncios</string>
     <plurals name="listings_pending_count">
         <item quantity="one">%d pendiente por revisar</item>
@@ -181,15 +169,13 @@
     <string name="listings_empty_title">No hay anuncios para este filtro</string>
     <string name="listings_empty_message">No encontramos %1$s</string>
     <string name="listings_clear_button">Limpiar búsqueda y filtros</string>
-
-    <!-- Palabras sueltas para armar mensajes -->
+    <!--  Palabras sueltas para armar mensajes  -->
     <string name="listing_word_listings">anuncios</string>
     <string name="listing_word_or">" o "</string>
     <string name="listing_word_and">" y "</string>
     <string name="listing_of_type_format">de tipo %1$s</string>
     <string name="listing_matching_format">que coinciden con “%1$s”</string>
-
-    <!-- Estados -->
+    <!--  Estados  -->
     <string name="listing_status_pending">Pendiente</string>
     <string name="listing_status_pending_review">Pendiente de revisión</string>
     <string name="listing_status_active">Activo</string>
@@ -202,8 +188,7 @@
     <string name="listing_status_adj_rejected">rechazados</string>
     <string name="listing_status_adj_deactivated">desactivados</string>
     <string name="listing_status_adj_closed">rentados o vendidos</string>
-
-    <!-- Modalidad, tipo y orden -->
+    <!--  Modalidad, tipo y orden  -->
     <string name="listing_mode_rent">Renta</string>
     <string name="listing_mode_sale">Venta</string>
     <string name="listing_mode_in_rent">en renta</string>
@@ -216,12 +201,10 @@
     <string name="listing_type_plural_land">terrenos</string>
     <string name="listing_order_newest">Más recientes primero</string>
     <string name="listing_order_oldest">Más antiguos primero</string>
-
-    <!-- Precio -->
+    <!--  Precio  -->
     <string name="listing_price_rent">$%1$s/mes</string>
     <string name="listing_price_sale">$%1$s</string>
-
-    <!-- Filtrar anuncios -->
+    <!--  Filtrar anuncios  -->
     <string name="filters_title">Filtrar anuncios</string>
     <string name="filters_status">Estado</string>
     <string name="filters_mode">Modalidad</string>
@@ -234,8 +217,7 @@
     <string name="filters_note_format">Se mostrarán %1$s</string>
     <string name="filters_note_still_pending">que siguen pendientes de revisión</string>
     <string name="filters_note_with_status">con estado %1$s</string>
-
-    <!-- Detalle del anuncio -->
+    <!--  Detalle del anuncio  -->
     <string name="listing_detail_title">Detalle del anuncio</string>
     <string name="listing_detail_header_format">%1$s · %2$s</string>
     <string name="listing_advertiser">Anunciante</string>
@@ -261,8 +243,7 @@
     <string name="listing_history_created">Anuncio registrado como</string>
     <string name="listing_history_by_format">Por %1$s</string>
     <string name="listing_history_reason_format">Motivo: %1$s</string>
-
-    <!-- Detalle de publicación -->
+    <!--  Detalle de publicación  -->
     <string name="detail_back_cd">Regresar</string>
     <string name="detail_save_cd">Guardar</string>
     <string name="detail_type_house">Casa</string>
@@ -291,28 +272,24 @@
     <string name="detail_pets_allowed">Permitidas</string>
     <string name="detail_pets_not_allowed">No se permiten</string>
     <string name="detail_rules">Reglas</string>
-
-    <!-- Botones de acción -->
+    <!--  Botones de acción  -->
     <string name="listing_action_approve">Aprobar</string>
     <string name="listing_action_reject">Rechazar</string>
     <string name="listing_action_deactivate">Desactivar</string>
     <string name="listing_action_reactivate">Reactivar</string>
     <string name="listing_action_delete">Eliminar</string>
     <string name="listing_action_cancel">Cancelar</string>
-
-    <!-- Confirmaciones: parte común -->
+    <!--  Confirmaciones: parte común  -->
     <string name="listing_change_title">Cambio de estado</string>
     <string name="listing_change_current">Estado actual</string>
     <string name="listing_change_new">Estado nuevo</string>
-
-    <!-- Avisos al regresar -->
+    <!--  Avisos al regresar  -->
     <string name="listing_msg_approved">Anuncio aprobado</string>
     <string name="listing_msg_rejected">Anuncio rechazado</string>
     <string name="listing_msg_deactivated">Anuncio desactivado</string>
     <string name="listing_msg_reactivated">Anuncio reactivado</string>
     <string name="listing_msg_deleted">Se eliminó el anuncio %1$s</string>
-
-    <!-- Aprobar -->
+    <!--  Aprobar  -->
     <string name="listing_approve_title">Aprobar anuncio</string>
     <string name="listing_approve_question">¿Aprobar este anuncio?</string>
     <string name="listing_approve_body">Al aprobarlo, el anuncio quedará activo y visible para los usuarios.</string>
@@ -321,8 +298,7 @@
     <string name="listing_approve_check_2">El título, el precio y la descripción son coherentes</string>
     <string name="listing_approve_check_3">Los datos del anunciante están completos</string>
     <string name="listing_approve_confirm">Aprobar y activar</string>
-
-    <!-- Rechazar -->
+    <!--  Rechazar  -->
     <string name="listing_reject_title">Rechazar anuncio</string>
     <string name="listing_reject_question">¿Rechazar este anuncio?</string>
     <string name="listing_reject_body">El anuncio no se publicará. Escribe el motivo para dejar constancia.</string>
@@ -331,8 +307,7 @@
     <string name="listing_reject_error_required">Este campo es obligatorio para confirmar el rechazo</string>
     <string name="listing_reject_error_min">Escribe al menos %1$d caracteres</string>
     <string name="listing_reject_confirm">Confirmar rechazo</string>
-
-    <!-- Desactivar -->
+    <!--  Desactivar  -->
     <string name="listing_deactivate_title">Desactivar anuncio</string>
     <string name="listing_deactivate_question">¿Desactivar este anuncio?</string>
     <string name="listing_deactivate_body">El anuncio dejará de ser visible para los usuarios.</string>
@@ -340,8 +315,7 @@
     <string name="listing_deactivate_label">Causa de desactivación</string>
     <string name="listing_deactivate_error_required">Este campo es obligatorio para confirmar la desactivación</string>
     <string name="listing_deactivate_confirm">Desactivar anuncio</string>
-
-    <!-- Reactivar -->
+    <!--  Reactivar  -->
     <string name="listing_reactivate_title">Reactivar anuncio</string>
     <string name="listing_reactivate_question">¿Reactivar este anuncio?</string>
     <string name="listing_reactivate_body">El anuncio volverá a estar activo.</string>
@@ -351,8 +325,7 @@
     <string name="listing_previous_by">Registrado por</string>
     <string name="listing_reactivate_notice">La reactivación es inmediata. El anuncio volverá a ser visible para los usuarios.</string>
     <string name="listing_reactivate_confirm">Reactivar anuncio</string>
-
-    <!-- Eliminar -->
+    <!--  Eliminar  -->
     <string name="listing_delete_title">Eliminar anuncio</string>
     <string name="listing_delete_question">¿Eliminar este anuncio?</string>
     <string name="listing_delete_body">Revisa bien antes de continuar.</string>
@@ -371,8 +344,7 @@
     <string name="listing_delete_item_history">El historial de cambios de estado</string>
     <string name="listing_delete_acknowledge">Confirmo que revisé el anuncio y entiendo que la eliminación es terminal</string>
     <string name="listing_delete_confirm">Eliminar definitivamente</string>
-
-    <!-- Crear anuncio: general -->
+    <!--  Crear anuncio: general  -->
     <string name="create_listing_title">Crear anuncio</string>
     <string name="create_listing_step_format">Paso %1$d de %2$d</string>
     <string name="create_listing_percent_format">%1$d%%</string>
@@ -384,8 +356,7 @@
     <string name="create_listing_error_required">Campo obligatorio</string>
     <string name="create_listing_error_price">Ingresa un monto mayor a 0</string>
     <string name="create_listing_error_area">Ingresa una superficie mayor a 0</string>
-
-    <!-- Crear anuncio: Paso 1 -->
+    <!--  Crear anuncio: Paso 1  -->
     <string name="create_listing_step1_heading">Define el anuncio</string>
     <string name="create_listing_operation">Operación</string>
     <string name="create_listing_property_type">Tipo de inmueble</string>
@@ -422,8 +393,7 @@
     <string name="create_listing_land_use">Uso del suelo</string>
     <string name="create_listing_land_residential">Habitacional</string>
     <string name="create_listing_land_agricultural">Agrícola</string>
-
-    <!-- Crear anuncio: Paso 2 -->
+    <!--  Crear anuncio: Paso 2  -->
     <string name="create_listing_step2_title">Fotos y ubicación</string>
     <string name="create_listing_step2_heading">Multimedia y mapa</string>
     <string name="create_listing_step2_subtitle">Captura fotos del inmueble en tiempo real y confirma la geolocalización.</string>
@@ -458,8 +428,7 @@
     <string name="create_listing_colonia">Colonia</string>
     <string name="create_listing_colonia_not_found">No pudimos identificar la colonia de este punto. Mueve el pin a una zona dentro de las colonias disponibles.</string>
     <string name="create_listing_colonia_manual_warning">Elegiste la colonia a mano. Verifica que sea la correcta.</string>
-
-    <!-- Paso 3 -->
+    <!--  Paso 3  -->
     <string name="create_listing_step3_title">Contenido y condiciones</string>
     <string name="create_listing_step3_heading">Descripción y reglas</string>
     <string name="create_listing_step3_subtitle">Define los textos atractivos y condiciones del anuncio.</string>
@@ -474,8 +443,7 @@
     <string name="create_listing_contact_whatsapp">WhatsApp: %1$s</string>
     <string name="create_listing_contact_email">Correo de contacto</string>
     <string name="create_listing_contact_missing">Sin registrar</string>
-
-    <!-- Paso 4 -->
+    <!--  Paso 4  -->
     <string name="create_listing_step4_title">Confirmar anuncio</string>
     <string name="create_listing_step4_heading">Valida los datos</string>
     <string name="create_listing_step4_subtitle">Asegúrate de que toda la información es correcta antes de enviar.</string>
@@ -487,8 +455,7 @@
     <string name="create_listing_per_month">/ mes</string>
     <string name="create_listing_review_notice">Tu anuncio pasará por nuestro proceso automático y humano de revisión de calidad antes de publicarse.</string>
     <string name="create_listing_send_review">Enviar a revisión</string>
-
-    <!-- Vista previa -->
+    <!--  Vista previa  -->
     <string name="create_listing_preview_banner">Vista previa: así verán los usuarios tu publicación</string>
     <string name="create_listing_preview_title">Vista previa del anuncio</string>
     <string name="create_listing_preview_label">Tu publicación en el listado</string>
@@ -500,8 +467,7 @@
     <string name="create_listing_sent_title">Anuncio enviado</string>
     <string name="create_listing_sent_body">Tu anuncio quedó en revisión antes de publicarse.</string>
     <string name="create_listing_sent_ok">Aceptar</string>
-
-    <!-- Textos adicionales de pantallas -->
+    <!--  Textos adicionales de pantallas  -->
     <string name="signup_email_label">Correo</string>
     <string name="signup_password_label">Contraseña</string>
     <string name="signup_confirm_password_label">Confirmar contraseña</string>
@@ -656,8 +622,7 @@
     <string name="checkout_plan_format">Plan %s</string>
     <string name="checkout_plan_footer_trial">Puedes cancelar en cualquier momento antes de que termine tu mes de prueba.</string>
     <string name="checkout_plan_footer_paid">La suscripción se renueva automáticamente cada mes. Puedes cancelarla cuando quieras.</string>
-
-    <!-- Textos fijos migrados desde las pantallas -->
+    <!--  Textos fijos migrados desde las pantallas  -->
     <string name="admin_management_subtitle">Revisa la actividad de la comunidad y gestiona el contenido de la plataforma.</string>
     <string name="admin_users_subtitle">Consulta y gestiona perfiles</string>
     <string name="admin_ads_subtitle">Administra todos los anuncios publicados</string>
@@ -773,8 +738,7 @@
     <string name="detail_saved">Guardado</string>
     <string name="detail_save">Guardar</string>
     <string name="detail_report">Reportar</string>
-
-    <!-- Textos fijos migrados: ViewModels, modelos y documentos legales -->
+    <!--  Textos fijos migrados: ViewModels, modelos y documentos legales  -->
     <string name="login_session_expired">Tu sesión expiró. Vuelve a iniciar sesión</string>
     <string name="login_error_network">No se pudo conectar con el servidor. Revisa tu conexión a internet e inténtalo de nuevo.</string>
     <string name="error_unexpected">Ocurrió un error inesperado.</string>
@@ -895,46 +859,39 @@
     <string name="legal_privacy_s8_content">NearHouse es solo para personas mayores de 18 años. No recolectamos datos de menores de edad a propósito. Si detectamos una cuenta de una persona menor de edad, la eliminamos.</string>
     <string name="legal_privacy_s9_title">Cambios a este aviso</string>
     <string name="legal_privacy_s9_content">Si cambiamos este aviso, te avisaremos dentro de la app y actualizaremos la fecha de \"Última actualización\" que aparece arriba.</string>
-
-    <!-- Administración de la cuenta -->
+    <!--  Administración de la cuenta  -->
     <string name="account_admin_title">Administración de la cuenta</string>
-
-    <!-- Datos de acceso -->
+    <!--  Datos de acceso  -->
     <string name="section_access_data">Datos de acceso</string>
     <string name="label_email">Correo electrónico</string>
     <string name="label_phone">Teléfono</string>
     <string name="label_password">Contraseña</string>
     <string name="masked_password">••••••••</string>
-
-    <!-- Membresía y pagos -->
+    <!--  Membresía y pagos  -->
     <string name="section_membership">Membresía y pagos</string>
     <string name="label_current_plan">Plan actual</string>
     <string name="buyer_no_plan">Sin plan</string>
     <string name="buyer_plan_subtitle">Conoce los planes para publicar tus anuncios</string>
     <string name="seller_plan_status_format">%1$s (%2$s)</string>
     <string name="seller_renewal_format">Renueva el %1$s</string>
-
-    <!-- Gestión de la cuenta -->
+    <!--  Gestión de la cuenta  -->
     <string name="section_account_management">Gestión de la cuenta</string>
     <string name="deactivate_account_title">Desactivar cuenta temporalmente</string>
     <string name="deactivate_account_subtitle">Pausa tus anuncios y perfil. Puedes volver cuando quieras.</string>
     <string name="delete_account_title">Eliminar cuenta permanentemente</string>
     <string name="delete_account_subtitle">Esta acción es irreversible y borrará todos tus datos.</string>
-
-    <!-- Acciones y Diálogos -->
+    <!--  Acciones y Diálogos  -->
     <string name="coming_soon">Próximamente</string>
     <string name="cancel">Cancelar</string>
     <string name="confirm_deactivate">Desactivar</string>
     <string name="confirm_delete">Eliminar</string>
     <string name="delete_keyword_target">ELIMINAR</string>
-
     <string name="dialog_deactivate_title">¿Desactivar tu cuenta?</string>
     <string name="dialog_deactivate_text">Tus anuncios y tu perfil dejarán de verse. Podrás volver a activarla cuando inicies sesión.</string>
     <string name="dialog_delete_title">¿Eliminar tu cuenta?</string>
     <string name="dialog_delete_text">Se borrarán tu perfil, tus anuncios y todos tus datos. Esta acción no se puede deshacer.</string>
     <string name="dialog_delete_placeholder">Escribe ELIMINAR para confirmar</string>
-
-    <!-- Planes (API) -->
+    <!--  Planes (API)  -->
     <string name="plan_price_amount">$%1$d</string>
     <string name="plan_limit_single">Hasta 1 publicación activa</string>
     <string name="plan_limit_multi_format">Hasta %1$d publicaciones activas</string>
@@ -953,53 +910,45 @@
     <string name="plans_load_error">No se pudieron cargar los planes</string>
     <string name="plans_retry">Reintentar</string>
     <string name="network_error_connection">No se pudo conectar con el servidor. Revisa tu conexión a internet e inténtalo de nuevo</string>
-
     <string name="search_filters_colonias_loading">Cargando colonias…</string>
     <string name="search_filters_colonias_error">No se pudieron cargar las colonias</string>
     <string name="search_filters_colonias_empty">Aún no hay colonias con anuncios</string>
     <string name="search_filters_colonias_retry">Reintentar</string>
-
-    <!-- Reportar Publicación -->
+    <!--  Reportar Publicación  -->
     <string name="report_title">Reportar publicación</string>
     <string name="report_category_question">¿Por qué quieres reportar esta publicación?</string>
     <string name="report_reason_question">Por favor dinos el motivo de la denuncia.</string>
     <string name="report_anonymous_notice">Tu reporte es anónimo para los demás y revisaremos todos los reportes según nuestras normas</string>
-
-    <!-- Categorías -->
+    <!--  Categorías  -->
     <string name="report_category_false_info">Información falsa</string>
     <string name="report_category_false_info_desc">Datos equivocados o que ya no están al día</string>
     <string name="report_category_offensive">Contenido ofensivo</string>
     <string name="report_category_offensive_desc">Textos o imágenes inapropiados</string>
     <string name="report_category_fraud">Posible fraude</string>
     <string name="report_category_fraud_desc">Alguien intenta engañar o cobrar sin derecho</string>
-
-    <!-- Motivos: Información falsa -->
+    <!--  Motivos: Información falsa  -->
     <string name="report_reason_photos_mismatch">Fotos que no corresponden a la propiedad</string>
     <string name="report_reason_wrong_price">Precio falso o engañoso</string>
     <string name="report_reason_wrong_data">Datos incorrectos</string>
     <string name="report_reason_wrong_location">Ubicación incorrecta</string>
     <string name="report_reason_not_available">La propiedad ya no está disponible</string>
-
-    <!-- Motivos: Contenido ofensivo -->
+    <!--  Motivos: Contenido ofensivo  -->
     <string name="report_reason_offensive_language">Lenguaje ofensivo o insultos</string>
     <string name="report_reason_discriminatory">Contenido discriminatorio</string>
     <string name="report_reason_sexual">Contenido sexual</string>
     <string name="report_reason_violent">Contenido violento</string>
-
-    <!-- Motivos: Posible fraude -->
+    <!--  Motivos: Posible fraude  -->
     <string name="report_reason_suspicious_price">Precio sospechosamente bajo</string>
     <string name="report_reason_not_exist">La propiedad no existe</string>
     <string name="report_reason_multiple_publishers">Propiedad publicada por más de una persona</string>
     <string name="report_reason_advance_payment">Piden un pago antes de ver la propiedad</string>
     <string name="report_reason_other">Otro</string>
-
-    <!-- Formulario de descripción y evidencia -->
+    <!--  Formulario de descripción y evidencia  -->
     <string name="report_description_title">Por favor complete el motivo de la denuncia</string>
     <string name="report_description_placeholder">Proporcione una descripción detallada de su problema para que podamos ayudarlo a resolver el problema de la mejor manera</string>
     <string name="report_add_evidence_cd">Agregar evidencia</string>
     <string name="report_send">Enviar</string>
-
-    <!-- Confirmaciones y errores -->
+    <!--  Confirmaciones y errores  -->
     <string name="report_success_title">Gracias por tu reporte</string>
     <string name="report_success_message">Lo revisaremos y, si no cumple con nuestras normas, tomaremos las medidas necesarias</string>
     <string name="report_success_button">Entendido</string>
@@ -1009,28 +958,22 @@
     <string name="report_error_image_size">La imagen no debe superar los 5 MB.</string>
     <string name="report_error_video_size">El video no debe superar los 20 MB.</string>
     <string name="report_error_video_duration">El video no debe durar más de 30 segundos.</string>
-
-    <!-- Comunes para Reportes -->
+    <!--  Comunes para Reportes  -->
     <string name="report_common_ok">Aceptar</string>
     <string name="report_common_remove">Eliminar</string>
     <string name="report_common_discard">Descartar</string>
     <string name="report_common_cancel">Cancelar</string>
-
-    <!-- Mis Publicaciones -->
-
-    <!-- Perfil y Navegación -->
+    <!--  Mis Publicaciones  -->
+    <!--  Perfil y Navegación  -->
     <string name="cd_back">Regresar</string>
     <string name="cd_edit_profile">Editar perfil</string>
-
-    <!-- Acciones de Publicación -->
+    <!--  Acciones de Publicación  -->
     <string name="action_create_listing">Crear anuncio +</string>
     <string name="empty_listings_message">Aún no tienes anuncios. Crea tu primer anuncio para que los compradores lo vean.</string>
-
-    <!-- Estados de Publicación -->
+    <!--  Estados de Publicación  -->
     <string name="status_in_review">En revisión</string>
     <string name="status_published">Publicado</string>
     <string name="status_rejected">Rechazado</string>
-
     <string name="create_listing_error_description_min">Escribe al menos 30 caracteres</string>
     <string name="create_listing_description_area_hint">Incluye la superficie (m²) del inmueble</string>
     <string name="create_listing_colonia_undetected">No pudimos detectar la colonia en este punto. Vuelve a detectar la ubicación.</string>
@@ -1041,7 +984,6 @@
     <string name="create_listing_error_session">Tu sesión expiró. Inicia sesión de nuevo.</string>
     <string name="create_listing_error_forbidden">Tu cuenta no puede publicar anuncios.</string>
     <string name="my_listings_load_error">No se pudieron cargar tus anuncios</string>
-
     <string name="manage_listing_title">Gestión de anuncio</string>
     <string name="manage_listing_edit">Editar anuncio</string>
     <string name="manage_listing_pause">Pausar/ocultar anuncio</string>
@@ -1059,8 +1001,7 @@
     <string name="manage_listing_resumed">Anuncio reactivado</string>
     <string name="status_paused">Pausado</string>
     <string name="manage_listing_deleted">Eliminación de publicación exitosa</string>
-
-    <!-- Verificación del teléfono por SMS (Firebase) -->
+    <!--  Verificación del teléfono por SMS (Firebase)  -->
     <string name="phone_sms_wait_for_sms">Espera a que llegue el SMS o pide uno nuevo</string>
     <string name="phone_sms_enter_6">Escribe los 6 dígitos del código</string>
     <string name="phone_sms_error_invalid_number">El número de teléfono no es válido</string>
@@ -1072,8 +1013,7 @@
     <string name="phone_sms_error_restart">Se perdieron los datos del registro. Vuelve a empezar</string>
     <string name="listings_load_error">No se pudieron cargar los anuncios. Revisa tu conexión e inténtalo de nuevo.</string>
     <string name="listings_retry">Reintentar</string>
-
-    <!-- Reportes pantalla de administracion -->
+    <!--  Reportes pantalla de administracion  -->
     <string name="report_action_procede">Procede</string>
     <string name="report_note_label">Nota del administrador</string>
     <string name="report_note_seller_notice">El vendedor verá esta nota si retiras la publicación. No menciones a quien reportó.</string>
@@ -1083,39 +1023,34 @@
     <string name="report_measure_listing_removed">Medida aplicada: publicación retirada</string>
     <string name="report_account_deleted">Cuenta eliminada</string>
     <string name="report_reporter_title">Reportado por</string>
-
-    <!-- Pantalla Notificaciones -->
+    <!--  Pantalla Notificaciones  -->
     <string name="notifications_title">Notificaciones</string>
     <string name="notifications_empty">Sin notificaciones</string>
     <string name="notifications_error">No se pudieron cargar tus notificaciones</string>
     <string name="notifications_retry">Reintentar</string>
-
-    <!-- Títulos y Textos con Marcadores -->
+    <!--  Títulos y Textos con Marcadores  -->
     <string name="notif_title_in_review">Publicación en revisión</string>
     <string name="notif_body_in_review">Hola, tu propiedad \"%1$s\" está en revisión. Te avisaremos en cuanto sea aprobada.</string>
-
     <string name="notif_title_approved">¡Tu publicación fue aprobada! \u2705</string>
     <string name="notif_body_approved">Tu propiedad \"%1$s\" ya pasó la revisión y está publicada. A partir de ahora los interesados podrán verla y contactarte.</string>
-
     <string name="notif_title_rejected">Publicación rechazada \u274C</string>
     <string name="notif_body_rejected">Tu propiedad \"%1$s\" no fue aprobada. Motivo: \"%2$s\". Puedes corregirla y volver a enviarla.</string>
-
-    <string name="notif_title_payment">¡Gracias por tu pago! \u5890</string> <!-- 🙌 -->
+    <string name="notif_title_payment">¡Gracias por tu pago! \u5890</string>
+    <!--  🙌  -->
     <string name="notif_body_payment">Hola, %1$s, confirmamos tu pago del plan %2$s.</string>
-
-    <string name="notif_title_welcome">¡Bienvenido como vendedor! \uF389</string> <!-- 🎉 -->
+    <string name="notif_title_welcome">¡Bienvenido como vendedor! \uF389</string>
+    <!--  🎉  -->
     <string name="notif_body_welcome">Hola, %1$s, ya puedes empezar a publicar tus propiedades.</string>
-
-    <string name="notif_title_search_updates">¡Hay novedades en tu búsqueda! \uF50D</string> <!-- 🔍 -->
+    <string name="notif_title_search_updates">¡Hay novedades en tu búsqueda! \uF50D</string>
+    <!--  🔍  -->
     <string name="notif_body_search_updates">Esta propiedad recién publicada coincide con tus filtros de búsqueda.</string>
-
-    <string name="notif_title_found_for_you">Encontramos algo para ti \uF3E1</string> <!-- 🏡 -->
+    <string name="notif_title_found_for_you">Encontramos algo para ti \uF3E1</string>
+    <!--  🏡  -->
     <string name="notif_body_found_for_you">Encontramos una propiedad que coincide con tu búsqueda de \"%1$s\". ¡Échale un vistazo!</string>
-
-    <string name="notif_title_recently_published">Propiedades recién publicadas \uF195</string> <!-- 🆕 -->
+    <string name="notif_title_recently_published">Propiedades recién publicadas \uF195</string>
+    <!--  🆕  -->
     <string name="notif_body_recently_published">Basado en tu búsqueda, creemos que esta propiedad te va a gustar.</string>
-
-    <!-- Panel de usuarios -->
+    <!--  Panel de usuarios  -->
     <string name="admin_users_title">Usuarios</string>
     <string name="admin_users_total_accounts">%1$d cuentas registradas</string>
     <string name="admin_users_results">%1$d resultados</string>
@@ -1136,8 +1071,7 @@
     <string name="admin_user_status_active">Activo</string>
     <string name="admin_user_status_suspended">Suspendido</string>
     <string name="admin_user_status_deactivated">Desactivado</string>
-
-    <!-- Detalle de usuario -->
+    <!--  Detalle de usuario  -->
     <string name="admin_user_detail_title">Detalle de usuario</string>
     <string name="admin_user_section_account">Cuenta</string>
     <string name="admin_user_section_name">Nombre</string>
@@ -1158,13 +1092,11 @@
     <string name="admin_user_label_rejected">Rechazadas</string>
     <string name="admin_user_label_pending_reports">Reportes pendientes</string>
     <string name="admin_user_no_plan">Sin plan</string>
-
-    <!-- Acciones del detalle -->
+    <!--  Acciones del detalle  -->
     <string name="admin_user_action_block">Bloquear / Suspender</string>
     <string name="admin_user_action_unsuspend">Quitar suspensión</string>
     <string name="admin_user_action_delete">Eliminar cuenta</string>
-
-    <!-- Bloquear / suspender -->
+    <!--  Bloquear / suspender  -->
     <string name="admin_user_block_title">Bloquear cuenta</string>
     <string name="admin_user_block_subtitle">Acción sensible</string>
     <string name="admin_user_block_question">¿Bloquear esta cuenta?</string>
@@ -1178,8 +1110,7 @@
     <string name="admin_user_block_footnote">La fecha, el administrador responsable y el motivo quedarán registrados en el historial de la cuenta.</string>
     <string name="admin_user_block_confirm">Bloquear cuenta</string>
     <string name="admin_user_block_default_reason">Suspensión administrativa</string>
-
-    <!-- Eliminar -->
+    <!--  Eliminar  -->
     <string name="admin_user_delete_title">Eliminar usuario</string>
     <string name="admin_user_delete_subtitle">Acción irreversible</string>
     <string name="admin_user_delete_header">Eliminar definitivamente</string>
@@ -1192,6 +1123,4 @@
     <string name="admin_user_delete_item_activity">Preferencias y actividad de la cuenta</string>
     <string name="admin_user_delete_footnote">Al continuar, confirmas que revisaste la identidad y el impacto de esta eliminación.</string>
     <string name="admin_user_delete_confirm">Eliminar definitivamente</string>
-
-
 </resources>

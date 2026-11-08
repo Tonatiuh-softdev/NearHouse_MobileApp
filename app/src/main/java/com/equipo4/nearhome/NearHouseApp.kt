@@ -23,6 +23,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -225,7 +227,13 @@ fun NearHouseApp() {
 
     NavHost(
         navController = navController,
-        startDestination = AppRoutes.SPLASH
+        startDestination = AppRoutes.SPLASH,
+        // Sin animaciones entre pantallas: evita el desvanecido lento y que la pantalla
+        // anterior siga recibiendo toques mientras se va
+        enterTransition = { EnterTransition.None },
+        exitTransition = { ExitTransition.None },
+        popEnterTransition = { EnterTransition.None },
+        popExitTransition = { ExitTransition.None }
     ) {
         // Pantalla 0: Animación
         composable(AppRoutes.SPLASH) {
