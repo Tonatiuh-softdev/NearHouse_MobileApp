@@ -37,7 +37,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                     else -> settings.getLanguage().takeIf { it in LanguageOptions } ?: "Español"
                 }
             },
-            darkModeEnabled = settings.getDarkMode() == true
+            darkMode = settings.getDarkMode()
         )
     )
     val uiState: StateFlow<ProfileUiState> = _uiState.asStateFlow()
@@ -63,7 +63,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         }
         viewModelScope.launch {
             SettingsManager.darkModeState.collect { dark ->
-                _uiState.update { it.copy(darkModeEnabled = dark == true) }
+                _uiState.update { it.copy(darkMode = dark) }
             }
         }
         loadUser()
@@ -90,8 +90,9 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         _uiState.update { it.copy(language = language) }
     }
 
-    fun onDarkModeSelected(enabled: Boolean) {
-        settings.saveDarkMode(enabled)
-        _uiState.update { it.copy(darkModeEnabled = enabled) }
+    /** mode: true = oscuro, false = claro, null = tema del sistema */
+    fun onDarkModeSelected(mode: Boolean?) {
+        settings.saveDarkMode(mode)
+        _uiState.update { it.copy(darkMode = mode) }
     }
 }

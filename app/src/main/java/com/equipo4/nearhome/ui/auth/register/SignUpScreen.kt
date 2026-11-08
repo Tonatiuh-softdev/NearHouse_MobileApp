@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardOptions
@@ -57,6 +58,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -690,11 +692,15 @@ private fun CustomOutlinedInput(
 ) {
     var isPasswordVisible by remember { mutableStateOf(false) }
     val cs = MaterialTheme.colorScheme
+    val interactionSource = remember { MutableInteractionSource() }
+    val isFocused by interactionSource.collectIsFocusedAsState()
 
     BasicTextField(
         value = value,
         onValueChange = onValueChange,
         singleLine = true,
+        interactionSource = interactionSource,
+        cursorBrush = SolidColor(cs.primary),
         textStyle = TextStyle(fontSize = 14.sp, color = cs.onSurface),
         visualTransformation = if (isPassword && !isPasswordVisible) {
             PasswordVisualTransformation()
@@ -712,7 +718,7 @@ private fun CustomOutlinedInput(
                     .height(40.dp),
                 shape = RoundedCornerShape(8.dp),
                 color = cs.surfaceVariant,
-                border = BorderStroke(1.dp, cs.outlineVariant)
+                border = BorderStroke(1.dp, if (isFocused) cs.primary else cs.outlineVariant)
             ) {
                 Row(
                     modifier = Modifier

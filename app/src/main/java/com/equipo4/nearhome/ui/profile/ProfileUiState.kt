@@ -26,9 +26,16 @@ data class ProfileUiState(
     val userPhotoUrl: String? = null,
     val role: UserRole = UserRole.COMPRADOR,
     val language: String = "Español",
-    val darkModeEnabled: Boolean = false
+    /** null = sigue el tema del sistema, true = oscuro, false = claro */
+    val darkMode: Boolean? = null
 ) {
-    val darkModeLabel: String get() = AppStrings.get(if (darkModeEnabled) R.string.dark_mode_on else R.string.dark_mode_off)
+    val darkModeLabel: String get() = AppStrings.get(
+        when (darkMode) {
+            true -> R.string.dark_mode_on
+            false -> R.string.dark_mode_off
+            null -> R.string.dark_mode_system
+        }
+    )
 
     val showMyListings: Boolean get() = true
     val showAccountAdmin: Boolean get() = true
