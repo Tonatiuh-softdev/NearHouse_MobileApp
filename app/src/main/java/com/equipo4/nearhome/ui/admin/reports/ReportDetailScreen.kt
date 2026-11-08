@@ -34,6 +34,7 @@ import com.equipo4.nearhome.data.local.SessionManager
 import com.equipo4.nearhome.data.remote.evidenciaReporteUrl
 import com.equipo4.nearhome.domain.model.ReportStatus
 import com.equipo4.nearhome.domain.model.ReportType
+import com.equipo4.nearhome.ui.admin.users_crud.UserAvatar
 import com.equipo4.nearhome.ui.publicacion.detail.FullScreenPhotoViewer
 import com.equipo4.nearhome.ui.theme.NoticeTone
 import com.equipo4.nearhome.ui.theme.noticeColors
@@ -45,13 +46,15 @@ fun ReportDetailScreen(
     reportId: String,
     onBackClick: () -> Unit = {},
     onNavigateToConfirmation: (String) -> Unit = {},
-    onPropertyClick: (String) -> Unit = {}
+    onPropertyClick: (String) -> Unit = {},
+    onUserClick: (Int) -> Unit = {}
 ) {
     val viewModel: ReportDetailViewModel = viewModel(
         factory = ReportDetailViewModelFactory(reportId)
     )
     val report by viewModel.report.collectAsState()
     val targetProperty by viewModel.targetProperty.collectAsState()
+    val reporterId by viewModel.reporterId.collectAsState()
     val sending by viewModel.sending.collectAsState()
     val error by viewModel.error.collectAsState()
     val context = LocalContext.current
@@ -349,7 +352,11 @@ fun ReportDetailScreen(
                     )
                     Spacer(Modifier.height(10.dp))
                     Card(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .then(
+                                reporterId?.let { id -> Modifier.clickable { onUserClick(id) } } ?: Modifier
+                            ),
                         shape = RoundedCornerShape(16.dp),
                         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                         elevation = CardDefaults.cardElevation(1.dp)
@@ -389,6 +396,14 @@ fun ReportDetailScreen(
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
+                            }
+                            // Solo se puede abrir el perfil si se encontró la cuenta
+                            if (reporterId != null) {
+                                Icon(
+                                    imageVector = Icons.Default.ChevronRight,
+                                    contentDescription = stringResource(R.string.user_profile_view),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             }
                         }
                     }
@@ -465,6 +480,54 @@ fun ReportDetailScreen(
                             fontSize = 13.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+
+                        // Quién publicó el anuncio reportado
+                        val sellerId = targetProperty?.sellerId
+                        if (sellerId != null) {
+                            val sellerName = targetProperty?.sellerName
+                                ?: stringResource(R.string.profile_default_name)
+                            Spacer(Modifier.height(10.dp))
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { onUserClick(sellerId) },
+                                shape = RoundedCornerShape(16.dp),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                                elevation = CardDefaults.cardElevation(1.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    UserAvatar(
+                                        name = sellerName,
+                                        photoUrl = targetProperty?.sellerPhotoUrl,
+                                        size = 40.dp
+                                    )
+                                    Spacer(Modifier.width(12.dp))
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = stringResource(R.string.listing_advertiser),
+                                            fontSize = 12.sp,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                        Text(
+                                            text = sellerName,
+                                            fontSize = 15.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
+                                    }
+                                    Icon(
+                                        imageVector = Icons.Default.ChevronRight,
+                                        contentDescription = stringResource(R.string.user_profile_view),
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
 

@@ -255,6 +255,13 @@
     <string name="detail_save_cd">Guardar</string>
     <string name="photo_viewer_open_cd">Ver foto completa</string>
     <string name="photo_viewer_close_cd">Cerrar fotos</string>
+
+    <!-- Perfil de otro usuario -->
+    <string name="user_profile_member_since">Miembro desde %1$s</string>
+    <string name="user_profile_manage_account">Administrar cuenta</string>
+    <string name="user_profile_report_cd">Reportar usuario</string>
+    <string name="user_profile_view">Ver perfil</string>
+    <string name="user_profile_empty">Este usuario no tiene anuncios publicados por ahora.</string>
     <string name="detail_type_house">Casa</string>
     <string name="detail_type_apartment">Departamento</string>
     <string name="detail_type_land">Terreno</string>

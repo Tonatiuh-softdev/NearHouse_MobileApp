@@ -7,6 +7,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -31,7 +32,8 @@ private enum class AccionUsuario { NINGUNA, SUSPENDER, ELIMINAR }
 @Composable
 fun UserDetailScreen(
     userId: String,
-    onBackClick: () -> Unit = {}
+    onBackClick: () -> Unit = {},
+    onViewProfileClick: () -> Unit = {}
 ) {
     val viewModel: UserDetailViewModel = viewModel(
         key = userId,
@@ -163,7 +165,8 @@ fun UserDetailScreen(
             is UserDetailUiState.Success -> {
                 DetalleContenido(
                     user = estado.user,
-                    modifier = Modifier.padding(innerPadding)
+                    modifier = Modifier.padding(innerPadding),
+                    onViewProfileClick = onViewProfileClick
                 )
             }
         }
@@ -174,7 +177,11 @@ private fun UserAccountRole.esAdministrador(): Boolean =
     this == UserAccountRole.ADMINISTRADOR || this == UserAccountRole.SUPER_ADMIN
 
 @Composable
-private fun DetalleContenido(user: UserDetail, modifier: Modifier = Modifier) {
+private fun DetalleContenido(
+    user: UserDetail,
+    modifier: Modifier = Modifier,
+    onViewProfileClick: () -> Unit = {}
+) {
     val nombreCompleto = listOfNotNull(user.name, user.firstSurname, user.secondSurname).joinToString(" ")
 
     Column(
@@ -210,6 +217,29 @@ private fun DetalleContenido(user: UserDetail, modifier: Modifier = Modifier) {
                     Spacer(Modifier.height(6.dp))
                     UserStatusBadge(user.status)
                 }
+            }
+
+            Spacer(Modifier.height(4.dp))
+
+            // Perfil como lo ven los demás: foto, nombre y anuncios publicados
+            OutlinedButton(
+                onClick = onViewProfileClick,
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(42.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.AccountCircle,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.user_profile_view),
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium
+                )
             }
         }
 

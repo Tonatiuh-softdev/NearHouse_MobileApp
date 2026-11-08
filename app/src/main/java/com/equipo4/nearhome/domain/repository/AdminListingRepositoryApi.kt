@@ -144,7 +144,7 @@ private fun PublicacionDto.toAdminListing(): AdminListing {
         garages = cochera,
         description = descripcion,
         images = fotos.map { fotoPublicacionUrl(it) },
-        advertiser = Advertiser(name = vendedor.nombre, email = vendedor.correo, verified = false),
+        advertiser = Advertiser(id = vendedor.id, name = vendedor.nombre, email = vendedor.correo, verified = false),
         registeredAt = fechaRegistro,
         status = status,
         history = history

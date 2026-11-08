@@ -59,6 +59,7 @@ import com.equipo4.nearhome.ui.profile.ProfileScreen
 import com.equipo4.nearhome.ui.profile.UserRole
 import com.equipo4.nearhome.ui.profile.account.AccountAdminRoute
 import com.equipo4.nearhome.ui.profile.account.AccountAdminViewModel
+import com.equipo4.nearhome.ui.profile.publicprofile.UserProfileScreen
 import com.equipo4.nearhome.ui.profile.seller.EditProfileScreen
 import com.equipo4.nearhome.ui.profile.seller.MyListingsScreen
 import com.equipo4.nearhome.ui.subscription.CheckoutScreen
@@ -129,6 +130,7 @@ object AppRoutes {
     const val CHECKOUT = "checkout"
     const val EDIT_PROFILE = "edit_profile"
     const val PUBLICACION_DETAIL = "publicacion_detail"
+    const val USER_PROFILE = "user_profile"
     const val REPORT_GRAPH = "report_graph"
     const val REPORT_CATEGORY = "report_category"
     const val REPORT_REASON = "report_reason"
@@ -263,6 +265,16 @@ fun NearHouseApp() {
                 }
             }
         )
+    }
+
+    /** Abre el perfil de un usuario. Si es el propio vendedor con sesión, lo lleva a "Mis anuncios". */
+    val openUserProfile: (Int) -> Unit = { userId ->
+        val esPropio = userId == sessionManager.getUserId()
+        if (esPropio && sessionManager.getUserRole() == "VENDEDOR") {
+            navController.navigate(AppRoutes.MY_LISTINGS)
+        } else {
+            navController.navigate("${AppRoutes.USER_PROFILE}/$userId")
+        }
     }
 
     NavHost(
@@ -846,7 +858,31 @@ fun NearHouseApp() {
                     navController.navigate("create_listing_edit/$publicacionId")
                 },
                 onSellerClick = { sellerId ->
-                    // TODO: pantalla de perfil del anunciante (sellerId)
+                    openUserProfile(sellerId)
+                }
+            )
+        }
+
+        // Pantalla: Perfil de otro usuario (anunciante, quien reportó o cuenta del panel)
+        composable(
+            route = "${AppRoutes.USER_PROFILE}/{userId}",
+            arguments = listOf(navArgument("userId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val userId = backStackEntry.arguments?.getInt("userId") ?: -1
+            UserProfileScreen(
+                userId = userId,
+                onBackClick = { navController.popBackStack() },
+                onPropertyClick = { propertyId ->
+                    navController.navigate("${AppRoutes.PUBLICACION_DETAIL}/$propertyId")
+                },
+                onManageAccountClick = {
+                    // Si se llegó desde el detalle de esa cuenta, solo se regresa (no se apilan pantallas)
+                    val previous = navController.previousBackStackEntry?.destination?.route
+                    if (previous?.startsWith(AppRoutes.ADMIN_USER_DETAIL) == true) {
+                        navController.popBackStack()
+                    } else {
+                        navController.navigate("${AppRoutes.ADMIN_USER_DETAIL}/$userId")
+                    }
                 }
             )
         }
@@ -902,7 +938,16 @@ fun NearHouseApp() {
             val userId = backStackEntry.arguments?.getString("userId") ?: ""
             UserDetailScreen(
                 userId = userId,
-                onBackClick = { navController.popBackStack() }
+                onBackClick = { navController.popBackStack() },
+                onViewProfileClick = {
+                    // Igual que arriba: si venimos del perfil, regresamos a él
+                    val previous = navController.previousBackStackEntry?.destination?.route
+                    if (previous?.startsWith(AppRoutes.USER_PROFILE) == true) {
+                        navController.popBackStack()
+                    } else {
+                        userId.toIntOrNull()?.let { openUserProfile(it) }
+                    }
+                }
             )
         }
 
@@ -924,7 +969,8 @@ fun NearHouseApp() {
                 },
                 onPropertyClick = { propertyId ->
                     navController.navigate("${AppRoutes.PUBLICACION_DETAIL}/$propertyId")
-                }
+                },
+                onUserClick = { userId -> openUserProfile(userId) }
             )
         }
 
@@ -983,7 +1029,8 @@ fun NearHouseApp() {
                 onBackClick = { navController.popBackStack() },
                 onActionClick = { action ->
                     navController.navigate("${AppRoutes.ADMIN_LISTING_ACTION}/$id/${action.name}")
-                }
+                },
+                onAdvertiserClick = { userId -> openUserProfile(userId) }
             )
         }
 

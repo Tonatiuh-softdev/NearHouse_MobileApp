@@ -28,6 +28,8 @@ enum class ListingAction {
 }
 
 data class Advertiser(
+    /** Id de la cuenta, para abrir su perfil. Null en datos de prueba. */
+    val id: Int? = null,
     val name: String,
     val email: String,
     val verified: Boolean

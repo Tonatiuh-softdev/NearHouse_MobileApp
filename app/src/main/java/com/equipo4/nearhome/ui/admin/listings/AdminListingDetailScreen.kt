@@ -2,6 +2,7 @@ package com.equipo4.nearhome.ui.admin.listings
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -10,6 +11,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Bathtub
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Bed
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.LocationOn
@@ -47,7 +49,8 @@ fun AdminListingDetailScreen(
     message: String? = null,
     onMessageShown: () -> Unit = {},
     onBackClick: () -> Unit = {},
-    onActionClick: (ListingAction) -> Unit = {}
+    onActionClick: (ListingAction) -> Unit = {},
+    onAdvertiserClick: (Int) -> Unit = {}
 ) {
     val viewModel: AdminListingDetailViewModel = viewModel(
         key = "listing_detail_$listingId",
@@ -100,7 +103,7 @@ fun AdminListingDetailScreen(
     ) { inner ->
         val l = listing
         if (l != null) {
-            DetailBody(l, Modifier.padding(inner))
+            DetailBody(l, Modifier.padding(inner), onAdvertiserClick)
         }
     }
 }
@@ -151,7 +154,11 @@ private fun ListingAction.shortLabelRes(): Int = when (this) {
 }
 
 @Composable
-private fun DetailBody(listing: AdminListing, modifier: Modifier = Modifier) {
+private fun DetailBody(
+    listing: AdminListing,
+    modifier: Modifier = Modifier,
+    onAdvertiserClick: (Int) -> Unit = {}
+) {
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -191,11 +198,37 @@ private fun DetailBody(listing: AdminListing, modifier: Modifier = Modifier) {
                     fontSize = 13.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Text(
-                    "${stringResource(R.string.listing_advertiser)}: ${listing.advertiser.name}",
-                    fontSize = 13.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                // Anunciante: toca su nombre para abrir su perfil
+                val advertiserId = listing.advertiser.id
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = if (advertiserId != null) {
+                        Modifier.clickable { onAdvertiserClick(advertiserId) }
+                    } else {
+                        Modifier
+                    }
+                ) {
+                    Text(
+                        "${stringResource(R.string.listing_advertiser)}: ",
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Text(
+                        listing.advertiser.name,
+                        fontSize = 13.sp,
+                        fontWeight = if (advertiserId != null) FontWeight.SemiBold else FontWeight.Normal,
+                        color = if (advertiserId != null) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    if (advertiserId != null) {
+                        Icon(
+                            Icons.Filled.ChevronRight,
+                            contentDescription = stringResource(R.string.user_profile_view),
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         Icons.Filled.LocationOn,
