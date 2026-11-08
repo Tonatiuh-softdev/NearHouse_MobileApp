@@ -82,7 +82,6 @@
     <string name="edit_profile_camera_permission_title">Permiso de cámara requerido</string>
     <string name="edit_profile_camera_permission_message">Necesitamos acceso a tu cámara para tomar tu nueva foto de perfil.</string>
     <string name="edit_profile_open_settings">Abrir ajustes</string>
-<<<<<<< HEAD
 
     <!-- Recorte circular de foto de perfil -->
     <string name="crop_photo_title">Ajustar foto</string>
@@ -91,9 +90,6 @@
     <string name="crop_photo_error">No se pudo abrir la imagen. Intenta con otra.</string>
 
     <!-- Suscripción y Planes -->
-=======
-    <!--  Suscripción y Planes  -->
->>>>>>> 34fa2dabda1fa1e4a86cf71c4b9f48a07b04bd16
     <string name="choose_plan_title">Elige tu plan</string>
     <string name="choose_plan_header_title">¡Empieza a publicar tus inmuebles!</string>
     <string name="choose_plan_header_subtitle">Elige un plan y comienza a ofrecer propiedades en NearHouse.</string>
@@ -890,14 +886,9 @@
     <string name="deactivate_account_title">Desactivar cuenta temporalmente</string>
     <string name="deactivate_account_subtitle">Pausa tus anuncios y perfil. Puedes volver cuando quieras.</string>
     <string name="delete_account_title">Eliminar cuenta permanentemente</string>
-<<<<<<< HEAD
     <string name="delete_account_subtitle">Tu cuenta se borrará en 30 días. Si inicias sesión antes, podrás conservarla.</string>
 
     <!-- Acciones y Diálogos -->
-=======
-    <string name="delete_account_subtitle">Esta acción es irreversible y borrará todos tus datos.</string>
-    <!--  Acciones y Diálogos  -->
->>>>>>> 34fa2dabda1fa1e4a86cf71c4b9f48a07b04bd16
     <string name="coming_soon">Próximamente</string>
     <string name="cancel">Cancelar</string>
     <string name="confirm_deactivate">Desactivar</string>
@@ -1067,7 +1058,6 @@
     <string name="notif_title_recently_published">Propiedades recién publicadas \uF195</string>
     <!--  🆕  -->
     <string name="notif_body_recently_published">Basado en tu búsqueda, creemos que esta propiedad te va a gustar.</string>
-<<<<<<< HEAD
 
     <!-- Desactivar / eliminar cuenta -->
     <string name="acc_current_password">Contraseña actual</string>
@@ -1084,9 +1074,6 @@
     <string name="login_reactivated_msg">Tu cuenta está activa otra vez</string>
     <string name="login_kept_msg">Listo, tu cuenta ya no se eliminará</string>
     <!-- Panel de usuarios -->
-=======
-    <!--  Panel de usuarios  -->
->>>>>>> 34fa2dabda1fa1e4a86cf71c4b9f48a07b04bd16
     <string name="admin_users_title">Usuarios</string>
     <string name="admin_users_total_accounts">%1$d cuentas registradas</string>
     <string name="admin_users_results">%1$d resultados</string>

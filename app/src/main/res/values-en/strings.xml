@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">NearHouse</string>
     <string name="admin_management_title">NearHouse Management</string>
@@ -34,7 +33,6 @@
     <string name="report_error_not_available">This listing is no longer available.</string>
     <string name="report_error_own">You can\'t report your own listing.</string>
     <string name="report_evidence_title">Upload up to 5 images as evidence (optional)</string>
-
     <plurals name="pending_reports_subtitle">
         <item quantity="one">1 pending to review</item>
         <item quantity="other">%d pending to review</item>
@@ -47,25 +45,21 @@
         <item quantity="one">1 filter selected</item>
         <item quantity="other">%d filters selected</item>
     </plurals>
-
-    <!-- Comunes -->
+    <!--  Comunes  -->
     <string name="common_back">Back</string>
     <string name="common_close">Close</string>
-
-    <!-- Roles -->
+    <!--  Roles  -->
     <string name="role_buyer">Buyer</string>
     <string name="role_seller">Seller</string>
     <string name="role_admin">Administrator</string>
     <string name="role_super_admin">Super Administrator</string>
     <string name="profile_role_sheet_title">User role</string>
     <string name="profile_role_sheet_subtitle">For testing only: change the role to see each user\'s views.</string>
-
-    <!-- Perfil -->
+    <!--  Perfil  -->
     <string name="profile_default_name">User</string>
     <string name="profile_section_profile">Profile</string>
     <string name="profile_my_listings">My listings</string>
-
-    <!-- Edit Profile -->
+    <!--  Edit Profile  -->
     <string name="edit_profile_back">Back</string>
     <string name="edit_profile_close">Close</string>
     <string name="edit_profile_cancel">Cancel</string>
@@ -75,22 +69,24 @@
     <string name="edit_profile_first_last_name">First last name</string>
     <string name="edit_profile_second_last_name">Second last name</string>
     <string name="edit_profile_optional_hint">(optional)</string>
-
     <string name="edit_profile_option_camera">Camera</string>
     <string name="edit_profile_option_gallery">Gallery</string>
     <string name="edit_profile_option_delete_photo">Delete photo</string>
-
     <string name="edit_profile_error_required">This field is required</string>
     <string name="edit_profile_error_only_letters">Only letters and spaces allowed</string>
     <string name="edit_profile_updated_success">Profile updated</string>
-
     <string name="edit_profile_discard_title">Discard changes?</string>
     <string name="edit_profile_discard_message">You have unsaved changes. If you leave now, they will be lost.</string>
     <string name="edit_profile_discard_confirm">Discard</string>
-
     <string name="edit_profile_camera_permission_title">Camera permission required</string>
     <string name="edit_profile_camera_permission_message">We need access to your camera to take your new profile picture.</string>
     <string name="edit_profile_open_settings">Open settings</string>
+
+    <!-- Recorte circular de foto de perfil -->
+    <string name="crop_photo_title">Adjust photo</string>
+    <string name="crop_photo_hint">Drag and pinch to frame your photo inside the circle</string>
+    <string name="crop_photo_confirm">Use photo</string>
+    <string name="crop_photo_error">Couldn\'t open the image. Try another one.</string>
 
     <!-- Suscripción y Planes -->
     <string name="choose_plan_title">Choose your plan</string>
@@ -112,7 +108,6 @@
     <string name="most_popular">Most popular</string>
     <string name="free_month_btn">1st month free</string>
     <string name="choose_plan_btn">Choose this plan</string>
-
     <string name="free_trial_title">Free trial</string>
     <string name="confirm_payment_title">Confirm payment</string>
     <string name="free_trial_banner_title">You won\'t be charged during your first month</string>
@@ -144,6 +139,7 @@
     <string name="language_english">English</string>
     <string name="dark_mode_on">Activated</string>
     <string name="dark_mode_off">Desactivated</string>
+    <string name="dark_mode_system">System theme</string>
     <string name="profile_section_info">Information</string>
     <string name="profile_terms">Terms and conditions</string>
     <string name="profile_privacy">Privacy policy</string>
@@ -153,11 +149,9 @@
     <string name="profile_dark_mode_subtitle">Choose how you want to view the application.</string>
     <string name="logout_confirm_message">Are you sure you want to log out?</string>
     <string name="logout_cancel">No</string>
-
-    <!-- Panel de administración -->
+    <!--  Panel de administración  -->
     <string name="admin_panel_title">Admin panel</string>
-
-    <!-- Anuncios (administración) -->
+    <!--  Anuncios (administración)  -->
     <string name="listings_title">Listings</string>
     <plurals name="listings_pending_count">
         <item quantity="one">%d pending to review</item>
@@ -181,15 +175,13 @@
     <string name="listings_empty_title">No listings for this filter</string>
     <string name="listings_empty_message">We didn\'t find %1$s</string>
     <string name="listings_clear_button">Clear search and filters</string>
-
-    <!-- Palabras sueltas para armar mensajes -->
+    <!--  Palabras sueltas para armar mensajes  -->
     <string name="listing_word_listings">listings</string>
     <string name="listing_word_or">" or "</string>
     <string name="listing_word_and">" and "</string>
     <string name="listing_of_type_format">of type %1$s</string>
     <string name="listing_matching_format">matching \"%1$s\"</string>
-
-    <!-- Estados -->
+    <!--  Estados  -->
     <string name="listing_status_pending">Pending</string>
     <string name="listing_status_pending_review">Pending review</string>
     <string name="listing_status_active">Active</string>
@@ -202,8 +194,7 @@
     <string name="listing_status_adj_rejected">rejected</string>
     <string name="listing_status_adj_deactivated">deactivated</string>
     <string name="listing_status_adj_closed">rented or sold</string>
-
-    <!-- Modalidad, tipo y orden -->
+    <!--  Modalidad, tipo y orden  -->
     <string name="listing_mode_rent">Rent</string>
     <string name="listing_mode_sale">Sale</string>
     <string name="listing_mode_in_rent">for rent</string>
@@ -216,12 +207,10 @@
     <string name="listing_type_plural_land">lands</string>
     <string name="listing_order_newest">Most recent first</string>
     <string name="listing_order_oldest">Oldest first</string>
-
-    <!-- Precio -->
+    <!--  Precio  -->
     <string name="listing_price_rent">$%1$s/month</string>
     <string name="listing_price_sale">$%1$s</string>
-
-    <!-- Filtrar anuncios -->
+    <!--  Filtrar anuncios  -->
     <string name="filters_title">Filter listings</string>
     <string name="filters_status">Status</string>
     <string name="filters_mode">Mode</string>
@@ -234,8 +223,7 @@
     <string name="filters_note_format">%1$s will be shown</string>
     <string name="filters_note_still_pending">that are still pending review</string>
     <string name="filters_note_with_status">with status %1$s</string>
-
-    <!-- Detalle del anuncio -->
+    <!--  Detalle del anuncio  -->
     <string name="listing_detail_title">Listing detail</string>
     <string name="listing_detail_header_format">%1$s · %2$s</string>
     <string name="listing_advertiser">Advertiser</string>
@@ -261,8 +249,7 @@
     <string name="listing_history_created">Listing registered as</string>
     <string name="listing_history_by_format">By %1$s</string>
     <string name="listing_history_reason_format">Reason: %1$s</string>
-
-    <!-- Detalle de publicación -->
+    <!--  Detalle de publicación  -->
     <string name="detail_back_cd">Regresar</string>
     <string name="detail_save_cd">Guardar</string>
     <string name="detail_type_house">Casa</string>
@@ -291,28 +278,24 @@
     <string name="detail_pets_allowed">Permitidas</string>
     <string name="detail_pets_not_allowed">No se permiten</string>
     <string name="detail_rules">Reglas</string>
-
-    <!-- Botones de acción -->
+    <!--  Botones de acción  -->
     <string name="listing_action_approve">Approve</string>
     <string name="listing_action_reject">Reject</string>
     <string name="listing_action_deactivate">Deactivate</string>
     <string name="listing_action_reactivate">Reactivate</string>
     <string name="listing_action_delete">Delete</string>
     <string name="listing_action_cancel">Cancel</string>
-
-    <!-- Confirmaciones: parte común -->
+    <!--  Confirmaciones: parte común  -->
     <string name="listing_change_title">Status change</string>
     <string name="listing_change_current">Current status</string>
     <string name="listing_change_new">New status</string>
-
-    <!-- Avisos al regresar -->
+    <!--  Avisos al regresar  -->
     <string name="listing_msg_approved">Listing approved</string>
     <string name="listing_msg_rejected">Listing rejected</string>
     <string name="listing_msg_deactivated">Listing deactivated</string>
     <string name="listing_msg_reactivated">Listing reactivated</string>
     <string name="listing_msg_deleted">Listing %1$s was deleted</string>
-
-    <!-- Aprobar -->
+    <!--  Aprobar  -->
     <string name="listing_approve_title">Approve listing</string>
     <string name="listing_approve_question">Approve this listing?</string>
     <string name="listing_approve_body">Upon approval, the listing will be active and visible to users.</string>
@@ -321,8 +304,7 @@
     <string name="listing_approve_check_2">Title, price and description are consistent</string>
     <string name="listing_approve_check_3">Advertiser details are complete</string>
     <string name="listing_approve_confirm">Approve and activate</string>
-
-    <!-- Rechazar -->
+    <!--  Rechazar  -->
     <string name="listing_reject_title">Reject listing</string>
     <string name="listing_reject_question">Reject this listing?</string>
     <string name="listing_reject_body">The listing will not be published. Write the reason for record.</string>
@@ -331,8 +313,7 @@
     <string name="listing_reject_error_required">This field is required to confirm rejection</string>
     <string name="listing_reject_error_min">Write at least %1$d characters</string>
     <string name="listing_reject_confirm">Confirm rejection</string>
-
-    <!-- Desactivar -->
+    <!--  Desactivar  -->
     <string name="listing_deactivate_title">Deactivate listing</string>
     <string name="listing_deactivate_question">Deactivate this listing?</string>
     <string name="listing_deactivate_body">The listing will no longer be visible to users.</string>
@@ -340,8 +321,7 @@
     <string name="listing_deactivate_label">Deactivation cause</string>
     <string name="listing_deactivate_error_required">This field is required to confirm deactivation</string>
     <string name="listing_deactivate_confirm">Deactivate listing</string>
-
-    <!-- Reactivar -->
+    <!--  Reactivar  -->
     <string name="listing_reactivate_title">Reactivate listing</string>
     <string name="listing_reactivate_question">Reactivate this listing?</string>
     <string name="listing_reactivate_body">The listing will be active again.</string>
@@ -351,8 +331,7 @@
     <string name="listing_previous_by">Registered by</string>
     <string name="listing_reactivate_notice">Reactivation is immediate. The listing will be visible to users again.</string>
     <string name="listing_reactivate_confirm">Reactivate listing</string>
-
-    <!-- Eliminar -->
+    <!--  Eliminar  -->
     <string name="listing_delete_title">Delete listing</string>
     <string name="listing_delete_question">Delete this listing?</string>
     <string name="listing_delete_body">Review carefully before continuing.</string>
@@ -371,8 +350,7 @@
     <string name="listing_delete_item_history">Status change history</string>
     <string name="listing_delete_acknowledge">I confirm that I reviewed the listing and understand that deletion is terminal</string>
     <string name="listing_delete_confirm">Delete permanently</string>
-
-    <!-- Crear anuncio: general -->
+    <!--  Crear anuncio: general  -->
     <string name="create_listing_title">Create listing</string>
     <string name="create_listing_step_format">Step %1$d of %2$d</string>
     <string name="create_listing_percent_format">%1$d%%</string>
@@ -384,8 +362,7 @@
     <string name="create_listing_error_required">Mandatory field</string>
     <string name="create_listing_error_price">Enter an amount greater than 0</string>
     <string name="create_listing_error_area">Enter an area greater than 0</string>
-
-    <!-- Crear anuncio: Paso 1 -->
+    <!--  Crear anuncio: Paso 1  -->
     <string name="create_listing_step1_heading">Define the listing</string>
     <string name="create_listing_operation">Operation</string>
     <string name="create_listing_property_type">Property type</string>
@@ -422,8 +399,7 @@
     <string name="create_listing_land_use">Land use</string>
     <string name="create_listing_land_residential">Residential</string>
     <string name="create_listing_land_agricultural">Agricultural</string>
-
-    <!-- Crear anuncio: Paso 2 -->
+    <!--  Crear anuncio: Paso 2  -->
     <string name="create_listing_step2_title">Photos and location</string>
     <string name="create_listing_step2_heading">Multimedia and map</string>
     <string name="create_listing_step2_subtitle">Capture property photos in real time and confirm geolocation.</string>
@@ -458,8 +434,7 @@
     <string name="create_listing_colonia">Neighborhood</string>
     <string name="create_listing_colonia_not_found">We couldn\'t identify the neighborhood for this point. Move pin to an area within available neighborhoods.</string>
     <string name="create_listing_colonia_manual_warning">You chose neighborhood manually. Verify it is correct.</string>
-
-    <!-- Paso 3 -->
+    <!--  Paso 3  -->
     <string name="create_listing_step3_title">Content and conditions</string>
     <string name="create_listing_step3_heading">Description and rules</string>
     <string name="create_listing_step3_subtitle">Define attractive texts and listing conditions.</string>
@@ -474,8 +449,7 @@
     <string name="create_listing_contact_whatsapp">WhatsApp: %1$s</string>
     <string name="create_listing_contact_email">Contact email</string>
     <string name="create_listing_contact_missing">Unregistered</string>
-
-    <!-- Paso 4 -->
+    <!--  Paso 4  -->
     <string name="create_listing_step4_title">Confirm listing</string>
     <string name="create_listing_step4_heading">Validate data</string>
     <string name="create_listing_step4_subtitle">Make sure all information is correct before submitting.</string>
@@ -487,8 +461,7 @@
     <string name="create_listing_per_month">/ month</string>
     <string name="create_listing_review_notice">Your listing will go through our automatic and human quality review process before publishing.</string>
     <string name="create_listing_send_review">Send to review</string>
-
-    <!-- Vista previa -->
+    <!--  Vista previa  -->
     <string name="create_listing_preview_banner">Preview: how users will see your publication</string>
     <string name="create_listing_preview_title">Listing preview</string>
     <string name="create_listing_preview_label">Your publication in the list</string>
@@ -500,8 +473,7 @@
     <string name="create_listing_sent_title">Listing sent</string>
     <string name="create_listing_sent_body">Your listing is in review before publishing.</string>
     <string name="create_listing_sent_ok">Accept</string>
-
-    <!-- Additional screen texts -->
+    <!--  Additional screen texts  -->
     <string name="signup_email_label">Email</string>
     <string name="signup_password_label">Password</string>
     <string name="signup_confirm_password_label">Confirm password</string>
@@ -656,8 +628,7 @@
     <string name="checkout_plan_format">Plan %s</string>
     <string name="checkout_plan_footer_trial">You can cancel anytime before your trial month ends.</string>
     <string name="checkout_plan_footer_paid">Subscription renews automatically every month. You can cancel anytime.</string>
-
-    <!-- Textos fijos migrados desde las pantallas -->
+    <!--  Textos fijos migrados desde las pantallas  -->
     <string name="admin_management_subtitle">Review community activity and manage the platform content.</string>
     <string name="admin_users_subtitle">View and manage profiles</string>
     <string name="admin_ads_subtitle">Manage all published listings</string>
@@ -773,8 +744,7 @@
     <string name="detail_saved">Saved</string>
     <string name="detail_save">Save</string>
     <string name="detail_report">Report</string>
-
-    <!-- Textos fijos migrados: ViewModels, modelos y documentos legales -->
+    <!--  Textos fijos migrados: ViewModels, modelos y documentos legales  -->
     <string name="login_session_expired">Your session expired. Please sign in again</string>
     <string name="login_error_network">Could not connect to the server. Check your internet connection and try again.</string>
     <string name="error_unexpected">An unexpected error occurred.</string>
@@ -895,31 +865,27 @@
     <string name="legal_privacy_s8_content">NearHouse is intended only for people over 18 years old. We do not intentionally collect data from minors. If we detect an account belonging to a minor, we will delete it.</string>
     <string name="legal_privacy_s9_title">Changes to this notice</string>
     <string name="legal_privacy_s9_content">If we change this notice, we will notify you within the app and update the \"Last updated\" date shown above.</string>
-
-    <!-- Account Administration -->
+    <!--  Account Administration  -->
     <string name="account_admin_title">Account management</string>
-
-    <!-- Access Data -->
+    <!--  Access Data  -->
     <string name="section_access_data">Access information</string>
     <string name="label_email">Email address</string>
     <string name="label_phone">Phone number</string>
     <string name="label_password">Password</string>
     <string name="masked_password">••••••••</string>
-
-    <!-- Membership and Payments -->
-    <string name="section_membership">Membership &amp; payments</string>
+    <!--  Membership and Payments  -->
+    <string name="section_membership">Membership and payments</string>
     <string name="label_current_plan">Current plan</string>
     <string name="buyer_no_plan">No plan</string>
     <string name="buyer_plan_subtitle">Explore plans to publish your listings</string>
     <string name="seller_plan_status_format">%1$s (%2$s)</string>
     <string name="seller_renewal_format">Renews on %1$s</string>
-
-    <!-- Account Management -->
+    <!--  Account Management  -->
     <string name="section_account_management">Account management</string>
     <string name="deactivate_account_title">Temporarily deactivate account</string>
     <string name="deactivate_account_subtitle">Pause your listings and profile. You can return whenever you want.</string>
     <string name="delete_account_title">Permanently delete account</string>
-    <string name="delete_account_subtitle">This action is irreversible and will erase all your data.</string>
+    <string name="delete_account_subtitle">Your account will be deleted in 30 days. Sign in before then to keep it.</string>
 
     <!-- Actions and Dialogs -->
     <string name="coming_soon">Coming soon</string>
@@ -927,14 +893,12 @@
     <string name="confirm_deactivate">Deactivate</string>
     <string name="confirm_delete">Delete</string>
     <string name="delete_keyword_target">DELETE</string>
-
     <string name="dialog_deactivate_title">Deactivate your account?</string>
     <string name="dialog_deactivate_text">Your listings and profile will no longer be visible. You can reactivate your account anytime by logging back in.</string>
     <string name="dialog_delete_title">Delete your account?</string>
-    <string name="dialog_delete_text">Your profile, listings, and all your data will be permanently deleted. This action cannot be undone.</string>
+    <string name="dialog_delete_text">Your listings will be hidden starting today. In 30 days your profile, listings, and all your data will be deleted. If you change your mind, sign in before that date.</string>
     <string name="dialog_delete_placeholder">Type DELETE to confirm</string>
-
-    <!-- Plans (API) -->
+    <!--  Plans (API)  -->
     <string name="plan_price_amount">$%1$d</string>
     <string name="plan_limit_single">Up to 1 active listing</string>
     <string name="plan_limit_multi_format">Up to %1$d active listings</string>
@@ -953,53 +917,45 @@
     <string name="plans_load_error">Could not load the plans</string>
     <string name="plans_retry">Retry</string>
     <string name="network_error_connection">Could not connect to the server. Check your internet connection and try again</string>
-
     <string name="search_filters_colonias_loading">Loading neighborhoods…</string>
     <string name="search_filters_colonias_error">Could not load neighborhoods</string>
     <string name="search_filters_colonias_empty">There are no neighborhoods with listings yet</string>
     <string name="search_filters_colonias_retry">Retry</string>
-
-    <!-- Report Listing -->
+    <!--  Report Listing  -->
     <string name="report_title">Report listing</string>
     <string name="report_category_question">Why do you want to report this listing?</string>
     <string name="report_reason_question">Please tell us the reason for the report.</string>
     <string name="report_anonymous_notice">Your report is anonymous to others, and we will review all reports according to our community guidelines</string>
-
-    <!-- Categories -->
+    <!--  Categories  -->
     <string name="report_category_false_info">False information</string>
     <string name="report_category_false_info_desc">Incorrect or outdated details</string>
     <string name="report_category_offensive">Offensive content</string>
     <string name="report_category_offensive_desc">Inappropriate text or images</string>
     <string name="report_category_fraud">Potential fraud</string>
     <string name="report_category_fraud_desc">Someone is attempting to scam or charge without authorization</string>
-
-    <!-- Reasons: False Information -->
+    <!--  Reasons: False Information  -->
     <string name="report_reason_photos_mismatch">Photos do not match the property</string>
     <string name="report_reason_wrong_price">False or misleading price</string>
     <string name="report_reason_wrong_data">Incorrect details</string>
     <string name="report_reason_wrong_location">Incorrect location</string>
     <string name="report_reason_not_available">The property is no longer available</string>
-
-    <!-- Reasons: Offensive Content -->
+    <!--  Reasons: Offensive Content  -->
     <string name="report_reason_offensive_language">Offensive language or insults</string>
     <string name="report_reason_discriminatory">Discriminatory content</string>
     <string name="report_reason_sexual">Sexual content</string>
     <string name="report_reason_violent">Violent content</string>
-
-    <!-- Reasons: Potential Fraud -->
+    <!--  Reasons: Potential Fraud  -->
     <string name="report_reason_suspicious_price">Suspiciously low price</string>
     <string name="report_reason_not_exist">The property does not exist</string>
     <string name="report_reason_multiple_publishers">Property posted by multiple people</string>
     <string name="report_reason_advance_payment">Requesting payment before viewing the property</string>
     <string name="report_reason_other">Other</string>
-
-    <!-- Description & Evidence Form -->
+    <!--  Description & Evidence Form  -->
     <string name="report_description_title">Please complete the reason for the report</string>
     <string name="report_description_placeholder">Provide a detailed description of your issue so we can better help you resolve it</string>
     <string name="report_add_evidence_cd">Add evidence</string>
     <string name="report_send">Send</string>
-
-    <!-- Confirmations & Errors -->
+    <!--  Confirmations & Errors  -->
     <string name="report_success_title">Thank you for your report</string>
     <string name="report_success_message">We will review it and, if it violates our guidelines, we will take the necessary action</string>
     <string name="report_success_button">Got it</string>
@@ -1009,26 +965,21 @@
     <string name="report_error_image_size">Images must not exceed 5 MB.</string>
     <string name="report_error_video_size">Videos must not exceed 20 MB.</string>
     <string name="report_error_video_duration">Videos must not exceed 30 seconds.</string>
-
-    <!-- Common for Reports -->
+    <!--  Common for Reports  -->
     <string name="report_common_ok">OK</string>
     <string name="report_common_remove">Remove</string>
     <string name="report_common_discard">Discard</string>
     <string name="report_common_cancel">Cancel</string>
-
-    <!-- Profile & Navigation -->
+    <!--  Profile & Navigation  -->
     <string name="cd_back">Back</string>
     <string name="cd_edit_profile">Edit profile</string>
-
-    <!-- Listing Actions -->
+    <!--  Listing Actions  -->
     <string name="action_create_listing">Create listing +</string>
     <string name="empty_listings_message">You don\'t have any listings yet. Create your first listing so buyers can see it.</string>
-
-    <!-- Listing Statuses -->
+    <!--  Listing Statuses  -->
     <string name="status_in_review">Under review</string>
     <string name="status_published">Published</string>
     <string name="status_rejected">Rejected</string>
-
     <string name="create_listing_error_description_min">Enter at least 30 characters</string>
     <string name="create_listing_description_area_hint">Include the property area (m²)</string>
     <string name="create_listing_redetect">Detect again</string>
@@ -1039,7 +990,6 @@
     <string name="create_listing_error_generic">Couldnt submit the listing. Please try again.</string>
     <string name="create_listing_error_forbidden">Your account isnt allowed to publish listings.</string>
     <string name="my_listings_load_error">Failed to load your listings</string>
-
     <string name="manage_listing_title">Listing Management</string>
     <string name="manage_listing_edit">Edit Listing</string>
     <string name="manage_listing_pause">Pause/Hide Listing</string>
@@ -1057,8 +1007,7 @@
     <string name="manage_listing_resumed">Listing reactivated</string>
     <string name="status_paused">Paused</string>
     <string name="manage_listing_deleted">Listing successfully deleted</string>
-
-    <!-- Phone verification by SMS (Firebase) -->
+    <!--  Phone verification by SMS (Firebase)  -->
     <string name="phone_sms_wait_for_sms">Wait for the SMS or request a new one</string>
     <string name="phone_sms_enter_6">Enter the 6 digits of the code</string>
     <string name="phone_sms_error_invalid_number">The phone number is not valid</string>
@@ -1070,8 +1019,7 @@
     <string name="phone_sms_error_restart">The sign-up data was lost. Please start again</string>
     <string name="listings_load_error">Failed to load listings. Check your connection and try again.</string>
     <string name="listings_retry">Retry</string>
-
-    <!-- Reports admin screen -->
+    <!--  Reports admin screen  -->
     <string name="report_action_procede">Proceed</string>
     <string name="report_note_label">Administrator note</string>
     <string name="report_note_seller_notice">The seller will see this note if you remove the listing. Do not mention who reported it.</string>
@@ -1081,38 +1029,43 @@
     <string name="report_measure_listing_removed">Measure applied: listing removed</string>
     <string name="report_account_deleted">Deleted account</string>
     <string name="report_reporter_title">Reported by</string>
-
-    <!-- Notifications Screen -->
+    <!--  Notifications Screen  -->
     <string name="notifications_title">Notifications</string>
     <string name="notifications_empty">No notifications</string>
     <string name="notifications_error">Could not load your notifications</string>
     <string name="notifications_retry">Retry</string>
-
-    <!-- Titles and Bodies -->
+    <!--  Titles and Bodies  -->
     <string name="notif_title_in_review">Listing under review</string>
     <string name="notif_body_in_review">Hello, your property \"%1$s\" is under review. We will notify you once it is approved.</string>
-
     <string name="notif_title_approved">Your listing was approved! \u2705</string>
     <string name="notif_body_approved">Your property \"%1$s\" passed review and is now published. Interested users can view and contact you.</string>
-
     <string name="notif_title_rejected">Listing rejected \u274C</string>
     <string name="notif_body_rejected">Your property \"%1$s\" was not approved. Reason: \"%2$s\". You can edit and resubmit it.</string>
-
     <string name="notif_title_payment">Thank you for your payment! \u5890</string>
     <string name="notif_body_payment">Hello %1$s, we confirmed your payment for the %2$s plan.</string>
-
     <string name="notif_title_welcome">Welcome as a seller! \uF389</string>
     <string name="notif_body_welcome">Hello %1$s, you can now start publishing your properties.</string>
-
     <string name="notif_title_search_updates">Search updates! \uF50D</string>
     <string name="notif_body_search_updates">This recently published property matches your search filters.</string>
-
     <string name="notif_title_found_for_you">We found something for you \uF3E1</string>
     <string name="notif_body_found_for_you">We found a property matching your search for \"%1$s\". Check it out!</string>
-
     <string name="notif_title_recently_published">Recently published properties \uF195</string>
     <string name="notif_body_recently_published">Based on your search, we think you will like this property.</string>
 
+    <!-- Deactivate / delete account -->
+    <string name="acc_current_password">Current password</string>
+    <string name="acc_toggle_password_cd">Show or hide password</string>
+    <string name="acc_google_hint">Your account signs in with Google. To confirm, choose your Google account.</string>
+    <string name="acc_confirm_google">Confirm with Google</string>
+    <string name="acc_delete_scheduled_msg">Your account will be deleted on %1$s. If you change your mind, sign in before that date.</string>
+    <!-- Signing in with a deactivated account or one scheduled for deletion -->
+    <string name="login_reactivate_title">Account deactivated</string>
+    <string name="login_reactivate_text">Your account is deactivated. Do you want to reactivate it?</string>
+    <string name="login_reactivate_confirm">Reactivate</string>
+    <string name="login_keep_title">Your account is scheduled for deletion</string>
+    <string name="login_keep_confirm">Keep my account</string>
+    <string name="login_reactivated_msg">Your account is active again</string>
+    <string name="login_kept_msg">Done, your account will not be deleted</string>
     <!-- User panel -->
     <string name="admin_users_title">Users</string>
     <string name="admin_users_total_accounts">%1$d registered accounts</string>
@@ -1134,8 +1087,7 @@
     <string name="admin_user_status_active">Active</string>
     <string name="admin_user_status_suspended">Suspended</string>
     <string name="admin_user_status_deactivated">Deactivated</string>
-
-    <!-- User detail -->
+    <!--  User detail  -->
     <string name="admin_user_detail_title">User details</string>
     <string name="admin_user_section_account">Account</string>
     <string name="admin_user_section_name">Name</string>
@@ -1156,13 +1108,11 @@
     <string name="admin_user_label_rejected">Rejected</string>
     <string name="admin_user_label_pending_reports">Pending reports</string>
     <string name="admin_user_no_plan">No plan</string>
-
-    <!-- Detail actions -->
+    <!--  Detail actions  -->
     <string name="admin_user_action_block">Block / Suspend</string>
     <string name="admin_user_action_unsuspend">Lift suspension</string>
     <string name="admin_user_action_delete">Delete account</string>
-
-    <!-- Block / suspend -->
+    <!--  Block / suspend  -->
     <string name="admin_user_block_title">Block account</string>
     <string name="admin_user_block_subtitle">Sensitive action</string>
     <string name="admin_user_block_question">Block this account?</string>
@@ -1176,8 +1126,7 @@
     <string name="admin_user_block_footnote">The date, the responsible administrator and the reason will be recorded in the account history.</string>
     <string name="admin_user_block_confirm">Block account</string>
     <string name="admin_user_block_default_reason">Administrative suspension</string>
-
-    <!-- Delete -->
+    <!--  Delete  -->
     <string name="admin_user_delete_title">Delete user</string>
     <string name="admin_user_delete_subtitle">Irreversible action</string>
     <string name="admin_user_delete_header">Delete permanently</string>
