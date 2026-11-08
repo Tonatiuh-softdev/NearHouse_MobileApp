@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -33,6 +34,7 @@ import com.equipo4.nearhome.data.local.SessionManager
 import com.equipo4.nearhome.data.remote.evidenciaReporteUrl
 import com.equipo4.nearhome.domain.model.ReportStatus
 import com.equipo4.nearhome.domain.model.ReportType
+import com.equipo4.nearhome.ui.publicacion.detail.FullScreenPhotoViewer
 import com.equipo4.nearhome.ui.theme.NoticeTone
 import com.equipo4.nearhome.ui.theme.noticeColors
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -57,6 +59,8 @@ fun ReportDetailScreen(
     val token = remember { SessionManager(context).getToken().orEmpty() }
     // Acción elegida: "PROCEDENTE" o "DESCARTADO". Null = no se muestra el diálogo
     var accion by remember { mutableStateOf<String?>(null) }
+    // Evidencia abierta a pantalla completa (null = cerrado)
+    var evidenceViewerIndex by remember { mutableStateOf<Int?>(null) }
 
     LaunchedEffect(error) {
         error?.let {
@@ -295,9 +299,11 @@ fun ReportDetailScreen(
                         }
                         Spacer(Modifier.height(10.dp))
                         LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            items(currentReport.evidences) { evidenciaId ->
+                            itemsIndexed(currentReport.evidences) { index, evidenciaId ->
                                 Card(
-                                    modifier = Modifier.size(110.dp),
+                                    modifier = Modifier
+                                        .size(110.dp)
+                                        .clickable { evidenceViewerIndex = index },
                                     shape = RoundedCornerShape(12.dp),
                                     elevation = CardDefaults.cardElevation(1.dp)
                                 ) {
@@ -313,6 +319,22 @@ fun ReportDetailScreen(
                                     )
                                 }
                             }
+                        }
+
+                        // Evidencias a pantalla completa
+                        evidenceViewerIndex?.let { start ->
+                            val requests = currentReport.evidences.map { id ->
+                                ImageRequest.Builder(context)
+                                    .data(evidenciaReporteUrl(id))
+                                    .addHeader("Authorization", "Bearer $token")
+                                    .crossfade(true)
+                                    .build()
+                            }
+                            FullScreenPhotoViewer(
+                                images = requests,
+                                initialPage = start,
+                                onDismiss = { evidenceViewerIndex = null }
+                            )
                         }
                     }
                 }

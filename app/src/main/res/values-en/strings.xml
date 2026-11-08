@@ -252,6 +252,8 @@
     <!--  Detalle de publicación  -->
     <string name="detail_back_cd">Regresar</string>
     <string name="detail_save_cd">Guardar</string>
+    <string name="photo_viewer_open_cd">View full photo</string>
+    <string name="photo_viewer_close_cd">Close photos</string>
     <string name="detail_type_house">Casa</string>
     <string name="detail_type_apartment">Departamento</string>
     <string name="detail_type_land">Terreno</string>

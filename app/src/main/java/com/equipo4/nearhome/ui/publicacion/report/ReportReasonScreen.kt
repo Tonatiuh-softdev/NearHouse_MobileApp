@@ -35,8 +35,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import android.content.Context
+import com.equipo4.nearhome.ui.publicacion.detail.FullScreenPhotoViewer
 import com.equipo4.nearhome.R
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -52,7 +52,8 @@ fun ReportReasonScreen(
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
     var showDiscardDialog by remember { mutableStateOf(false) }
-    var previewEvidence by remember { mutableStateOf<EvidenceFile?>(null) }
+    // Índice de la evidencia abierta a pantalla completa (null = cerrado)
+    var previewIndex by remember { mutableStateOf<Int?>(null) }
 
     LaunchedEffect(publicacionId) { viewModel.initPublicacion(publicacionId) }
 
@@ -257,10 +258,10 @@ fun ReportReasonScreen(
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        uiState.evidenceFiles.forEach { file ->
+                        uiState.evidenceFiles.forEachIndexed { index, file ->
                             EvidenceThumbnail(
                                 file = file,
-                                onClick = { previewEvidence = file },
+                                onClick = { previewIndex = index },
                                 onRemove = { viewModel.removeEvidence(file) }
                             )
                         }
@@ -323,8 +324,15 @@ fun ReportReasonScreen(
         }
     }
 
-    previewEvidence?.let { file ->
-        EvidencePreviewModal(file = file, onDismiss = { previewEvidence = null })
+    previewIndex?.let { index ->
+        val uris = uiState.evidenceFiles.map { it.uri }
+        if (uris.isNotEmpty()) {
+            FullScreenPhotoViewer(
+                images = uris,
+                initialPage = index,
+                onDismiss = { previewIndex = null }
+            )
+        }
     }
 
     uiState.errorMessage?.let { msg ->
@@ -435,58 +443,3 @@ private fun EvidenceThumbnail(
     }
 }
 
-@Composable
-private fun EvidencePreviewModal(
-    file: EvidenceFile,
-    onDismiss: () -> Unit
-) {
-    val context = LocalContext.current
-    val bitmap by produceState<Bitmap?>(initialValue = null, file.uri) {
-        value = withContext(Dispatchers.IO) {
-            runCatching { cargarBitmap(context, file.uri, 1) }.getOrNull()
-        }
-    }
-
-    Dialog(onDismissRequest = onDismiss) {
-        Surface(
-            shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.surface,
-            modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight()
-        ) {
-            Box(modifier = Modifier.fillMaxWidth().padding(12.dp)) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 250.dp, max = 420.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    bitmap?.let { b ->
-                        Image(
-                            bitmap = b.asImageBitmap(),
-                            contentDescription = null,
-                            contentScale = ContentScale.Fit,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-                }
-
-                IconButton(
-                    onClick = onDismiss,
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
-                        .size(32.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = stringResource(R.string.report_common_cancel),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
-            }
-        }
-    }
-}
