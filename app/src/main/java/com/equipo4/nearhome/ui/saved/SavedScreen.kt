@@ -34,78 +34,113 @@ import com.equipo4.nearhome.ui.common.PropertyListSkeleton
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+import android.widget.Toast
+import androidx.activity.compose.BackHandler
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.ui.platform.LocalContext
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SavedScreen(
+    reselectTrigger: Long = 0L,
     viewModel: SavedViewModel = viewModel(),
     onPropertyClick: (String) -> Unit = {},
     onBottomTabSelected: (Int) -> Unit = {}
 ) {
+    val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
     val scope = rememberCoroutineScope()
     var removing by remember { mutableStateOf(setOf<String>()) }
     val listState = rememberLazyListState()
+
+    BackHandler {
+        onBottomTabSelected(0)
+    }
+
+    val errorMessage = stringResource(R.string.refresh_error_connection)
+
+    val triggerReload = {
+        viewModel.recargar { success ->
+            if (!success) {
+                Toast.makeText(
+                    context,
+                    errorMessage,
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+
+    LaunchedEffect(reselectTrigger) {
+        if (reselectTrigger > 0) {
+            scope.launch {
+                listState.animateScrollToItem(0)
+            }
+            triggerReload()
+        }
+    }
 
     Scaffold(
         topBar = { SavedTopBar() },
         bottomBar = {
             NearHomeBottomBar(
                 selectedTab = 1,
-                onTabSelected = { index ->
-                    if (index == 1) {
-                        scope.launch {
-                            listState.animateScrollToItem(0)
-                        }
-                    } else {
-                        onBottomTabSelected(index)
-                    }
-                }
+                onTabSelected = onBottomTabSelected
             )
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
-        Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-            when {
-                // 1. Carga inicial -> Mostrar esqueleto de tarjetas
-                uiState.isLoading -> {
-                    PropertyListSkeleton(count = 3)
-                }
+        PullToRefreshBox(
+            isRefreshing = uiState.isRefreshing,
+            onRefresh = triggerReload,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                when {
+                    // 1. Carga inicial -> Mostrar esqueleto de tarjetas
+                    uiState.isLoading -> {
+                        PropertyListSkeleton(count = 3)
+                    }
 
-                // 2. Estado de error
-                uiState.errorMessage != null -> Text(
-                    uiState.errorMessage!!,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 14.sp,
-                    modifier = Modifier.align(Alignment.Center).padding(24.dp),
-                    textAlign = TextAlign.Center
-                )
+                    // 2. Estado de error
+                    uiState.errorMessage != null -> Text(
+                        uiState.errorMessage!!,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 14.sp,
+                        modifier = Modifier.align(Alignment.Center).padding(24.dp),
+                        textAlign = TextAlign.Center
+                    )
 
-                // 3. Sin publicaciones guardadas
-                uiState.properties.isEmpty() -> EmptySavedState()
+                    // 3. Sin publicaciones guardadas
+                    uiState.properties.isEmpty() -> EmptySavedState()
 
-                // 4. Lista de publicaciones guardadas
-                else -> LazyColumn(
-                    state = listState,
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp)
-                ) {
-                    items(items = uiState.properties, key = { it.id }) { property ->
-                        AnimatedVisibility(
-                            visible = property.id !in removing,
-                            exit = shrinkVertically(tween(300)) + fadeOut(tween(300))
-                        ) {
-                            Box(modifier = Modifier.padding(bottom = 16.dp)) {
-                                PropertyCard(
-                                    property = property.copy(isSaved = true),
-                                    onToggleSave = {
-                                        removing = removing + property.id
-                                        scope.launch {
-                                            delay(320)
-                                            viewModel.onUnsave(property.id)
-                                            removing = removing - property.id
-                                        }
-                                    },
-                                    onClick = { onPropertyClick(property.id) }
-                                )
+                    // 4. Lista de publicaciones guardadas
+                    else -> LazyColumn(
+                        state = listState,
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp)
+                    ) {
+                        items(items = uiState.properties, key = { it.id }) { property ->
+                            AnimatedVisibility(
+                                visible = property.id !in removing,
+                                exit = shrinkVertically(tween(300)) + fadeOut(tween(300))
+                            ) {
+                                Box(modifier = Modifier.padding(bottom = 16.dp)) {
+                                    PropertyCard(
+                                        property = property.copy(isSaved = true),
+                                        onToggleSave = {
+                                            removing = removing + property.id
+                                            scope.launch {
+                                                delay(320)
+                                                viewModel.onUnsave(property.id)
+                                                removing = removing - property.id
+                                            }
+                                        },
+                                        onClick = { onPropertyClick(property.id) }
+                                    )
+                                }
                             }
                         }
                     }

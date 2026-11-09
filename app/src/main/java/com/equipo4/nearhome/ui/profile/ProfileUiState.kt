@@ -22,6 +22,7 @@ val LanguageOptions = listOf("Español", "English")
 
 data class ProfileUiState(
     val isLoading: Boolean = true, // Controla el estado esqueleto del header
+    val isRefreshing: Boolean = false,
     val userName: String = "",
     val userPhotoUrl: String? = null,
     val role: UserRole = UserRole.COMPRADOR,

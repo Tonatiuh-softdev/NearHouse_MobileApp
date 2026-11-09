@@ -127,9 +127,17 @@ class HomeViewModel(
         viewModelScope.launch { repository.setSaved(propertyId, !current.isSaved) }
     }
 
-    fun onTabSelected(index: Int) {
-        _uiState.update { it.copy(selectedTab = index) }
+    fun recargar(onFinished: (Boolean) -> Unit = {}) {
+        if (_uiState.value.isRefreshing) return
+        _uiState.update { it.copy(isRefreshing = true) }
+        viewModelScope.launch {
+            val success = repository.refresh()
+            _uiState.update { it.copy(isRefreshing = false) }
+            onFinished(success)
+        }
     }
 
-    fun onScreenResumed() = repository.refresh()
+    fun onScreenResumed() {
+        viewModelScope.launch { repository.refresh() }
+    }
 }

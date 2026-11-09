@@ -81,7 +81,19 @@ class PropiedadRepositoryApi(context: Context) : PropiedadRepository {
         savedIds.update { next }
     }
 
-    override fun refresh() = reload()
+    override suspend fun refresh(): Boolean {
+        return try {
+            val userId = session.getUserId()
+            val list = api.listar().map { it.toProperty(userId) }
+            remote.value = list
+            true
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.w(TAG, "No se pudieron cargar los anuncios: ${e.message}")
+            false
+        }
+    }
 
     /** Pide la lista al API. Si ya hay una petición en curso, la vuelve a pedir al terminar en vez de perder el cambio. */
     private fun reload() {
@@ -92,14 +104,7 @@ class PropiedadRepositoryApi(context: Context) : PropiedadRepository {
         loadJob = scope.launch {
             do {
                 reloadPending = false
-                try {
-                    val userId = session.getUserId()
-                    remote.value = api.listar().map { it.toProperty(userId) }
-                } catch (e: CancellationException) {
-                    throw e
-                } catch (e: Exception) {
-                    Log.w(TAG, "No se pudieron cargar los anuncios: ${e.message}")
-                }
+                refresh()
             } while (reloadPending)
         }
     }

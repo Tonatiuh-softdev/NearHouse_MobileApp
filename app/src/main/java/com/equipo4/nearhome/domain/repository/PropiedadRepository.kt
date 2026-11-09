@@ -11,7 +11,7 @@ interface PropiedadRepository {
     /** Todas las propiedades (Lista y Mapa). Emite de nuevo cada vez que algo cambia, ej. al guardar. */
     fun observeAll(): Flow<List<Property>>
 
-    fun refresh()
+    suspend fun refresh(): Boolean
 
     /** Propiedades marcadas como guardadas. Emite de nuevo cada vez que cambian. */
     fun observeSaved(): Flow<List<Property>>

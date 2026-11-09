@@ -50,20 +50,50 @@ import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.Locale
 
+import android.widget.Toast
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.ui.platform.LocalContext
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
+    reselectTrigger: Long = 0L,
     viewModel: HomeViewModel = viewModel(),
     onPropertyClick: (String) -> Unit = {},
     onToggleToMap: () -> Unit = {},
     onFilterClick: () -> Unit = {},
     onBottomTabSelected: (Int) -> Unit = {}
 ) {
+    val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
     val filterState by PropertyFilterManager.filterState.collectAsState()
     val activeCount = filterState.getSelectedCount()
     val hasFilters = activeCount > 0
+
+    val errorMessage = stringResource(R.string.refresh_error_connection)
+
+    val triggerReload = {
+        viewModel.recargar { success ->
+            if (!success) {
+                Toast.makeText(
+                    context,
+                    errorMessage,
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+
+    LaunchedEffect(reselectTrigger) {
+        if (reselectTrigger > 0) {
+            coroutineScope.launch {
+                listState.animateScrollToItem(0)
+            }
+            triggerReload()
+        }
+    }
 
     LaunchedEffect(uiState.sortOption) {
         listState.scrollToItem(0)
@@ -77,16 +107,7 @@ fun HomeScreen(
         bottomBar = {
             NearHomeBottomBar(
                 selectedTab = 0,
-                onTabSelected = { index ->
-                    if (index == 0) {
-                        viewModel.onSearchQueryChange("")
-                        coroutineScope.launch {
-                            listState.animateScrollToItem(0)
-                        }
-                    } else {
-                        onBottomTabSelected(index)
-                    }
-                }
+                onTabSelected = onBottomTabSelected
             )
         },
         containerColor = MaterialTheme.colorScheme.background
@@ -118,57 +139,61 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            Column(
+            PullToRefreshBox(
+                isRefreshing = uiState.isRefreshing,
+                onRefresh = triggerReload,
                 modifier = Modifier
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.background)
             ) {
-                if (!uiState.isLoading) {
-                    Text(
-                        text = stringResource(R.string.home_properties_count, formatNumber(uiState.properties.size)),
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
-                            .padding(horizontal = 16.dp, vertical = 2.dp)
-                    )
-                }
+                Column(modifier = Modifier.fillMaxSize()) {
+                    if (!uiState.isLoading) {
+                        Text(
+                            text = stringResource(R.string.home_properties_count, formatNumber(uiState.properties.size)),
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                                .padding(horizontal = 16.dp, vertical = 2.dp)
+                        )
+                    }
 
-                when {
-                    uiState.isLoading -> {
-                        PropertyListSkeleton(count = 3)
-                    }
-                    uiState.properties.isEmpty() -> {
-                        EmptyHomeState(onClearFilters = { viewModel.clearFilters() })
-                    }
-                    else -> {
-                        LazyColumn(
-                            state = listState,
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(
-                                start = 16.dp,
-                                end = 16.dp,
-                                top = 12.dp,
-                                bottom = 16.dp
-                            ),
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            items(
-                                items = uiState.properties,
-                                key = { it.id }
-                            ) { property ->
-                                Box(
-                                    modifier = Modifier.animateItem(
-                                        placementSpec = spring(dampingRatio = 1f, stiffness = 400f)
-                                    )
-                                ) {
-                                    PropertyCard(
-                                        property = property,
-                                        onToggleSave = { viewModel.toggleSaveProperty(property.id) },
-                                        onClick = { onPropertyClick(property.id) }
-                                    )
+                    when {
+                        uiState.isLoading -> {
+                            PropertyListSkeleton(count = 3)
+                        }
+                        uiState.properties.isEmpty() -> {
+                            EmptyHomeState(onClearFilters = { viewModel.clearFilters() })
+                        }
+                        else -> {
+                            LazyColumn(
+                                state = listState,
+                                modifier = Modifier.fillMaxSize(),
+                                contentPadding = PaddingValues(
+                                    start = 16.dp,
+                                    end = 16.dp,
+                                    top = 12.dp,
+                                    bottom = 16.dp
+                                ),
+                                verticalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                items(
+                                    items = uiState.properties,
+                                    key = { it.id }
+                                ) { property ->
+                                    Box(
+                                        modifier = Modifier.animateItem(
+                                            placementSpec = spring(dampingRatio = 1f, stiffness = 400f)
+                                        )
+                                    ) {
+                                        PropertyCard(
+                                            property = property,
+                                            onToggleSave = { viewModel.toggleSaveProperty(property.id) },
+                                            onClick = { onPropertyClick(property.id) }
+                                        )
+                                    }
                                 }
                             }
                         }
