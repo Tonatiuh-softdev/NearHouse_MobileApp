@@ -105,6 +105,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.equipo4.nearhome.ui.notifications.NotificacionesHelper
+import com.equipo4.nearhome.ui.notifications.PedirPermisoNotificaciones
+import com.equipo4.nearhome.ui.notifications.TokenManager
 
 object AppRoutes {
     const val SPLASH = "splash"
@@ -172,6 +175,7 @@ class MainActivity : AppCompatActivity() {
         )
 
         Repositories.init(applicationContext)
+        NotificacionesHelper.crearCanal(applicationContext) // NUEVO: Crea el canal "avisos"
 
         super.onCreate(savedInstanceState)
         setContent {
@@ -204,6 +208,30 @@ fun NearHouseApp() {
         factory = GoogleAuthViewModelFactory(context)
     )
     val googleAuthState by googleAuthViewModel.uiState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        val intentData = (context as? MainActivity)?.intent?.data
+        if (intentData != null) {
+            val ruta = intentData.toString().removePrefix("nearhouse://")
+            if (ruta.isNotEmpty()) {
+                // Si hay sesión, navegamos. Si no, el flujo normal te manda al login.
+                if (sessionManager.isLoggedIn()) {
+                    navController.navigate(ruta) {
+                        popUpTo(AppRoutes.HOME) { inclusive = false }
+                    }
+                }
+            }
+            // Limpiar el intent para que al rotar la pantalla no vuelva a navegar
+            (context as? MainActivity)?.intent?.data = null
+        }
+    }
+
+    // Registrar el token si ya hay sesión iniciada al abrir la app
+    LaunchedEffect(Unit) {
+        if (sessionManager.isLoggedIn()) {
+            TokenManager.registrarTokenActual(context, scope)
+        }
+    }
 
     // Escucha global de respuestas de la API de Google
     LaunchedEffect(googleAuthState) {
@@ -474,6 +502,9 @@ fun NearHouseApp() {
         }
 
         composable(AppRoutes.HOME) {
+            // NUEVO: Pedir permiso de notificaciones (Android 13+)
+            PedirPermisoNotificaciones()
+
             HomeScreen(
                 onPropertyClick = { propertyId ->
                     navController.navigate("${AppRoutes.PUBLICACION_DETAIL}/$propertyId")
@@ -498,10 +529,8 @@ fun NearHouseApp() {
             )
         }
 
-        // Pantalla: Notificaciones (Actualizada para usar el repositorio real)
+        // Pantalla: Notificaciones
         composable(AppRoutes.NOTIFICATIONS) {
-            // Usamos el nuevo ViewModel que crearemos a continuación.
-            // El repositorio real viene de Repositories.notificaciones
             val viewModel: NotificationsViewModel = viewModel(
                 factory = object : ViewModelProvider.Factory {
                     @Suppress("UNCHECKED_CAST")
@@ -554,10 +583,13 @@ fun NearHouseApp() {
                 onTermsClick = { navController.navigate(AppRoutes.TERMS_AND_CONDITIONS) },
                 onPrivacyClick = { navController.navigate(AppRoutes.PRIVACY_POLICY) },
                 onLogoutClick = {
-                    sessionManager.clearSession()
-                    CurrentUserStore.clear()
-                    navController.navigate(AppRoutes.LOGIN) {
-                        popUpTo(0) { inclusive = true }
+                    // NUEVO: Borrar el token de la API antes de cerrar sesión
+                    TokenManager.borrarTokenActual(context, scope) {
+                        sessionManager.clearSession()
+                        CurrentUserStore.clear()
+                        navController.navigate(AppRoutes.LOGIN) {
+                            popUpTo(0) { inclusive = true }
+                        }
                     }
                 },
                 onSessionExpired = {
@@ -871,6 +903,7 @@ fun NearHouseApp() {
                     navController.navigate("${AppRoutes.PUBLICACION_DETAIL}/$propertyId")
                 },
                 onManageAccountClick = {
+                    // Si se llegó desde el detalle de esa cuenta, solo se regresa (no se apilan pantallas)
                     val previous = navController.previousBackStackEntry?.destination?.route
                     if (previous?.startsWith(AppRoutes.ADMIN_USER_DETAIL) == true) {
                         navController.popBackStack()
@@ -913,7 +946,7 @@ fun NearHouseApp() {
             )
         }
 
-        // Pantalla: Usuarios (Admin).
+        // Pantalla: Usuarios (Admin). Lista real con búsqueda, filtros por rol y estatus, y paginación
         composable(AppRoutes.ADMIN_USERS) {
             UsersListScreen(
                 onBackClick = { navController.popBackStack() },
@@ -934,6 +967,7 @@ fun NearHouseApp() {
                 userId = userId,
                 onBackClick = { navController.popBackStack() },
                 onViewProfileClick = {
+                    // Igual que arriba: si venimos del perfil, regresamos a él
                     val previous = navController.previousBackStackEntry?.destination?.route
                     if (previous?.startsWith(AppRoutes.USER_PROFILE) == true) {
                         navController.popBackStack()
@@ -1082,13 +1116,14 @@ fun NearHouseApp() {
             )
         }
 
-        // Flujo: Reportar publicación
+        // Flujo: Reportar publicación (el ViewModel se comparte entre las dos pantallas)
         navigation(
             route = "${AppRoutes.REPORT_GRAPH}/{publicacionId}",
             startDestination = AppRoutes.REPORT_CATEGORY,
             arguments = listOf(navArgument("publicacionId") { type = NavType.StringType })
         ) {
             composable(AppRoutes.REPORT_CATEGORY) { entry ->
+                // El id llega al grafo padre, no a las pantallas hijas
                 val parentEntry = remember(entry) {
                     navController.getBackStackEntry("${AppRoutes.REPORT_GRAPH}/{publicacionId}")
                 }
@@ -1118,6 +1153,7 @@ fun NearHouseApp() {
                     publicacionId = publicacionId,
                     onBackClick = { navController.popBackStack() },
                     onReportSubmitted = {
+                        // Cierra todo el flujo y regresa al detalle de la publicación
                         navController.popBackStack("${AppRoutes.REPORT_GRAPH}/{publicacionId}", inclusive = true)
                     }
                 )
