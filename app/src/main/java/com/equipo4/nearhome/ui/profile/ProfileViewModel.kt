@@ -83,6 +83,29 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
+    fun recargar(onFinished: (Boolean) -> Unit = {}) {
+        if (_uiState.value.isRefreshing) return
+        _uiState.update { it.copy(isRefreshing = true) }
+        viewModelScope.launch {
+            var success = true
+            try {
+                val response = CurrentUserStore.refresh(authApi)
+                if (response.code() == 401) {
+                    _sessionExpired.send(Unit)
+                } else if (!response.isSuccessful) {
+                    success = false
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                success = false
+            } finally {
+                _uiState.update { it.copy(isRefreshing = false) }
+                onFinished(success)
+            }
+        }
+    }
+
     fun onLanguageSelected(language: String) {
         settings.saveLanguage(language)
         val tag = if (language == "English") "en" else "es"

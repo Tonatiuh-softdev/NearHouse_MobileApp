@@ -41,10 +41,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import coil.compose.AsyncImage
 
+import android.widget.Toast
+import androidx.activity.compose.BackHandler
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.ui.platform.LocalContext
+
 private enum class SettingSheetType { LANGUAGE, DARK_MODE }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
+    reselectTrigger: Long = 0L,
     viewModel: ProfileViewModel = viewModel(),
     onMyListingsClick: () -> Unit = {},
     onAccountClick: () -> Unit = {},
@@ -62,7 +69,9 @@ fun ProfileScreen(
     }
 
     ProfileContent(
+        reselectTrigger = reselectTrigger,
         uiState = uiState,
+        onRecargar = viewModel::recargar,
         onLanguageSelected = viewModel::onLanguageSelected,
         onDarkModeSelected = viewModel::onDarkModeSelected,
         onMyListingsClick = onMyListingsClick,
@@ -75,9 +84,12 @@ fun ProfileScreen(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileContent(
+    reselectTrigger: Long = 0L,
     uiState: ProfileUiState,
+    onRecargar: ((Boolean) -> Unit) -> Unit = {},
     onLanguageSelected: (String) -> Unit = {},
     onDarkModeSelected: (Boolean?) -> Unit = {},
     onMyListingsClick: () -> Unit = {},
@@ -88,86 +100,109 @@ fun ProfileContent(
     onLogoutClick: () -> Unit = {},
     onBottomTabSelected: (Int) -> Unit = {}
 ) {
+    val context = LocalContext.current
     var openSheet by remember { mutableStateOf<SettingSheetType?>(null) }
     var showLogoutDialog by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
     val scope = rememberCoroutineScope()
 
+    BackHandler {
+        onBottomTabSelected(0)
+    }
+
+    val errorMessage = stringResource(R.string.refresh_error_connection)
+
+    val triggerReload = {
+        onRecargar { success ->
+            if (!success) {
+                Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    LaunchedEffect(reselectTrigger) {
+        if (reselectTrigger > 0) {
+            scope.launch {
+                scrollState.animateScrollTo(0)
+            }
+            triggerReload()
+        }
+    }
+
     Scaffold(
         bottomBar = {
             NearHomeBottomBar(
                 selectedTab = 3,
-                onTabSelected = { index ->
-                    if (index == 3) {
-                        scope.launch {
-                            scrollState.animateScrollTo(0)
-                        }
-                    } else {
-                        onBottomTabSelected(index)
-                    }
-                }
+                onTabSelected = onBottomTabSelected
             )
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
-        Column(
+        PullToRefreshBox(
+            isRefreshing = uiState.isRefreshing,
+            onRefresh = triggerReload,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .verticalScroll(scrollState)
         ) {
-            // Se muestra el Skeleton si uiState.isLoading es true
-            if (uiState.isLoading) {
-                ProfileHeaderSkeleton()
-            } else {
-                ProfileHeader(uiState = uiState)
-            }
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(scrollState)
+            ) {
+                // Se muestra el Skeleton si uiState.isLoading es true
+                if (uiState.isLoading) {
+                    ProfileHeaderSkeleton()
+                } else {
+                    ProfileHeader(uiState = uiState)
+                }
 
-            SectionHeader(stringResource(R.string.profile_section_profile))
-            if (uiState.showMyListings) {
-                ProfileRow(
-                    Icons.Outlined.Verified, stringResource(R.string.profile_my_listings),
-                    showDivider = uiState.showAccountAdmin || uiState.showAdminPanel,
-                    onClick = onMyListingsClick
+                SectionHeader(stringResource(R.string.profile_section_profile))
+                if (uiState.showMyListings) {
+                    ProfileRow(
+                        Icons.Outlined.Verified, stringResource(R.string.profile_my_listings),
+                        showDivider = uiState.showAccountAdmin || uiState.showAdminPanel,
+                        onClick = onMyListingsClick
+                    )
+                }
+                if (uiState.showAccountAdmin) {
+                    ProfileRow(
+                        Icons.Outlined.Settings, stringResource(R.string.profile_account_admin),
+                        showDivider = uiState.showAdminPanel, onClick = onAccountClick
+                    )
+                }
+                if (uiState.showAdminPanel) {
+                    ProfileRow(
+                        icon = Icons.Outlined.AdminPanelSettings,
+                        label = stringResource(R.string.profile_admin_panel),
+                        onClick = onAdminPanelClick
+                    )
+                }
+
+                SectionHeader(stringResource(R.string.profile_section_settings))
+                SettingRow(
+                    icon = Icons.Outlined.Language,
+                    label = stringResource(R.string.profile_language),
+                    value = uiState.language,
+                    showDivider = true,
+                    onClick = { openSheet = SettingSheetType.LANGUAGE }
                 )
-            }
-            if (uiState.showAccountAdmin) {
-                ProfileRow(
-                    Icons.Outlined.Settings, stringResource(R.string.profile_account_admin),
-                    showDivider = uiState.showAdminPanel, onClick = onAccountClick
+                SettingRow(
+                    icon = Icons.Outlined.DarkMode,
+                    label = stringResource(R.string.profile_dark_mode),
+                    value = uiState.darkModeLabel,
+                    onClick = { openSheet = SettingSheetType.DARK_MODE }
                 )
+
+                SectionHeader(stringResource(R.string.profile_section_info))
+                ProfileRow(Icons.Outlined.Description, stringResource(R.string.profile_terms), showDivider = true, onClick = onTermsClick)
+                ProfileRow(Icons.Outlined.MenuBook, stringResource(R.string.profile_privacy), onClick = onPrivacyClick)
+
+                SectionHeader(stringResource(R.string.profile_section_session))
+                ProfileRow(Icons.AutoMirrored.Outlined.Logout, stringResource(R.string.profile_logout), showDivider = true, onClick = { showLogoutDialog = true })
+
+                Spacer(Modifier.height(16.dp))
             }
-            if (uiState.showAdminPanel) {
-                ProfileRow(
-                    icon = Icons.Outlined.AdminPanelSettings,
-                    label = stringResource(R.string.profile_admin_panel),
-                    onClick = onAdminPanelClick
-                )
-            }
-
-            SectionHeader(stringResource(R.string.profile_section_settings))
-            SettingRow(
-                icon = Icons.Outlined.Language,
-                label = stringResource(R.string.profile_language),
-                value = uiState.language,
-                showDivider = true,
-                onClick = { openSheet = SettingSheetType.LANGUAGE }
-            )
-            SettingRow(
-                icon = Icons.Outlined.DarkMode,
-                label = stringResource(R.string.profile_dark_mode),
-                value = uiState.darkModeLabel,
-                onClick = { openSheet = SettingSheetType.DARK_MODE }
-            )
-
-            SectionHeader(stringResource(R.string.profile_section_info))
-            ProfileRow(Icons.Outlined.Description, stringResource(R.string.profile_terms), showDivider = true, onClick = onTermsClick)
-            ProfileRow(Icons.Outlined.MenuBook, stringResource(R.string.profile_privacy), onClick = onPrivacyClick)
-
-            SectionHeader(stringResource(R.string.profile_section_session))
-            ProfileRow(Icons.AutoMirrored.Outlined.Logout, stringResource(R.string.profile_logout), showDivider = true, onClick = { showLogoutDialog = true })
-
-            Spacer(Modifier.height(16.dp))
         }
     }
 

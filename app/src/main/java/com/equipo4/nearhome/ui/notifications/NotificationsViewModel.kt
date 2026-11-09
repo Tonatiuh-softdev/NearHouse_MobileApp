@@ -59,13 +59,30 @@ class NotificationsViewModel(
         }
     }
 
-    fun refresh() {
+    fun recargar(onFinished: (Boolean) -> Unit = {}) {
+        if (_isRefreshing.value) return
         viewModelScope.launch {
             _isRefreshing.value = true
-            loadNotifications()
-            refreshUnreadCount()
+            var success = true
+            repository.listar().onSuccess { list ->
+                _uiState.value = if (list.isEmpty()) {
+                    NotificationsUiState.Empty
+                } else {
+                    NotificationsUiState.Success(list)
+                }
+            }.onFailure {
+                success = false
+            }
+            repository.totalNoLeidas().onSuccess { count ->
+                _unreadCount.value = count
+            }
             _isRefreshing.value = false
+            onFinished(success)
         }
+    }
+
+    fun refresh() {
+        recargar()
     }
 
     fun marcarTodasLeidas() {

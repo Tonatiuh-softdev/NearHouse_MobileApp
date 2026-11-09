@@ -301,6 +301,75 @@ fun NearHouseApp() {
         }
     }
 
+    var homeReselectTrigger by remember { mutableStateOf(0L) }
+    var savedReselectTrigger by remember { mutableStateOf(0L) }
+    var notificationsReselectTrigger by remember { mutableStateOf(0L) }
+    var profileReselectTrigger by remember { mutableStateOf(0L) }
+
+    val sectionRoots = remember {
+        mapOf(
+            0 to AppRoutes.HOME,
+            1 to AppRoutes.SAVED,
+            2 to AppRoutes.NOTIFICATIONS,
+            3 to AppRoutes.PROFILE
+        )
+    }
+
+    fun getSectionForRoute(route: String?): Int {
+        if (route == null) return 0
+        return when {
+            route == AppRoutes.HOME || route == AppRoutes.MAP -> 0
+            route == AppRoutes.SAVED -> 1
+            route == AppRoutes.NOTIFICATIONS -> 2
+            route == AppRoutes.PROFILE ||
+            route == AppRoutes.ACCOUNT_ADMIN ||
+            route == AppRoutes.MY_LISTINGS ||
+            route == AppRoutes.EDIT_PROFILE ||
+            route == AppRoutes.ADMIN_PANEL ||
+            route == AppRoutes.ADMIN_REPORTS ||
+            route == AppRoutes.ADMIN_USERS ||
+            route == AppRoutes.ADMIN_LISTINGS ||
+            route == AppRoutes.ADMIN_LISTING_FILTERS ||
+            route == AppRoutes.SUBSCRIPTION ||
+            route.startsWith(AppRoutes.CHECKOUT) ||
+            route.startsWith(AppRoutes.CREATE_LISTING_GRAPH) ||
+            route.startsWith(AppRoutes.CREATE_LISTING_EDIT) ||
+            route.startsWith(AppRoutes.ADMIN_USER_DETAIL) ||
+            route.startsWith(AppRoutes.ADMIN_REPORT_DETAIL) ||
+            route.startsWith(AppRoutes.ADMIN_LISTING_DETAIL) ||
+            route.startsWith(AppRoutes.ADMIN_LISTING_ACTION) -> 3
+            else -> -1
+        }
+    }
+
+    val onBottomTab: (Int) -> Unit = { index ->
+        val currentRoute = navController.currentDestination?.route
+        val currentSection = getSectionForRoute(currentRoute)
+        val targetRoot = sectionRoots[index] ?: AppRoutes.HOME
+
+        if (currentSection == index) {
+            if (currentRoute == targetRoot) {
+                when (index) {
+                    0 -> homeReselectTrigger++
+                    1 -> savedReselectTrigger++
+                    2 -> notificationsReselectTrigger++
+                    3 -> profileReselectTrigger++
+                }
+            } else {
+                navController.popBackStack(targetRoot, inclusive = false)
+            }
+        } else {
+            navController.navigate(targetRoot) {
+                popUpTo(AppRoutes.HOME) {
+                    inclusive = false
+                    saveState = true
+                }
+                launchSingleTop = true
+                restoreState = true
+            }
+        }
+    }
+
     NavHost(
         navController = navController,
         startDestination = AppRoutes.SPLASH,
@@ -463,49 +532,12 @@ fun NearHouseApp() {
         }
 
         // Pantalla 6: Home (Lista de inmuebles)
-        val onBottomTab: (Int) -> Unit = { index ->
-            when (index) {
-                0 -> navController.navigate(AppRoutes.HOME) {
-                    popUpTo(AppRoutes.HOME) {
-                        inclusive = false
-                        saveState = true
-                    }
-                    launchSingleTop = true
-                    restoreState = true
-                }
-                1 -> navController.navigate(AppRoutes.SAVED) {
-                    popUpTo(AppRoutes.HOME) {
-                        inclusive = false
-                        saveState = true
-                    }
-                    launchSingleTop = true
-                    restoreState = true
-                }
-                2 -> navController.navigate(AppRoutes.NOTIFICATIONS) {
-                    popUpTo(AppRoutes.HOME) {
-                        inclusive = false
-                        saveState = true
-                    }
-                    launchSingleTop = true
-                    restoreState = true
-                }
-                3 -> navController.navigate(AppRoutes.PROFILE) {
-                    popUpTo(AppRoutes.HOME) {
-                        inclusive = false
-                        saveState = true
-                    }
-                    launchSingleTop = true
-                    restoreState = true
-                }
-                else -> Unit
-            }
-        }
-
         composable(AppRoutes.HOME) {
             // NUEVO: Pedir permiso de notificaciones (Android 13+)
             PedirPermisoNotificaciones()
 
             HomeScreen(
+                reselectTrigger = homeReselectTrigger,
                 onPropertyClick = { propertyId ->
                     navController.navigate("${AppRoutes.PUBLICACION_DETAIL}/$propertyId")
                 },
@@ -522,6 +554,7 @@ fun NearHouseApp() {
         // Pantalla: Propiedades guardadas
         composable(AppRoutes.SAVED) {
             SavedScreen(
+                reselectTrigger = savedReselectTrigger,
                 onPropertyClick = { propertyId ->
                     navController.navigate("${AppRoutes.PUBLICACION_DETAIL}/$propertyId")
                 },
@@ -540,6 +573,7 @@ fun NearHouseApp() {
                 }
             )
             NotificationsScreen(
+                reselectTrigger = notificationsReselectTrigger,
                 viewModel = viewModel,
                 onNavigate = { route ->
                     when {
@@ -564,6 +598,7 @@ fun NearHouseApp() {
         // Pantalla: Perfil
         composable(AppRoutes.PROFILE) {
             ProfileScreen(
+                reselectTrigger = profileReselectTrigger,
                 onMyListingsClick = {
                     scope.launch {
                         if (CurrentUserStore.roleOrNull() == null) {

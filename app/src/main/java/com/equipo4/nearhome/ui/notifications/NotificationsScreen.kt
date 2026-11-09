@@ -15,19 +15,52 @@ import androidx.compose.ui.unit.dp
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
 
+import android.widget.Toast
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.launch
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationsScreen(
+    reselectTrigger: Long = 0L,
     viewModel: NotificationsViewModel,
     onNavigate: (String) -> Unit,
     onBottomTabSelected: (Int) -> Unit
 ) {
+    val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
+    val listState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
 
     var showMenu by remember { mutableStateOf(false) }
     var showDeleteAllDialog by remember { mutableStateOf(false) }
     var notifAEliminar by remember { mutableStateOf<String?>(null) }
+
+    BackHandler {
+        onBottomTabSelected(0)
+    }
+
+    val errorMessage = stringResource(R.string.refresh_error_connection)
+
+    val triggerReload = {
+        viewModel.recargar { success ->
+            if (!success) {
+                Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    LaunchedEffect(reselectTrigger) {
+        if (reselectTrigger > 0) {
+            coroutineScope.launch {
+                listState.animateScrollToItem(0)
+            }
+            triggerReload()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -69,7 +102,7 @@ fun NotificationsScreen(
     ) { innerPadding ->
         PullToRefreshBox(
             isRefreshing = isRefreshing,
-            onRefresh = { viewModel.refresh() },
+            onRefresh = triggerReload,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
@@ -97,7 +130,10 @@ fun NotificationsScreen(
                     }
                 }
                 is NotificationsUiState.Success -> {
-                    LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
                         items(state.list, key = { it.id }) { notif ->
                             NotificationItem(
                                 notificacion = notif,

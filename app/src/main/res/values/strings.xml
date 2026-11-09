@@ -908,6 +908,9 @@
     <string name="dialog_delete_title">¿Eliminar tu cuenta?</string>
     <string name="dialog_delete_text">Tus anuncios dejarán de verse desde hoy. En 30 días se borrarán tu perfil, tus anuncios y todos tus datos. Si cambias de opinión, inicia sesión antes de esa fecha.</string>
     <string name="dialog_delete_placeholder">Escribe ELIMINAR para confirmar</string>
+
+    <!-- Recarga y Conexión -->
+    <string name="refresh_error_connection">No se pudo actualizar. Revisa tu conexión.</string>
     <!--  Planes (API)  -->
     <string name="plan_price_amount">$%1$d</string>
     <string name="plan_limit_single">Hasta 1 publicación activa</string>
