@@ -62,8 +62,9 @@
         </provider>
 
         <!-- Servicio FCM de NearHouse -->
+        <!-- DESPUÉS (correcto) -->
         <service
-            android:name=".notifications.NearHouseMessagingService"
+            android:name=".ui.notifications.NearHouseMessagingService"
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
