@@ -1148,4 +1148,27 @@
     <string name="admin_user_delete_item_activity">Preferences and account activity</string>
     <string name="admin_user_delete_footnote">By continuing, you confirm that you reviewed the identity and the impact of this deletion.</string>
     <string name="admin_user_delete_confirm">Delete permanently</string>
+
+    <!-- Pantalla Notificaciones -->
+    <!-- Menú de opciones -->
+    <string name="notif_menu_mark_all">Mark all as read</string>
+    <string name="notif_menu_delete_all">Delete all</string>
+    <string name="notif_menu_delete_confirm_title">Delete all notifications?</string>
+    <string name="notif_menu_delete_confirm_body">This action cannot be undone.</string>
+    <string name="notif_delete_single">Delete</string>
+    <string name="notif_pub_unavailable">This listing is no longer available</string>
+
+    <!-- Títulos de los 9 tipos -->
+    <string name="notif_title_plan">Thank you for your payment!</string>
+    <string name="notif_title_report_sent">We received your report</string>
+    <string name="notif_title_report_attended">We reviewed your report</string>
+    <string name="notif_title_report_discarded">We reviewed your report</string>
+    <string name="notif_title_removed">We removed your listing</string>
+
+    <!-- Cuerpos (textos) de los 9 tipos -->
+    <string name="notif_body_plan">Your %1$s plan is active until %2$s. You can now publish your properties.</string>
+    <string name="notif_body_report_sent">Thanks for letting us know. An administrator will review “%1$s”.</string>
+    <string name="notif_body_report_attended">We took action on “%1$s”. Thanks for helping us keep NearHouse safe.</string>
+    <string name="notif_body_report_discarded">We found that “%1$s” does not break the rules. Thanks for letting us know.</string>
+    <string name="notif_body_removed">“%1$s” is no longer visible because it does not comply with NearHouse rules. Reason: %2$s.</string>
 </resources>

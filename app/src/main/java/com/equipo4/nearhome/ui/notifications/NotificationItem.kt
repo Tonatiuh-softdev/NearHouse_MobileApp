@@ -1,15 +1,19 @@
 package com.equipo4.nearhome.ui.notifications
 
 import android.text.format.DateUtils
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Celebration
+import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Report
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -18,22 +22,21 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.clearAndSetSemantics
-import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.equipo4.nearhome.R
+import com.equipo4.nearhome.data.repository.formatearFechaPlan
 import com.equipo4.nearhome.domain.model.Notificacion
 import com.equipo4.nearhome.domain.model.TipoNotificacion
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun NotificationItem(
     notificacion: Notificacion,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onLongClick: () -> Unit
 ) {
-    val context = LocalContext.current
-
     val backgroundColor = if (notificacion.leida) {
         MaterialTheme.colorScheme.surface
     } else {
@@ -48,21 +51,19 @@ fun NotificationItem(
     ).toString()
 
     val (titulo, texto) = getNotificationText(notificacion)
-    val readStatusText = if (!notificacion.leida) "No leída" else ""
-    val accessibilityDescription = "$titulo. $texto. $relativeTime. $readStatusText"
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .background(backgroundColor)
-            .clickable { onClick() }
-            .padding(16.dp)
-            .clearAndSetSemantics {
-                contentDescription = accessibilityDescription
-            },
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick
+            )
+            .padding(16.dp),
         verticalAlignment = Alignment.Top
     ) {
-        // Imagen o Ícono a la izquierda (64 dp)
+        // Ícono o Imagen a la izquierda (64 dp)
         Box(
             modifier = Modifier
                 .size(64.dp)
@@ -70,55 +71,45 @@ fun NotificationItem(
                 .background(MaterialTheme.colorScheme.surfaceVariant),
             contentAlignment = Alignment.Center
         ) {
-            when (notificacion.tipo) {
-                TipoNotificacion.PAGO -> {
-                    Box(
-                        modifier = Modifier
-                            .size(52.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primaryContainer),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Check,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                    }
+            if (!notificacion.imagenUrl.isNullOrEmpty()) {
+                AsyncImage(
+                    model = notificacion.imagenUrl,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else {
+                // Íconos según tipo si no hay imagen
+                val icon = when (notificacion.tipo) {
+                    TipoNotificacion.BIENVENIDA -> Icons.Default.Celebration
+                    TipoNotificacion.PLAN_CONTRATADO -> Icons.Default.CheckCircle
+                    TipoNotificacion.PUBLICACION_APROBADA -> Icons.Default.CheckCircle
+                    TipoNotificacion.PUBLICACION_RECHAZADA,
+                    TipoNotificacion.PUBLICACION_RETIRADA -> Icons.Default.Error
+                    TipoNotificacion.REPORTE_ENVIADO,
+                    TipoNotificacion.REPORTE_ATENDIDO,
+                    TipoNotificacion.REPORTE_DESCARTADO -> Icons.Default.Report
+                    else -> Icons.Default.Home
                 }
-                TipoNotificacion.BIENVENIDA -> {
-                    Icon(
-                        imageVector = Icons.Default.EmojiEvents,
-                        contentDescription = null,
-                        modifier = Modifier.size(40.dp),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
+                val tint = when (notificacion.tipo) {
+                    TipoNotificacion.PUBLICACION_APROBADA -> MaterialTheme.colorScheme.primary
+                    TipoNotificacion.PUBLICACION_RECHAZADA,
+                    TipoNotificacion.PUBLICACION_RETIRADA -> MaterialTheme.colorScheme.error
+                    else -> MaterialTheme.colorScheme.onSurfaceVariant
                 }
-                else -> {
-                    if (!notificacion.imagenUrl.isNullOrEmpty()) {
-                        AsyncImage(
-                            model = notificacion.imagenUrl,
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    } else {
-                        Icon(
-                            imageVector = Icons.Default.Home,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(32.dp),
+                    tint = tint
+                )
             }
         }
 
         Spacer(modifier = Modifier.width(12.dp))
 
-        // Contenido a la derecha
-        Column(
-            modifier = Modifier.weight(1f)
-        ) {
+        // Contenido
+        Column(modifier = Modifier.weight(1f)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -131,9 +122,7 @@ fun NotificationItem(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f)
                 )
-
                 Spacer(modifier = Modifier.width(8.dp))
-
                 Text(
                     text = relativeTime,
                     style = MaterialTheme.typography.labelSmall,
@@ -157,37 +146,41 @@ fun NotificationItem(
 @Composable
 private fun getNotificationText(notif: Notificacion): Pair<String, String> {
     return when (notif.tipo) {
-        TipoNotificacion.EN_REVISION -> Pair(
-            stringResource(R.string.notif_title_in_review),
-            stringResource(R.string.notif_body_in_review, notif.tituloPropiedad ?: "")
-        )
-        TipoNotificacion.APROBADA -> Pair(
-            stringResource(R.string.notif_title_approved),
-            stringResource(R.string.notif_body_approved, notif.tituloPropiedad ?: "")
-        )
-        TipoNotificacion.RECHAZADA -> Pair(
-            stringResource(R.string.notif_title_rejected),
-            stringResource(R.string.notif_body_rejected, notif.tituloPropiedad ?: "", notif.motivoRechazo ?: "")
-        )
-        TipoNotificacion.PAGO -> Pair(
-            stringResource(R.string.notif_title_payment),
-            stringResource(R.string.notif_body_payment, notif.nombreUsuario ?: "", notif.nombrePlan ?: "")
-        )
         TipoNotificacion.BIENVENIDA -> Pair(
             stringResource(R.string.notif_title_welcome),
             stringResource(R.string.notif_body_welcome, notif.nombreUsuario ?: "")
         )
-        TipoNotificacion.NOVEDADES_BUSQUEDA -> Pair(
-            stringResource(R.string.notif_title_search_updates),
-            stringResource(R.string.notif_body_search_updates)
+        TipoNotificacion.PLAN_CONTRATADO -> Pair(
+            stringResource(R.string.notif_title_plan),
+            stringResource(R.string.notif_body_plan, notif.plan ?: "", formatearFechaPlan(notif.fechaPlanIso))
         )
-        TipoNotificacion.ENCONTRAMOS_ALGO -> Pair(
-            stringResource(R.string.notif_title_found_for_you),
-            stringResource(R.string.notif_body_found_for_you, notif.criterioBusqueda ?: "")
+        TipoNotificacion.PUBLICACION_EN_REVISION -> Pair(
+            stringResource(R.string.notif_title_in_review),
+            stringResource(R.string.notif_body_in_review, notif.tituloPropiedad ?: "")
         )
-        TipoNotificacion.RECIEN_PUBLICADAS -> Pair(
-            stringResource(R.string.notif_title_recently_published),
-            stringResource(R.string.notif_body_recently_published)
+        TipoNotificacion.PUBLICACION_APROBADA -> Pair(
+            stringResource(R.string.notif_title_approved),
+            stringResource(R.string.notif_body_approved, notif.tituloPropiedad ?: "")
+        )
+        TipoNotificacion.PUBLICACION_RECHAZADA -> Pair(
+            stringResource(R.string.notif_title_rejected),
+            stringResource(R.string.notif_body_rejected, notif.tituloPropiedad ?: "", notif.motivo ?: "")
+        )
+        TipoNotificacion.REPORTE_ENVIADO -> Pair(
+            stringResource(R.string.notif_title_report_sent),
+            stringResource(R.string.notif_body_report_sent, notif.tituloPropiedad ?: "")
+        )
+        TipoNotificacion.REPORTE_ATENDIDO -> Pair(
+            stringResource(R.string.notif_title_report_attended),
+            stringResource(R.string.notif_body_report_attended, notif.tituloPropiedad ?: "")
+        )
+        TipoNotificacion.REPORTE_DESCARTADO -> Pair(
+            stringResource(R.string.notif_title_report_discarded),
+            stringResource(R.string.notif_body_report_discarded, notif.tituloPropiedad ?: "")
+        )
+        TipoNotificacion.PUBLICACION_RETIRADA -> Pair(
+            stringResource(R.string.notif_title_removed),
+            stringResource(R.string.notif_body_removed, notif.tituloPropiedad ?: "", notif.motivo ?: "")
         )
     }
 }

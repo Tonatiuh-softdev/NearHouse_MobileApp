@@ -3,6 +3,8 @@ package com.equipo4.nearhome.ui.notifications
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
@@ -23,21 +25,45 @@ fun NotificationsScreen(
     val uiState by viewModel.uiState.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
 
+    var showMenu by remember { mutableStateOf(false) }
+    var showDeleteAllDialog by remember { mutableStateOf(false) }
+    var notifAEliminar by remember { mutableStateOf<String?>(null) }
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(R.string.notifications_title),
-                        style = MaterialTheme.typography.titleLarge
-                    )
+                title = { Text(stringResource(R.string.notifications_title)) },
+                actions = {
+                    IconButton(onClick = { showMenu = true }) {
+                        Icon(Icons.Default.MoreVert, contentDescription = "Opciones")
+                    }
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.notif_menu_mark_all)) },
+                            onClick = {
+                                showMenu = false
+                                viewModel.marcarTodasLeidas()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.notif_menu_delete_all)) },
+                            onClick = {
+                                showMenu = false
+                                showDeleteAllDialog = true
+                            }
+                        )
+                    }
                 }
             )
         },
         bottomBar = {
             NearHomeBottomBar(
                 selectedTab = 2,
-                onTabSelected = onBottomTabSelected
+                onTabSelected = onBottomTabSelected,
+                unreadCount = viewModel.unreadCount.collectAsState().value
             )
         }
     ) { innerPadding ->
@@ -50,10 +76,7 @@ fun NotificationsScreen(
         ) {
             when (val state = uiState) {
                 is NotificationsUiState.Loading -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator()
                     }
                 }
@@ -62,14 +85,14 @@ fun NotificationsScreen(
                 }
                 is NotificationsUiState.Error -> {
                     Column(
-                        modifier = Modifier.fillMaxSize(),
+                        Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text(text = stringResource(R.string.notifications_error))
-                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(stringResource(R.string.notifications_error))
+                        Spacer(Modifier.height(16.dp))
                         Button(onClick = { viewModel.loadNotifications() }) {
-                            Text(text = stringResource(R.string.notifications_retry))
+                            Text(stringResource(R.string.notifications_retry))
                         }
                     }
                 }
@@ -78,7 +101,8 @@ fun NotificationsScreen(
                         items(state.list, key = { it.id }) { notif ->
                             NotificationItem(
                                 notificacion = notif,
-                                onClick = { viewModel.onNotificationClicked(notif, onNavigate) }
+                                onClick = { viewModel.onNotificationClicked(notif, onNavigate) },
+                                onLongClick = { notifAEliminar = notif.id }
                             )
                             HorizontalDivider(
                                 thickness = 0.5.dp,
@@ -89,5 +113,45 @@ fun NotificationsScreen(
                 }
             }
         }
+    }
+
+    // Diálogo confirmación: Borrar todas
+    if (showDeleteAllDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteAllDialog = false },
+            title = { Text(stringResource(R.string.notif_menu_delete_confirm_title)) },
+            text = { Text(stringResource(R.string.notif_menu_delete_confirm_body)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.borrarTodas()
+                    showDeleteAllDialog = false
+                }) { Text(stringResource(R.string.confirm_delete)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteAllDialog = false }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
+
+    // Diálogo confirmación: Borrar una (por mantener presionado)
+    notifAEliminar?.let { id ->
+        AlertDialog(
+            onDismissRequest = { notifAEliminar = null },
+            title = { Text(stringResource(R.string.notif_menu_delete_confirm_title)) },
+            text = { Text(stringResource(R.string.notif_menu_delete_confirm_body)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.borrarUna(id)
+                    notifAEliminar = null
+                }) { Text(stringResource(R.string.confirm_delete)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { notifAEliminar = null }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
     }
 }
