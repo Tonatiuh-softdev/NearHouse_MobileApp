@@ -1155,4 +1155,27 @@
     <string name="admin_user_delete_item_activity">Preferencias y actividad de la cuenta</string>
     <string name="admin_user_delete_footnote">Al continuar, confirmas que revisaste la identidad y el impacto de esta eliminación.</string>
     <string name="admin_user_delete_confirm">Eliminar definitivamente</string>
+
+    <!-- Pantalla Notificaciones -->
+    <!-- Menú de opciones -->
+    <string name="notif_menu_mark_all">Marcar todas como leídas</string>
+    <string name="notif_menu_delete_all">Borrar todas</string>
+    <string name="notif_menu_delete_confirm_title">¿Borrar todas las notificaciones?</string>
+    <string name="notif_menu_delete_confirm_body">Esta acción no se puede deshacer.</string>
+    <string name="notif_delete_single">Eliminar</string>
+    <string name="notif_pub_unavailable">Esta publicación ya no está disponible</string>
+
+    <!-- Títulos de los 9 tipos -->
+    <string name="notif_title_plan">¡Gracias por tu pago!</string>
+    <string name="notif_title_report_sent">Recibimos tu reporte</string>
+    <string name="notif_title_report_attended">Revisamos tu reporte</string>
+    <string name="notif_title_report_discarded">Revisamos tu reporte</string>
+    <string name="notif_title_removed">Retiramos tu publicación</string>
+
+    <!-- Cuerpos (textos) de los 9 tipos -->
+    <string name="notif_body_plan">Tu plan %1$s está activo hasta el %2$s. Ya puedes publicar tus propiedades.</string>
+    <string name="notif_body_report_sent">Gracias por avisarnos. Un administrador revisará “%1$s”.</string>
+    <string name="notif_body_report_attended">Tomamos medidas sobre “%1$s”. Gracias por ayudarnos a cuidar NearHouse.</string>
+    <string name="notif_body_report_discarded">No encontramos que “%1$s” incumpla las reglas. Gracias por avisarnos.</string>
+    <string name="notif_body_removed">“%1$s” ya no está visible porque no cumple las reglas de NearHouse. Motivo: %2$s.</string>
 </resources>

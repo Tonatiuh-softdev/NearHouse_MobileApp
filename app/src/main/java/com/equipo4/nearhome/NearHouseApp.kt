@@ -54,11 +54,9 @@ import com.equipo4.nearhome.ui.legal.PoliticaPrivacidadScreen
 import com.equipo4.nearhome.ui.legal.TerminosCondicionesScreen
 import com.equipo4.nearhome.ui.notifications.NotificationsScreen
 import com.equipo4.nearhome.ui.notifications.NotificationsViewModel
-import com.equipo4.nearhome.data.repository.NotificacionesRepositoryFalso
 import com.equipo4.nearhome.ui.profile.ProfileScreen
 import com.equipo4.nearhome.ui.profile.UserRole
 import com.equipo4.nearhome.ui.profile.account.AccountAdminRoute
-import com.equipo4.nearhome.ui.profile.account.AccountAdminViewModel
 import com.equipo4.nearhome.ui.profile.publicprofile.UserProfileScreen
 import com.equipo4.nearhome.ui.profile.seller.EditProfileScreen
 import com.equipo4.nearhome.ui.profile.seller.MyListingsScreen
@@ -107,8 +105,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.equipo4.nearhome.R
-import com.equipo4.nearhome.ui.admin.users_crud.UsersListScreen
 
 object AppRoutes {
     const val SPLASH = "splash"
@@ -280,8 +276,6 @@ fun NearHouseApp() {
     NavHost(
         navController = navController,
         startDestination = AppRoutes.SPLASH,
-        // Sin animaciones entre pantallas: evita el desvanecido lento y que la pantalla
-        // anterior siga recibiendo toques mientras se va
         enterTransition = { EnterTransition.None },
         exitTransition = { ExitTransition.None },
         popEnterTransition = { EnterTransition.None },
@@ -504,14 +498,15 @@ fun NearHouseApp() {
             )
         }
 
-        // Pantalla: Notificaciones
+        // Pantalla: Notificaciones (Actualizada para usar el repositorio real)
         composable(AppRoutes.NOTIFICATIONS) {
-            val notificationsRepository = remember { NotificacionesRepositoryFalso() }
+            // Usamos el nuevo ViewModel que crearemos a continuación.
+            // El repositorio real viene de Repositories.notificaciones
             val viewModel: NotificationsViewModel = viewModel(
                 factory = object : ViewModelProvider.Factory {
                     @Suppress("UNCHECKED_CAST")
                     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                        return NotificationsViewModel(notificationsRepository) as T
+                        return NotificationsViewModel(Repositories.notificaciones) as T
                     }
                 }
             )
@@ -876,7 +871,6 @@ fun NearHouseApp() {
                     navController.navigate("${AppRoutes.PUBLICACION_DETAIL}/$propertyId")
                 },
                 onManageAccountClick = {
-                    // Si se llegó desde el detalle de esa cuenta, solo se regresa (no se apilan pantallas)
                     val previous = navController.previousBackStackEntry?.destination?.route
                     if (previous?.startsWith(AppRoutes.ADMIN_USER_DETAIL) == true) {
                         navController.popBackStack()
@@ -919,7 +913,7 @@ fun NearHouseApp() {
             )
         }
 
-        // Pantalla: Usuarios (Admin). Lista real con búsqueda, filtros por rol y estatus, y paginación
+        // Pantalla: Usuarios (Admin).
         composable(AppRoutes.ADMIN_USERS) {
             UsersListScreen(
                 onBackClick = { navController.popBackStack() },
@@ -940,7 +934,6 @@ fun NearHouseApp() {
                 userId = userId,
                 onBackClick = { navController.popBackStack() },
                 onViewProfileClick = {
-                    // Igual que arriba: si venimos del perfil, regresamos a él
                     val previous = navController.previousBackStackEntry?.destination?.route
                     if (previous?.startsWith(AppRoutes.USER_PROFILE) == true) {
                         navController.popBackStack()
@@ -1089,14 +1082,13 @@ fun NearHouseApp() {
             )
         }
 
-        // Flujo: Reportar publicación (el ViewModel se comparte entre las dos pantallas)
+        // Flujo: Reportar publicación
         navigation(
             route = "${AppRoutes.REPORT_GRAPH}/{publicacionId}",
             startDestination = AppRoutes.REPORT_CATEGORY,
             arguments = listOf(navArgument("publicacionId") { type = NavType.StringType })
         ) {
             composable(AppRoutes.REPORT_CATEGORY) { entry ->
-                // El id llega al grafo padre, no a las pantallas hijas
                 val parentEntry = remember(entry) {
                     navController.getBackStackEntry("${AppRoutes.REPORT_GRAPH}/{publicacionId}")
                 }
@@ -1126,7 +1118,6 @@ fun NearHouseApp() {
                     publicacionId = publicacionId,
                     onBackClick = { navController.popBackStack() },
                     onReportSubmitted = {
-                        // Cierra todo el flujo y regresa al detalle de la publicación
                         navController.popBackStack("${AppRoutes.REPORT_GRAPH}/{publicacionId}", inclusive = true)
                     }
                 )
