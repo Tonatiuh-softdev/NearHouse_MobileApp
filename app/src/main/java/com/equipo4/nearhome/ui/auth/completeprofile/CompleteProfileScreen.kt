@@ -30,6 +30,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
@@ -59,11 +60,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.domain.model.Country
 
-private val PrimaryNavy = Color(0xFF0B2C4D)
-private val DisabledButtonBg = Color(0xFFB0BEC5)
-private val GrayInputBorder = Color(0xFFE0E0E0)
-private val ErrorRed = Color(0xFFE53935)
-private val SubtitleColor = Color(0xFF212121)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -91,7 +87,7 @@ fun CompleteProfileScreen(
                     focusManager.clearFocus()
                 })
             },
-        color = Color.White
+        color = MaterialTheme.colorScheme.background
     ) {
         Column(
             modifier = Modifier
@@ -107,7 +103,7 @@ fun CompleteProfileScreen(
                 text = stringResource(R.string.complete_profile_title),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center
             )
 
@@ -117,7 +113,7 @@ fun CompleteProfileScreen(
                 text = stringResource(R.string.complete_profile_subtitle),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
-                color = SubtitleColor,
+                color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center
             )
 
@@ -238,14 +234,14 @@ fun CompleteProfileScreen(
                     .height(46.dp),
                 shape = RoundedCornerShape(10.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isFormValid && !uiState.isLoading) PrimaryNavy else DisabledButtonBg,
-                    contentColor = Color.White
+                    containerColor = if (isFormValid && !uiState.isLoading) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
                 )
             ) {
                 if (uiState.isLoading) {
                     androidx.compose.material3.CircularProgressIndicator(
                         modifier = Modifier.size(20.dp),
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onPrimary,
                         strokeWidth = 2.dp
                     )
                 } else {
@@ -287,14 +283,14 @@ private fun FormLabel(text: String, isRequired: Boolean) {
             text = text,
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
-            color = Color.Black
+            color = MaterialTheme.colorScheme.onSurface
         )
         if (isRequired) {
             Text(
                 text = " *",
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
-                color = ErrorRed
+                color = MaterialTheme.colorScheme.error
             )
         }
     }
@@ -310,13 +306,13 @@ private fun ErrorIconTextMessage(message: String) {
         Icon(
             imageVector = Icons.Default.Error,
             contentDescription = null,
-            tint = ErrorRed,
+            tint = MaterialTheme.colorScheme.error,
             modifier = Modifier.size(13.dp)
         )
         Spacer(modifier = Modifier.width(4.dp))
         Text(
             text = message,
-            color = ErrorRed,
+            color = MaterialTheme.colorScheme.error,
             fontSize = 11.sp,
             fontWeight = FontWeight.Medium
         )
@@ -342,7 +338,8 @@ private fun ProfileInputField(
             value = value,
             onValueChange = onValueChange,
             singleLine = true,
-            textStyle = TextStyle(fontSize = 14.sp, color = Color.Black),
+            textStyle = TextStyle(fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface),
+            cursorBrush = androidx.compose.ui.graphics.SolidColor(MaterialTheme.colorScheme.primary),
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
             decorationBox = { innerTextField ->
                 Surface(
@@ -350,10 +347,10 @@ private fun ProfileInputField(
                         .fillMaxWidth()
                         .height(46.dp),
                     shape = RoundedCornerShape(10.dp),
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.surface,
                     border = BorderStroke(
                         width = 1.dp,
-                        color = if (isError) ErrorRed else GrayInputBorder
+                        color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outlineVariant
                     )
                 ) {
                     Box(
@@ -363,7 +360,7 @@ private fun ProfileInputField(
                         contentAlignment = Alignment.CenterStart
                     ) {
                         if (value.isEmpty()) {
-                            Text(placeholder, color = Color.LightGray, fontSize = 14.sp)
+                            Text(placeholder, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
                         }
                         innerTextField()
                     }
@@ -400,10 +397,10 @@ private fun PhoneInputField(
             .fillMaxWidth()
             .height(46.dp),
         shape = RoundedCornerShape(10.dp),
-        color = Color.White,
+        color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(
             width = 1.dp,
-            color = if (isError) ErrorRed else GrayInputBorder
+            color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outlineVariant
         )
     ) {
         Row(
@@ -416,14 +413,14 @@ private fun PhoneInputField(
                 modifier = Modifier.clickable { onCountryClick() },
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = countryCode, fontSize = 14.sp, color = Color.Black)
+                Text(text = countryCode, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface)
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(text = countryFlag, fontSize = 16.sp)
                 Spacer(modifier = Modifier.width(2.dp))
                 Icon(
                     imageVector = Icons.Default.ArrowDropDown,
                     contentDescription = null,
-                    tint = Color.Gray,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(18.dp)
                 )
             }
@@ -437,7 +434,8 @@ private fun PhoneInputField(
                     onPhoneNumberChange(digits)
                 },
                 singleLine = true,
-                textStyle = TextStyle(fontSize = 14.sp, color = Color.Black),
+                textStyle = TextStyle(fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface),
+                cursorBrush = androidx.compose.ui.graphics.SolidColor(MaterialTheme.colorScheme.primary),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Phone,
                     imeAction = ImeAction.Done
@@ -449,7 +447,7 @@ private fun PhoneInputField(
                         contentAlignment = Alignment.CenterStart
                     ) {
                         if (phoneNumber.isEmpty()) {
-                            Text(stringResource(R.string.complete_profile_phone_placeholder), color = Color.LightGray, fontSize = 14.sp)
+                            Text(stringResource(R.string.complete_profile_phone_placeholder), color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
                         }
                         innerTextField()
                     }
@@ -488,7 +486,8 @@ private fun CustomOutlinedDatePicker(
             onDateSelected(formattedDate)
         },
         singleLine = true,
-        textStyle = TextStyle(fontSize = 14.sp, color = Color.Black),
+        textStyle = TextStyle(fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurface),
+        cursorBrush = androidx.compose.ui.graphics.SolidColor(MaterialTheme.colorScheme.primary),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
         visualTransformation = DateVisualTransformation(),
         decorationBox = { innerTextField ->
@@ -497,10 +496,10 @@ private fun CustomOutlinedDatePicker(
                     .fillMaxWidth()
                     .height(46.dp),
                 shape = RoundedCornerShape(10.dp),
-                color = Color.White,
+                color = MaterialTheme.colorScheme.surface,
                 border = BorderStroke(
                     width = 1.dp,
-                    color = if (isError) ErrorRed else GrayInputBorder
+                    color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outlineVariant
                 )
             ) {
                 Row(
@@ -514,14 +513,14 @@ private fun CustomOutlinedDatePicker(
                         contentAlignment = Alignment.CenterStart
                     ) {
                         if (value.isEmpty()) {
-                            Text(placeholder, color = Color.LightGray, fontSize = 14.sp)
+                            Text(placeholder, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 14.sp)
                         }
                         innerTextField()
                     }
                     Icon(
                         imageVector = Icons.Default.CalendarToday,
                         contentDescription = null,
-                        tint = Color.Black,
+                        tint = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.size(18.dp)
                     )
                 }
@@ -621,7 +620,7 @@ private fun CountrySelectionContent(
             text = stringResource(R.string.complete_profile_select_country),
             fontSize = 18.sp,
             fontWeight = FontWeight.Bold,
-            color = Color.Black
+            color = MaterialTheme.colorScheme.onSurface
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -659,7 +658,7 @@ private fun CountrySelectionContent(
                     )
                     Text(text = country.code, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                 }
-                HorizontalDivider(color = Color(0xFFEEEEEE), thickness = 0.5.dp)
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 0.5.dp)
             }
         }
     }
