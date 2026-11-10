@@ -15,9 +15,8 @@ import com.equipo4.nearhome.R
 
 /**
  * Sonidos de interfaz de NearHouse (carga y logro) con SoundPool: suenan sin retraso.
- * - Se cargan una sola vez (init) y se liberan cuando la app pasa a segundo plano (release).
- * - Respeta el modo del celular: en silencio o vibrar no suena.
- * El sonido de notificación NO pasa por aquí: lo reproduce el canal de notificaciones.
+ * - CARGA: Respeta el modo del celular (en silencio o vibrar no suena).
+ * - LOGRO: Suena a volumen normal (multimedia), sin importar el modo silencio/vibración.
  */
 object NearHouseSounds {
 
@@ -36,7 +35,7 @@ object NearHouseSounds {
     fun init(context: Context) {
         if (pool != null) return
         val attrs = AudioAttributes.Builder()
-            .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
+            .setUsage(AudioAttributes.USAGE_MEDIA)
             .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
             .build()
         val sp = SoundPool.Builder()
@@ -57,11 +56,15 @@ object NearHouseSounds {
         pool = sp
     }
 
-    /** Reproduce el sonido, salvo que el celular esté en silencio o vibrar. */
+    /**
+     * Reproduce el sonido:
+     * - CARGA: No suena si el celular está en silencio o vibrar.
+     * - LOGRO: Suena siempre a volumen normal (multimedia).
+     */
     @Synchronized
     fun play(context: Context, sound: Sound) {
         val audio = context.applicationContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        if (audio.ringerMode != AudioManager.RINGER_MODE_NORMAL) return
+        if (sound == Sound.CARGA && audio.ringerMode != AudioManager.RINGER_MODE_NORMAL) return
         init(context)
         val id = ids[sound] ?: return
         if (loaded.contains(id)) pool?.play(id, 1f, 1f, 1, 0, 1f) else pending.add(id)
@@ -79,7 +82,7 @@ object NearHouseSounds {
 }
 
 /**
- * Ponlo dentro de cualquier pantalla/componente con la palomita verde de éxito:
+ * Ponlo dentro de/pantalla/componente con la palomita verde de éxito:
  * suena una sola vez al aparecer (no se repite al redibujarse ni al recrearse la pantalla).
  */
 @Composable

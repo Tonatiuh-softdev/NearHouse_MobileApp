@@ -43,10 +43,34 @@ class AccountAdminViewModel(application: Application) : AndroidViewModel(applica
 
     init {
         viewModelScope.launch {
+            try {
+                _uiState.update { it.copy(isLoading = true, loadError = false) }
+                val response = CurrentUserStore.refresh(authApi)
+                _uiState.update { it.copy(loadError = !response.isSuccessful) }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(loadError = true) }
+            } finally {
+                _uiState.update { it.copy(isLoading = false) }
+            }
+
             CurrentUserStore.user.collect { user ->
                 _uiState.update {
                     it.copy(isLoading = false, userData = user?.toAccountData())
                 }
+            }
+        }
+    }
+
+    fun reload() {
+        viewModelScope.launch {
+            try {
+                _uiState.update { it.copy(isLoading = true, loadError = false) }
+                val response = CurrentUserStore.refresh(authApi)
+                _uiState.update { it.copy(loadError = !response.isSuccessful) }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(loadError = true) }
+            } finally {
+                _uiState.update { it.copy(isLoading = false) }
             }
         }
     }

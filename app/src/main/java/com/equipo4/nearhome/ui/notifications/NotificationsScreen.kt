@@ -14,6 +14,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
+import com.equipo4.nearhome.ui.common.NoConnectionState
 
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
@@ -117,17 +118,7 @@ fun NotificationsScreen(
                     NotificationsEmptyState()
                 }
                 is NotificationsUiState.Error -> {
-                    Column(
-                        Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(stringResource(R.string.notifications_error))
-                        Spacer(Modifier.height(16.dp))
-                        Button(onClick = { viewModel.loadNotifications() }) {
-                            Text(stringResource(R.string.notifications_retry))
-                        }
-                    }
+                    NoConnectionState(onRetry = { viewModel.loadNotifications() })
                 }
                 is NotificationsUiState.Success -> {
                     LazyColumn(

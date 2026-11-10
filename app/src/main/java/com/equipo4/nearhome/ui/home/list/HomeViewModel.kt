@@ -47,7 +47,11 @@ class HomeViewModel(
             // HASTA que esta corrutina termine, se apaga el isLoading.
             launch {
                 try {
-                    repository.refresh()
+                    _uiState.update { it.copy(isLoading = true, loadError = false) }
+                    val success = repository.refresh()
+                    _uiState.update { it.copy(loadError = !success) }
+                } catch (e: Exception) {
+                    _uiState.update { it.copy(loadError = true) }
                 } finally {
                     // Esperamos a que se procese el primer filtrado en background antes de ocultar el Skeleton
                     withContext(Dispatchers.Default) {
@@ -129,10 +133,10 @@ class HomeViewModel(
 
     fun recargar(onFinished: (Boolean) -> Unit = {}) {
         if (_uiState.value.isRefreshing) return
-        _uiState.update { it.copy(isRefreshing = true) }
+        _uiState.update { it.copy(isRefreshing = true, loadError = false) }
         viewModelScope.launch {
             val success = repository.refresh()
-            _uiState.update { it.copy(isRefreshing = false) }
+            _uiState.update { it.copy(isRefreshing = false, loadError = !success) }
             onFinished(success)
         }
     }
@@ -140,10 +144,10 @@ class HomeViewModel(
     fun onScreenResumed() {
         viewModelScope.launch {
             if (_uiState.value.properties.isEmpty()) {
-                _uiState.update { it.copy(isLoading = true) }
+                _uiState.update { it.copy(isLoading = true, loadError = false) }
             }
-            repository.refresh()
-            _uiState.update { it.copy(isLoading = false) }
+            val success = repository.refresh()
+            _uiState.update { it.copy(isLoading = false, loadError = !success) }
         }
     }
 }

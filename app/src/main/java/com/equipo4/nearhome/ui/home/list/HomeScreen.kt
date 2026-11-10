@@ -44,6 +44,7 @@ import com.equipo4.nearhome.R
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
 import com.equipo4.nearhome.ui.common.PropertyCard
 import com.equipo4.nearhome.ui.common.PropertyListSkeleton
+import com.equipo4.nearhome.ui.common.NoConnectionState
 import com.equipo4.nearhome.ui.home.filter.PropertyFilterManager
 import com.equipo4.nearhome.ui.theme.nearHouseColors
 import kotlinx.coroutines.launch
@@ -163,6 +164,9 @@ fun HomeScreen(
                     when {
                         uiState.isLoading -> {
                             PropertyListSkeleton(count = 3)
+                        }
+                        uiState.loadError && uiState.properties.isEmpty() -> {
+                            NoConnectionState(onRetry = triggerReload)
                         }
                         uiState.properties.isEmpty() -> {
                             EmptyHomeState(onClearFilters = { viewModel.clearFilters() })

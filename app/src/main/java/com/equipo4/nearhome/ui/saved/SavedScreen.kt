@@ -33,6 +33,7 @@ import com.equipo4.nearhome.R
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
 import com.equipo4.nearhome.ui.common.PropertyCard
 import com.equipo4.nearhome.ui.common.PropertyListSkeleton
+import com.equipo4.nearhome.ui.common.NoConnectionState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -108,6 +109,10 @@ fun SavedScreen(
                     // 1. Carga inicial -> Mostrar esqueleto de tarjetas
                     uiState.isLoading -> {
                         PropertyListSkeleton(count = 3)
+                    }
+
+                    uiState.loadError && uiState.properties.isEmpty() -> {
+                        NoConnectionState(onRetry = triggerReload)
                     }
 
                     // 2. Estado de error

@@ -26,7 +26,7 @@ class SavedViewModel(
             // 1. Observar propiedades guardadas
             launch {
                 repository.observeSaved()
-                    .catch { _uiState.update { s -> s.copy(isLoading = false, errorMessage = AppStrings.get(R.string.saved_error_load)) } }
+                    .catch { _uiState.update { s -> s.copy(isLoading = false, loadError = true, errorMessage = AppStrings.get(R.string.saved_error_load)) } }
                     .collect { list ->
                         _uiState.update { it.copy(errorMessage = null, properties = list) }
                     }
@@ -35,8 +35,11 @@ class SavedViewModel(
             // 2. Cargar / refrescar datos iniciales
             launch {
                 try {
-                    _uiState.update { it.copy(isLoading = true) }
-                    repository.refresh()
+                    _uiState.update { it.copy(isLoading = true, loadError = false) }
+                    val success = repository.refresh()
+                    _uiState.update { it.copy(loadError = !success) }
+                } catch (e: Exception) {
+                    _uiState.update { it.copy(loadError = true) }
                 } finally {
                     _uiState.update { it.copy(isLoading = false) }
                 }
@@ -46,10 +49,10 @@ class SavedViewModel(
 
     fun recargar(onFinished: (Boolean) -> Unit = {}) {
         if (_uiState.value.isRefreshing) return
-        _uiState.update { it.copy(isRefreshing = true) }
+        _uiState.update { it.copy(isRefreshing = true, loadError = false) }
         viewModelScope.launch {
             val success = repository.refresh()
-            _uiState.update { it.copy(isRefreshing = false) }
+            _uiState.update { it.copy(isRefreshing = false, loadError = !success) }
             onFinished(success)
         }
     }
@@ -57,10 +60,10 @@ class SavedViewModel(
     fun onScreenResumed() {
         viewModelScope.launch {
             if (_uiState.value.properties.isEmpty()) {
-                _uiState.update { it.copy(isLoading = true) }
+                _uiState.update { it.copy(isLoading = true, loadError = false) }
             }
-            repository.refresh()
-            _uiState.update { it.copy(isLoading = false) }
+            val success = repository.refresh()
+            _uiState.update { it.copy(isLoading = false, loadError = !success) }
         }
     }
 

@@ -31,6 +31,7 @@ enum class EmailFlowStep {
 
 data class AccountAdminUiState(
     val isLoading: Boolean = false,
+    val loadError: Boolean = false,
     val userData: UserAccountData? = null,
 
     // Flujo de Contraseña

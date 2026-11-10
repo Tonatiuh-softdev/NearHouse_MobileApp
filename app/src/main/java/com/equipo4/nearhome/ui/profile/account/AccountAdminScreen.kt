@@ -36,6 +36,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.data.remote.GoogleAuthManager
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
+import com.equipo4.nearhome.ui.common.AccountAdminSkeleton
+import com.equipo4.nearhome.ui.common.NoConnectionState
 import com.equipo4.nearhome.ui.profile.UserRole
 import kotlinx.coroutines.launch
 
@@ -79,7 +81,8 @@ fun AccountAdminRoute(
         onNavigateBack = onNavigateBack,
         onNavigateToPlans = onNavigateToPlans,
         onBottomTabSelected = onBottomTabSelected,
-        onConfirmWithGoogle = { eliminar -> viewModel.confirmarConGoogle(context, eliminar) }
+        onConfirmWithGoogle = { eliminar -> viewModel.confirmarConGoogle(context, eliminar) },
+        onRetry = viewModel::reload
     )
 }
 
@@ -92,7 +95,8 @@ fun AccountAdminScreen(
     onNavigateToPlans: () -> Unit,
     onBottomTabSelected: (Int) -> Unit = {},
     /** Cuentas sin contraseña (Google): confirma con Google antes de desactivar (false) o eliminar (true). */
-    onConfirmWithGoogle: (eliminar: Boolean) -> Unit = {}
+    onConfirmWithGoogle: (eliminar: Boolean) -> Unit = {},
+    onRetry: () -> Unit = {}
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
@@ -144,20 +148,32 @@ fun AccountAdminScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
-        if (uiState.isLoading || uiState.userData == null) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
+        when {
+            uiState.isLoading -> {
+                AccountAdminSkeleton(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                )
             }
-        } else {
-            val userData = uiState.userData
+            uiState.loadError && uiState.userData == null -> {
+                NoConnectionState(
+                    onRetry = onRetry,
+                    modifier = Modifier.padding(paddingValues)
+                )
+            }
+            uiState.userData == null -> {
+                AccountAdminSkeleton(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                )
+            }
+            else -> {
+                val userData = uiState.userData
 
-            Column(
-                modifier = Modifier
+                Column(
+                    modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
                     .verticalScroll(rememberScrollState())
@@ -307,6 +323,7 @@ fun AccountAdminScreen(
                 Spacer(modifier = Modifier.height(32.dp))
             }
         }
+      }
     }
 
     // ==================== FLUJO DE CAMBIO DE CORREO ====================

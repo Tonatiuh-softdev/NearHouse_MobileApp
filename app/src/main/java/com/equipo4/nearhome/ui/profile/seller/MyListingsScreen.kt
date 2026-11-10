@@ -35,6 +35,7 @@ import com.equipo4.nearhome.ui.common.NearHomeBottomBar
 import com.equipo4.nearhome.ui.common.PropertyCard
 import com.equipo4.nearhome.ui.common.PropertyListSkeleton
 import com.equipo4.nearhome.ui.common.MyListingsHeaderSkeleton
+import com.equipo4.nearhome.ui.common.NoConnectionState
 import com.equipo4.nearhome.ui.profile.UserRole
 import androidx.compose.ui.draw.alpha
 import com.equipo4.nearhome.ui.common.DeleteListingDialog
@@ -127,7 +128,7 @@ fun MyListingsScreen(
                 // Sección Lista, error o Estado Vacío
                 when {
                     uiState.loadError && uiState.listings.isEmpty() -> item {
-                        LoadErrorMessage(onRetry = viewModel::loadMyListings)
+                        NoConnectionState(onRetry = viewModel::loadMyListings)
                     }
 
                     uiState.listings.isEmpty() -> item { EmptyListingsMessage() }
