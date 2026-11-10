@@ -4,21 +4,10 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2026-11-10T14:19:09.222640100Z">
+        <DropdownSelection timestamp="2026-11-10T21:12:18.249756852Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\Tona\.android\avd\Medium_Phone.avd" />
-            </handle>
-          </Target>
-        </DropdownSelection>
-        <DialogSelection />
-      </SelectionState>
-      <SelectionState runConfigName="androidTest">
-        <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2026-11-09T02:49:41.905960800Z">
-          <Target type="DEFAULT_BOOT">
-            <handle>
-              <DeviceId pluginId="PhysicalDevice" identifier="serial=ce0517157b1bd31502" />
+              <DeviceId pluginId="Wireless" identifier="serviceName=adb-b5efb931-mtBTPP" />
             </handle>
           </Target>
         </DropdownSelection>
