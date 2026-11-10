@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="seller_welcome_title">Welcome to NearHouse as a seller!</string>
+    <string name="seller_welcome_body">Your plan is active. You can now publish your listings from your account.</string>
+</resources>

@@ -97,7 +97,7 @@ fun ChoosePlanScreen(
                         plan = plan,
                         esActual = esActual,
                         esPrueba = esPrueba,
-                        onClick = { if (esPrueba) pendingTrial = plan else onPlanSelected(plan) }
+                        onClick = { onPlanSelected(plan) } // el mes gratis también pasa por la pantalla de cobro
                     )
                 }
                 Spacer(Modifier.height(20.dp))

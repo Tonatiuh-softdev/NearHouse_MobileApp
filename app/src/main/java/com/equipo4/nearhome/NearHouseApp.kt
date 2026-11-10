@@ -322,22 +322,22 @@ fun NearHouseApp() {
             route == AppRoutes.SAVED -> 1
             route == AppRoutes.NOTIFICATIONS -> 2
             route == AppRoutes.PROFILE ||
-            route == AppRoutes.ACCOUNT_ADMIN ||
-            route == AppRoutes.MY_LISTINGS ||
-            route == AppRoutes.EDIT_PROFILE ||
-            route == AppRoutes.ADMIN_PANEL ||
-            route == AppRoutes.ADMIN_REPORTS ||
-            route == AppRoutes.ADMIN_USERS ||
-            route == AppRoutes.ADMIN_LISTINGS ||
-            route == AppRoutes.ADMIN_LISTING_FILTERS ||
-            route == AppRoutes.SUBSCRIPTION ||
-            route.startsWith(AppRoutes.CHECKOUT) ||
-            route.startsWith(AppRoutes.CREATE_LISTING_GRAPH) ||
-            route.startsWith(AppRoutes.CREATE_LISTING_EDIT) ||
-            route.startsWith(AppRoutes.ADMIN_USER_DETAIL) ||
-            route.startsWith(AppRoutes.ADMIN_REPORT_DETAIL) ||
-            route.startsWith(AppRoutes.ADMIN_LISTING_DETAIL) ||
-            route.startsWith(AppRoutes.ADMIN_LISTING_ACTION) -> 3
+                    route == AppRoutes.ACCOUNT_ADMIN ||
+                    route == AppRoutes.MY_LISTINGS ||
+                    route == AppRoutes.EDIT_PROFILE ||
+                    route == AppRoutes.ADMIN_PANEL ||
+                    route == AppRoutes.ADMIN_REPORTS ||
+                    route == AppRoutes.ADMIN_USERS ||
+                    route == AppRoutes.ADMIN_LISTINGS ||
+                    route == AppRoutes.ADMIN_LISTING_FILTERS ||
+                    route == AppRoutes.SUBSCRIPTION ||
+                    route.startsWith(AppRoutes.CHECKOUT) ||
+                    route.startsWith(AppRoutes.CREATE_LISTING_GRAPH) ||
+                    route.startsWith(AppRoutes.CREATE_LISTING_EDIT) ||
+                    route.startsWith(AppRoutes.ADMIN_USER_DETAIL) ||
+                    route.startsWith(AppRoutes.ADMIN_REPORT_DETAIL) ||
+                    route.startsWith(AppRoutes.ADMIN_LISTING_DETAIL) ||
+                    route.startsWith(AppRoutes.ADMIN_LISTING_ACTION) -> 3
             else -> -1
         }
     }
@@ -359,13 +359,16 @@ fun NearHouseApp() {
                 navController.popBackStack(targetRoot, inclusive = false)
             }
         } else {
+            // La campana (index 2) siempre abre Notificaciones desde cero y actualizada.
+            // Si restaurara el estado guardado, volvería a la pantalla a la que se entró desde un aviso.
+            val restaurarPila = index != 2
             navController.navigate(targetRoot) {
                 popUpTo(AppRoutes.HOME) {
                     inclusive = false
-                    saveState = true
+                    saveState = restaurarPila
                 }
                 launchSingleTop = true
-                restoreState = true
+                restoreState = restaurarPila
             }
         }
     }

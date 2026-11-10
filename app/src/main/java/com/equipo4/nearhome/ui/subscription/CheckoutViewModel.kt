@@ -19,7 +19,6 @@ class CheckoutViewModel(
     val cardHolder = MutableStateFlow("")
     val expiryDate = MutableStateFlow("")
     val cvv = MutableStateFlow("")
-    val saveCard = MutableStateFlow(false)
 
     val cardNumberError = MutableStateFlow<String?>(null)
     val cardHolderError = MutableStateFlow<String?>(null)
@@ -39,7 +38,8 @@ class CheckoutViewModel(
     }
 
     fun onCardHolderChanged(input: String) {
-        cardHolder.value = input.filter { it.isLetter() || it.isWhitespace() }
+        // Solo letras (mayúsculas, minúsculas, acentos) y espacios, máximo 50 caracteres
+        cardHolder.value = input.filter { it.isLetter() || it.isWhitespace() }.take(50)
         if (cardHolderError.value != null) validateCardHolder()
     }
 
@@ -60,7 +60,8 @@ class CheckoutViewModel(
 
     fun validateCardNumber(): Boolean {
         val raw = cardNumber.value.filter { it.isDigit() }
-        return if (raw.length != 16 || !isValidLuhn(raw)) {
+        // Pago simulado: basta con 16 dígitos (no se exige un número de tarjeta real)
+        return if (raw.length != 16) {
             cardNumberError.value = AppStrings.get(R.string.error_card_number)
             false
         } else {
@@ -117,21 +118,6 @@ class CheckoutViewModel(
         }
     }
 
-    private fun isValidLuhn(number: String): Boolean {
-        var sum = 0
-        var alternate = false
-        for (i in number.length - 1 downTo 0) {
-            var n = number[i].digitToIntOrNull() ?: return false
-            if (alternate) {
-                n *= 2
-                if (n > 9) n -= 9
-            }
-            sum += n
-            alternate = !alternate
-        }
-        return sum % 10 == 0
-    }
-
     fun submit(onSuccessNavigation: () -> Unit) {
         val v1 = validateCardNumber()
         val v2 = validateCardHolder()
@@ -157,7 +143,7 @@ class CheckoutViewModel(
                     } else {
                         AppStrings.get(R.string.success_paid_msg, plan.name)
                     }
-                    delay(1500)
+                    delay(2200)
                     onSuccessNavigation()
                 }
                 is Resultado.Error -> {

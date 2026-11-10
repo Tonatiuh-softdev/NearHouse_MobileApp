@@ -1,6 +1,13 @@
 package com.equipo4.nearhome.ui.notifications
 
 import android.Manifest
+import android.annotation.SuppressLint
+import android.app.PendingIntent
+import android.content.Intent
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import com.equipo4.nearhome.MainActivity
+import com.equipo4.nearhome.util.AppStrings
 import android.app.NotificationChannel
 import android.content.ContentResolver
 import android.media.AudioAttributes
@@ -49,6 +56,32 @@ object NotificacionesHelper {
             notificationManager.deleteNotificationChannel(CANAL_FCM_POR_DEFECTO_ID)
             notificationManager.createNotificationChannel(channel)
         }
+    }
+
+    private const val ID_BIENVENIDA_VENDEDOR = 7001
+
+    /** Aviso local: el usuario acaba de volverse vendedor (pago simulado / mes gratis). */
+    @SuppressLint("MissingPermission")
+    fun mostrarBienvenidaVendedor(context: Context) {
+        if (!tienePermiso(context)) return
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            data = Uri.parse("nearhouse://account_admin")
+        }
+        val pendingIntent = PendingIntent.getActivity(
+            context, ID_BIENVENIDA_VENDEDOR, intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        val notification = NotificationCompat.Builder(context, CANAL_AVISOS_ID)
+            .setSmallIcon(R.drawable.ic_notificaciones)
+            .setContentTitle(AppStrings.get(R.string.seller_welcome_title))
+            .setContentText(AppStrings.get(R.string.seller_welcome_body))
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
+            .setSound(sonidoNotificacionUri(context)) // Android 7 o menor (sin canales)
+            .build()
+        NotificationManagerCompat.from(context).notify(ID_BIENVENIDA_VENDEDOR, notification)
     }
 
     /** Retorna true si ya tenemos permiso para mostrar notificaciones. */

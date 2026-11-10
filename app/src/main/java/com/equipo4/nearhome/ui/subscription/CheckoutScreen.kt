@@ -1,13 +1,16 @@
 package com.equipo4.nearhome.ui.subscription
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Redeem
 import androidx.compose.material.icons.outlined.Error
 import androidx.compose.material3.*
@@ -23,6 +26,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.equipo4.nearhome.R
+import com.equipo4.nearhome.data.session.CurrentUserStore
+import com.equipo4.nearhome.ui.notifications.NotificacionesHelper
+import com.equipo4.nearhome.ui.profile.UserRole
+import com.equipo4.nearhome.util.LogroSonidoEffect
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,11 +39,18 @@ fun CheckoutScreen(
     onSuccessFinished: () -> Unit = {}
 ) {
     val context = LocalContext.current
-    val plan = remember(planId) { SubscriptionPlanCache.find(planId) }
+    // Si el usuario aún tiene su mes gratis, este plan se cobra como prueba gratuita
+    val plan = remember(planId) {
+        SubscriptionPlanCache.find(planId)?.let {
+            it.copy(isFreeTrial = it.isFreeTrialFor(CurrentUserStore.user.value?.pruebaDisponible == true))
+        }
+    }
     if (plan == null) {
         LaunchedEffect(Unit) { onBackClick() }
         return
     }
+    // La bienvenida solo se da una vez: cuando el usuario pasa de comprador a vendedor
+    val eraComprador = remember { CurrentUserStore.roleOrNull() == UserRole.COMPRADOR }
     val viewModel: CheckoutViewModel = remember(plan) {
         CheckoutViewModel(plan, SubscriptionRepository(context))
     }
@@ -45,7 +59,6 @@ fun CheckoutScreen(
     val cardHolder by viewModel.cardHolder.collectAsState()
     val expiryDate by viewModel.expiryDate.collectAsState()
     val cvv by viewModel.cvv.collectAsState()
-    val saveCard by viewModel.saveCard.collectAsState()
 
     val cardNumberError by viewModel.cardNumberError.collectAsState()
     val cardHolderError by viewModel.cardHolderError.collectAsState()
@@ -297,26 +310,6 @@ fun CheckoutScreen(
 
                 Spacer(Modifier.height(8.dp))
 
-                // Casilla guardar tarjeta
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Checkbox(
-                        checked = saveCard,
-                        onCheckedChange = { viewModel.saveCard.value = it },
-                        colors = CheckboxDefaults.colors(checkedColor = SubscriptionColors.brand)
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        text = stringResource(R.string.save_card_checkbox),
-                        fontSize = 13.sp,
-                        color = SubscriptionColors.textBody
-                    )
-                }
-
                 Spacer(Modifier.height(10.dp))
 
                 // Botón principal
@@ -395,43 +388,41 @@ fun CheckoutScreen(
                 Spacer(Modifier.height(30.dp))
             }
 
-            // Overlay de éxito
+            // Pantalla de verificación: palomita verde + sonido + aviso de bienvenida
             if (successMessage != null) {
+                LogroSonidoEffect()
+                LaunchedEffect(Unit) { if (eraComprador) NotificacionesHelper.mostrarBienvenidaVendedor(context) }
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = Color.Black.copy(alpha = 0.5f)
+                    color = SubscriptionColors.screenBg
                 ) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
                     ) {
-                        Card(
+                        Text(
+                            text = successMessage!!,
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = SubscriptionColors.textPrimary,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(Modifier.height(40.dp))
+                        Box(
                             modifier = Modifier
-                                .fillMaxWidth(0.85f)
-                                .padding(24.dp),
-                            shape = RoundedCornerShape(16.dp),
-                            colors = CardDefaults.cardColors(containerColor = SubscriptionColors.surface)
+                                .size(160.dp)
+                                .background(Color(0xFF16A34A), shape = CircleShape),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(24.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                CircularProgressIndicator(
-                                    color = Color(0xFF16A34A),
-                                    modifier = Modifier.size(48.dp)
-                                )
-                                Spacer(Modifier.height(16.dp))
-                                Text(
-                                    text = successMessage!!,
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = SubscriptionColors.textPrimary,
-                                    textAlign = TextAlign.Center
-                                )
-                            }
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(90.dp)
+                            )
                         }
                     }
                 }
