@@ -140,6 +140,17 @@ private fun PropertyImageCarousel(
             }
         }
 
+        // Tipo de propiedad, centrado a la altura del botón de guardar
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(12.dp)
+                .height(36.dp),
+            contentAlignment = Alignment.CenterStart
+        ) {
+            PropertyTypeChip(type = property.type)
+        }
+
         if (showSaveButton) {
             Box(
                 modifier = Modifier
@@ -302,96 +313,78 @@ private fun PropertyInfoContent(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // Fila 4: Características en 2x2 (Column de 2 Rows)
-        val (typeText, typeIcon) = when (property.type) {
-            PropertyType.DEPARTAMENTO -> stringResource(R.string.property_short_apartment) to Icons.Outlined.Apartment
-            PropertyType.CASA -> stringResource(R.string.property_short_house) to Icons.Outlined.Home
-            PropertyType.TERRENO -> stringResource(R.string.property_short_land) to Icons.Outlined.Landscape
+        // Fila 4: Características en 2 columnas. El tipo de propiedad va aparte, sobre la foto.
+        val areaText = if (property.areaSqM > 0) {
+            stringResource(R.string.listing_feature_area, property.areaSqM)
+        } else null
+
+        val features: List<Pair<ImageVector, String>> = if (property.type == PropertyType.TERRENO) {
+            // TERRENO: medidas (frente x fondo) | superficie
+            listOfNotNull(
+                if (property.frontMeters != null && property.depthMeters != null) {
+                    Icons.Outlined.Straighten to "${property.frontMeters.toInt()}x${property.depthMeters.toInt()} m"
+                } else null,
+                areaText?.let { Icons.Outlined.SquareFoot to it }
+            )
+        } else {
+            // CASA / DEPARTAMENTO: Recámaras | Baños / Cocheras | Superficie
+            listOfNotNull(
+                property.bedrooms?.let { Icons.Outlined.Bed to stringResource(R.string.property_bedrooms_format, it) },
+                property.bathrooms?.let { Icons.Outlined.Bathtub to stringResource(R.string.property_bathrooms_format, it) },
+                property.garages?.let { Icons.Outlined.Garage to stringResource(R.string.property_garages_format, it) },
+                areaText?.let { Icons.Outlined.SquareFoot to it }
+            )
         }
 
-        if (property.type == PropertyType.TERRENO) {
-            // TERRENO: Una sola fila
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                FeatureItem(
-                    icon = typeIcon,
-                    text = typeText,
-                    modifier = Modifier.weight(1f)
-                )
-
-                val areaText = if (property.frontMeters != null && property.depthMeters != null) {
-                    "${property.frontMeters.toInt()}x${property.depthMeters.toInt()} m"
-                } else if (property.areaSqM > 0) {
-                    "${property.areaSqM} m²"
-                } else null
-
-                if (areaText != null) {
-                    FeatureItem(
-                        icon = Icons.Outlined.SquareFoot,
-                        text = areaText,
-                        modifier = Modifier.weight(1f)
-                    )
-                } else {
-                    Spacer(modifier = Modifier.weight(1f))
-                }
-            }
-        } else {
-            // CASA / DEPARTAMENTO: Cuadrícula rígida de 2x2
+        if (features.isNotEmpty()) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                // Fila 1: Tipo | Recámaras
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    FeatureItem(
-                        icon = typeIcon,
-                        text = typeText,
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    if (property.bedrooms != null) {
-                        FeatureItem(
-                            icon = Icons.Outlined.Bed,
-                            text = stringResource(R.string.property_bedrooms_format, property.bedrooms),
-                            modifier = Modifier.weight(1f)
-                        )
-                    } else {
-                        Spacer(modifier = Modifier.weight(1f))
-                    }
-                }
-
-                // Fila 2: Baños | Cocheras
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    if (property.bathrooms != null) {
-                        FeatureItem(
-                            icon = Icons.Outlined.Bathtub,
-                            text = stringResource(R.string.property_bathrooms_format, property.bathrooms),
-                            modifier = Modifier.weight(1f)
-                        )
-                    } else {
-                        Spacer(modifier = Modifier.weight(1f))
-                    }
-
-                    if (property.garages != null) {
-                        FeatureItem(
-                            icon = Icons.Outlined.Garage,
-                            text = stringResource(R.string.property_garages_format, property.garages),
-                            modifier = Modifier.weight(1f)
-                        )
-                    } else {
-                        Spacer(modifier = Modifier.weight(1f))
+                features.chunked(2).forEach { fila ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        fila.forEach { (icon, text) ->
+                            FeatureItem(icon = icon, text = text, modifier = Modifier.weight(1f))
+                        }
+                        if (fila.size == 1) Spacer(modifier = Modifier.weight(1f))
                     }
                 }
             }
         }
+    }
+}
+
+/** Tipo de propiedad (Casa, Departamento o Terreno) sobre la foto, a la izquierda. */
+@Composable
+private fun PropertyTypeChip(type: PropertyType) {
+    val (text, icon) = when (type) {
+        PropertyType.DEPARTAMENTO -> stringResource(R.string.listing_type_apartment) to Icons.Outlined.Apartment
+        PropertyType.CASA -> stringResource(R.string.listing_type_house) to Icons.Outlined.Home
+        PropertyType.TERRENO -> stringResource(R.string.listing_type_land) to Icons.Outlined.Landscape
+    }
+    Row(
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(Color.Black.copy(alpha = 0.55f))
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = Color.White,
+            modifier = Modifier.size(14.dp)
+        )
+        Spacer(modifier = Modifier.width(4.dp))
+        Text(
+            text = text,
+            color = Color.White,
+            fontSize = 12.sp,
+            fontWeight = FontWeight.SemiBold
+        )
     }
 }
 

@@ -16,7 +16,7 @@ data class NotificacionDto(
     val tipo: String,
     val datos: Map<String, String?>? = null,
     val leida: Boolean,
-    val fecha: String,               // ISO
+    val fecha: Long,                 // milisegundos (UTC), así la manda la API
     val idPublicacion: Int? = null,
     val idFotoPublicacion: Int? = null,
     val idReporte: Int? = null
@@ -30,7 +30,7 @@ data class NotificacionesPaginaDto(
     val notificaciones: List<NotificacionDto>
 )
 
-data class NoLeidasDto(val totalNoLeidas: Int)
+data class NoLeidasDto(val total: Int)
 
 data class DispositivoRequestDto(
     val token: String,

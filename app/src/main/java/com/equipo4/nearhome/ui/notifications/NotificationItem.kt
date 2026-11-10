@@ -1,6 +1,5 @@
 package com.equipo4.nearhome.ui.notifications
 
-import android.text.format.DateUtils
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -29,6 +28,29 @@ import com.equipo4.nearhome.R
 import com.equipo4.nearhome.data.repository.formatearFechaPlan
 import com.equipo4.nearhome.domain.model.Notificacion
 import com.equipo4.nearhome.domain.model.TipoNotificacion
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+
+private val FORMATO_FECHA_NOTIFICACION = DateTimeFormatter.ofPattern("d/M/yy")
+
+/**
+ * Cuándo llegó el aviso: "Ahora mismo", "Hace 5 min", "Hace 3 h"
+ * o la fecha (D/M/AA) si ya pasó un día.
+ */
+@Composable
+private fun tiempoNotificacion(timestampMs: Long): String {
+    val minutos = (System.currentTimeMillis() - timestampMs).coerceAtLeast(0L) / 60_000L
+    val horas = minutos / 60L
+    return when {
+        minutos < 1L -> stringResource(R.string.notif_time_now)
+        horas < 1L -> stringResource(R.string.notif_time_minutes, minutos.toInt())
+        horas < 24L -> stringResource(R.string.notif_time_hours, horas.toInt())
+        else -> Instant.ofEpochMilli(timestampMs)
+            .atZone(ZoneId.systemDefault())
+            .format(FORMATO_FECHA_NOTIFICACION)
+    }
+}
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -43,12 +65,7 @@ fun NotificationItem(
         MaterialTheme.colorScheme.surfaceVariant
     }
 
-    val relativeTime = DateUtils.getRelativeTimeSpanString(
-        notificacion.timestampMs,
-        System.currentTimeMillis(),
-        DateUtils.MINUTE_IN_MILLIS,
-        DateUtils.FORMAT_ABBREV_RELATIVE
-    ).toString()
+    val relativeTime = tiempoNotificacion(notificacion.timestampMs)
 
     val (titulo, texto) = getNotificationText(notificacion)
 

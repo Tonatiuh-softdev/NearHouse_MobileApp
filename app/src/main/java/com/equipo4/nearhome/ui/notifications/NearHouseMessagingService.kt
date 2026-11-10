@@ -30,6 +30,9 @@ class NearHouseMessagingService : FirebaseMessagingService() {
 
         // 2. Mostrar notificación
         mostrarNotificacion(title, body, tipo, idPublicacion)
+
+        // 3. Actualizar el circulito rojo de la campana
+        ContadorNotificaciones.refrescar(applicationContext)
     }
 
     private fun mostrarNotificacion(title: String, body: String, tipo: String, idPub: String) {

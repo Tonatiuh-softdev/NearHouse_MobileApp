@@ -108,6 +108,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.equipo4.nearhome.ui.notifications.NotificacionesHelper
 import com.equipo4.nearhome.ui.notifications.PedirPermisoNotificaciones
 import com.equipo4.nearhome.ui.notifications.TokenManager
+import com.equipo4.nearhome.ui.notifications.ContadorNotificaciones
 
 object AppRoutes {
     const val SPLASH = "splash"
@@ -189,6 +190,12 @@ class MainActivity : AppCompatActivity() {
                 NearHouseApp()
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Al abrir o volver a la app: actualizar el circulito rojo (pudieron llegar avisos mientras no estaba)
+        ContadorNotificaciones.refrescar(applicationContext)
     }
 }
 
@@ -542,6 +549,7 @@ fun NearHouseApp() {
             LaunchedEffect(Unit) {
                 if (sessionManager.isLoggedIn()) {
                     TokenManager.registrarTokenActual(context, scope)
+                    ContadorNotificaciones.refrescar(context)
                 }
             }
 

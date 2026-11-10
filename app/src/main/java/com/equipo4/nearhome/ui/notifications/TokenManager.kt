@@ -52,6 +52,7 @@ object TokenManager {
             } catch (e: Exception) {
                 Log.e("FCM", "Error al borrar token: ${e.message}")
             } finally {
+                ContadorNotificaciones.limpiar()
                 // Pase lo que pase, cerramos la sesión al final.
                 // onFinished navega (NavController), así que debe correr en el hilo principal.
                 withContext(NonCancellable + Dispatchers.Main) { onFinished() }

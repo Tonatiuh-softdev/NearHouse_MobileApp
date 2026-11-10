@@ -18,7 +18,7 @@ data class Property(
     val listingType: ListingType,
     val location: String,
     val type: PropertyType,
-    /** m² del terreno. En casa y departamento es 0 (la superficie va en la descripción). */
+    /** Superficie en m². Se pide en los tres tipos; en anuncios viejos de casa o departamento puede venir en 0. */
     val areaSqM: Int,
     val bedrooms: Int? = null,
     val bathrooms: Int? = null,

@@ -54,6 +54,7 @@ import com.equipo4.nearhome.domain.model.ListingType
 import com.equipo4.nearhome.domain.model.Property
 import com.equipo4.nearhome.domain.model.PropertyType
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
+import com.equipo4.nearhome.ui.common.PropertyCard
 import com.equipo4.nearhome.ui.home.filter.PropertyFilterManager
 import com.equipo4.nearhome.ui.theme.nearHouseColors
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -495,7 +496,6 @@ private fun PropertyPreviewSheet(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .noRippleClickable { onClick() }
             .padding(start = 16.dp, end = 16.dp, bottom = 24.dp)
             .navigationBarsPadding()
     ) {
@@ -515,147 +515,14 @@ private fun PropertyPreviewSheet(
             )
         }
 
-        val totalPages = property.images.ifEmpty { listOf(1) }.size
-        val pagerState = rememberPagerState(pageCount = { totalPages })
-        Box(modifier = Modifier.fillMaxWidth().height(190.dp).clip(RoundedCornerShape(12.dp))) {
-            HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize()) { page ->
-                val imageModel = property.images.getOrNull(page)
-                if (imageModel != null) {
-                    AsyncImage(
-                        model = imageModel,
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                } else Box(
-                    modifier = Modifier.fillMaxSize().background(
-                        if (property.type == PropertyType.TERRENO) Color(0xFF53624E) else Color(0xFF7A7265)
-                    ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(
-                            painter = painterResource(
-                                when (property.type) {
-                                    PropertyType.CASA -> R.drawable.ic_casa_relleno_abajo
-                                    PropertyType.DEPARTAMENTO -> R.drawable.ic_departamento
-                                    PropertyType.TERRENO -> R.drawable.ic_terreno
-                                }
-                            ),
-                            contentDescription = null,
-                            tint = Color.White.copy(alpha = 0.85f),
-                            modifier = Modifier.size(64.dp)
-                        )
-                        Spacer(Modifier.height(6.dp))
-                        Text(stringResource(R.string.property_image_format, page + 1), color = Color.White.copy(alpha = 0.8f), fontSize = 14.sp)
-                    }
-                }
-            }
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopStart).padding(12.dp)
-                    .clip(RoundedCornerShape(8.dp)).background(Color.Black.copy(alpha = 0.6f))
-                    .padding(horizontal = 10.dp, vertical = 4.dp)
-            ) {
-                Text("${pagerState.currentPage + 1}/$totalPages", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
-            }
-            Box(
-                modifier = Modifier
-                    .align(Alignment.TopEnd).padding(12.dp).size(36.dp)
-                    .clip(CircleShape).background(Color.Black.copy(alpha = 0.4f))
-                    .noRippleClickable { onToggleSave() },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(if (property.isSaved) R.drawable.ic_guardar_relleno_abajo else R.drawable.ic_guardar_abajo),
-                    contentDescription = stringResource(R.string.property_save_cd),
-                    tint = Color.White,
-                    modifier = Modifier.size(18.dp).scale(if (property.isSaved) 1.45f else 1.0f)
-                )
-            }
-        }
-
-        Spacer(Modifier.height(12.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(verticalAlignment = Alignment.Bottom) {
-                Text(
-                    stringResource(R.string.property_price_format, formatCurrency(property.price)),
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                if (property.listingType == ListingType.RENTA) {
-                    Text(
-                        stringResource(R.string.property_per_month),
-                        fontSize = 14.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(bottom = 2.dp)
-                    )
-                }
-            }
-            Surface(color = MaterialTheme.nearHouseColors.tagRentaBg, shape = RoundedCornerShape(6.dp)) {
-                Text(
-                    property.listingType.name,
-                    color = MaterialTheme.nearHouseColors.tagRentaText,
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                )
-            }
-        }
-
-        Spacer(Modifier.height(6.dp))
-        Text(
-            property.title.uppercase(),
-            fontSize = 13.sp,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
+        // La misma tarjeta de Inicio y Guardados
+        PropertyCard(
+            property = property,
+            onClick = onClick,
+            onToggleSave = onToggleSave
         )
-        Spacer(Modifier.height(6.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(painterResource(R.drawable.ic_pin_localizacion), contentDescription = null, tint = Color.Unspecified, modifier = Modifier.size(16.dp))
-            Spacer(Modifier.width(4.dp))
-            Text(property.location, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        }
-        Spacer(Modifier.height(10.dp))
-
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            val (typeText, typeIcon) = when (property.type) {
-                PropertyType.DEPARTAMENTO -> stringResource(R.string.property_short_apartment) to R.drawable.ic_departamento
-                PropertyType.CASA -> stringResource(R.string.property_short_house) to R.drawable.ic_casa_relleno_abajo
-                PropertyType.TERRENO -> stringResource(R.string.property_short_land) to R.drawable.ic_terreno
-            }
-            FeatureItem(typeIcon, typeText)
-            if (property.type == PropertyType.TERRENO) {
-                if (property.frontMeters != null && property.depthMeters != null) {
-                    FeatureItem(R.drawable.ic_regla_medicion, "${property.frontMeters.toInt()}x${property.depthMeters.toInt()} m")
-                }
-            } else {
-                property.bedrooms?.let { FeatureItem(R.drawable.ic_habitaciones, stringResource(R.string.property_bedrooms_format, it)) }
-                property.bathrooms?.let { FeatureItem(R.drawable.ic_bathrooms, stringResource(R.string.property_bathrooms_format, it)) }
-                property.garages?.let { FeatureItem(R.drawable.ic_cocheras, stringResource(R.string.property_garages_format, it)) }
-            }
-        }
     }
 }
-
-@Composable
-private fun FeatureItem(iconRes: Int, text: String) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-        Icon(painterResource(iconRes), contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(15.dp))
-        Text(text, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-    }
-}
-
-private fun formatCurrency(amount: Double): String =
-    NumberFormat.getNumberInstance(Locale.US).format(amount.toLong())
 
 @Composable
 private fun Modifier.noRippleClickable(onClick: () -> Unit): Modifier =

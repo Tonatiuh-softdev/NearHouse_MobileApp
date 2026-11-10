@@ -14,6 +14,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.equipo4.nearhome.R
+import com.equipo4.nearhome.ui.notifications.ContadorNotificaciones
 import androidx.compose.material3.Text
 
 /** Navegación global: 0 Inicio, 1 Guardados, 2 Notificaciones, 3 Perfil. */
@@ -21,8 +22,9 @@ import androidx.compose.material3.Text
 fun NearHomeBottomBar(
     selectedTab: Int,
     onTabSelected: (Int) -> Unit,
-    // Nuevo parámetro opcional para el contador de notificaciones
-    unreadCount: Int = 0
+    // Notificaciones sin leer. Por defecto se toma el contador global, así el circulito rojo
+    // aparece en la barra de todas las pantallas.
+    unreadCount: Int = ContadorNotificaciones.noLeidas.collectAsState().value
 ) {
     var lastClickTime by remember { mutableStateOf(0L) }
 
