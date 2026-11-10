@@ -1,6 +1,7 @@
 package com.equipo4.nearhome.ui.subscription
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.equipo4.nearhome.R
+import com.equipo4.nearhome.ui.common.NoConnectionState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,7 +33,6 @@ fun ChoosePlanScreen(
     onFreeTrialActivated: () -> Unit = {}
 ) {
     val ui by viewModel.uiState.collectAsState()
-    var pendingTrial by remember { mutableStateOf<SubscriptionPlan?>(null) }
 
     Scaffold(
         topBar = {
@@ -62,18 +63,17 @@ fun ChoosePlanScreen(
                 CircularProgressIndicator()
             }
 
-            ui.errorCarga -> Column(
-                Modifier.fillMaxSize().padding(padding).padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(stringResource(R.string.plans_load_error), color = SubscriptionColors.errorText, textAlign = TextAlign.Center)
-                Spacer(Modifier.height(12.dp))
-                Button(onClick = viewModel::cargarPlanes) { Text(stringResource(R.string.plans_retry)) }
-            }
+            ui.errorCarga -> NoConnectionState(
+                onRetry = viewModel::cargarPlanes,
+                modifier = Modifier.padding(padding)
+            )
 
             else -> Column(
-                Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(20.dp),
+                Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 20.dp, vertical = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Column(Modifier.fillMaxWidth().padding(bottom = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -97,48 +97,16 @@ fun ChoosePlanScreen(
                         plan = plan,
                         esActual = esActual,
                         esPrueba = esPrueba,
-                        onClick = { onPlanSelected(plan) } // el mes gratis también pasa por la pantalla de cobro
+                        onSelect = {
+                            if (!esActual) {
+                                onPlanSelected(plan)
+                            }
+                        }
                     )
                 }
                 Spacer(Modifier.height(20.dp))
             }
         }
-    }
-
-    pendingTrial?.let { plan ->
-        AlertDialog(
-            onDismissRequest = { if (!ui.guardando) pendingTrial = null },
-            text = {
-                Column {
-                    Text(
-                        stringResource(
-                            R.string.plan_free_trial_dialog_text,
-                            plan.name,
-                            plan.trialDays,
-                            plan.priceText + stringResource(R.string.price_per_month)
-                        )
-                    )
-                    ui.errorAccion?.let {
-                        Spacer(Modifier.height(8.dp))
-                        Text(it, color = SubscriptionColors.errorText)
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    enabled = !ui.guardando,
-                    onClick = { viewModel.contratar(plan) { pendingTrial = null; onFreeTrialActivated() } }
-                ) {
-                    if (ui.guardando) CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
-                    else Text(stringResource(R.string.free_trial_activate_btn))
-                }
-            },
-            dismissButton = {
-                TextButton(enabled = !ui.guardando, onClick = { pendingTrial = null }) {
-                    Text(stringResource(R.string.common_cancel))
-                }
-            }
-        )
     }
 }
 
@@ -147,15 +115,22 @@ private fun PlanCard(
     plan: SubscriptionPlan,
     esActual: Boolean,
     esPrueba: Boolean,
-    onClick: () -> Unit
+    onSelect: () -> Unit
 ) {
-    Box(Modifier.fillMaxWidth().padding(top = if (plan.isPopular) 16.dp else 0.dp)) {
+    Box(
+        Modifier
+            .fillMaxWidth()
+            .padding(top = if (plan.isPopular) 16.dp else 0.dp)
+            .clickable(enabled = !esActual, onClick = onSelect)
+    ) {
         Card(
             modifier = Modifier.fillMaxWidth().padding(top = if (plan.isPopular) 12.dp else 0.dp),
             shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(containerColor = SubscriptionColors.surface),
+            colors = CardDefaults.cardColors(
+                containerColor = SubscriptionColors.surface
+            ),
             border = BorderStroke(
-                width = if (plan.isPopular) 5.dp else 1.dp,
+                width = if (plan.isPopular) 2.dp else 1.dp,
                 color = if (plan.isPopular) Color(0xFF008EFF) else SubscriptionColors.border
             ),
             elevation = CardDefaults.cardElevation(0.dp)
@@ -166,7 +141,18 @@ private fun PlanCard(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(plan.name, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = SubscriptionColors.textPrimary)
+                    Column {
+                        if (esActual) {
+                            Text(
+                                text = stringResource(R.string.plan_current_btn),
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF16A34A),
+                                modifier = Modifier.padding(bottom = 2.dp)
+                            )
+                        }
+                        Text(plan.name, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = SubscriptionColors.textPrimary)
+                    }
                     Row(verticalAlignment = Alignment.Bottom) {
                         Text(plan.priceText, fontSize = 32.sp, fontWeight = FontWeight.Bold, color = SubscriptionColors.brand)
                         Text(
@@ -192,7 +178,7 @@ private fun PlanCard(
                 Spacer(Modifier.height(20.dp))
 
                 Button(
-                    onClick = onClick,
+                    onClick = onSelect,
                     enabled = !esActual,
                     modifier = Modifier.fillMaxWidth().height(48.dp),
                     shape = RoundedCornerShape(12.dp),

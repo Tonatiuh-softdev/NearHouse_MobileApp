@@ -12,7 +12,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Redeem
-import androidx.compose.material.icons.outlined.Error
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -39,7 +38,6 @@ fun CheckoutScreen(
     onSuccessFinished: () -> Unit = {}
 ) {
     val context = LocalContext.current
-    // Si el usuario aún tiene su mes gratis, este plan se cobra como prueba gratuita
     val plan = remember(planId) {
         SubscriptionPlanCache.find(planId)?.let {
             it.copy(isFreeTrial = it.isFreeTrialFor(CurrentUserStore.user.value?.pruebaDisponible == true))
@@ -49,7 +47,7 @@ fun CheckoutScreen(
         LaunchedEffect(Unit) { onBackClick() }
         return
     }
-    // La bienvenida solo se da una vez: cuando el usuario pasa de comprador a vendedor
+
     val eraComprador = remember { CurrentUserStore.roleOrNull() == UserRole.COMPRADOR }
     val viewModel: CheckoutViewModel = remember(plan) {
         CheckoutViewModel(plan, SubscriptionRepository(context))
@@ -57,15 +55,11 @@ fun CheckoutScreen(
 
     val cardNumber by viewModel.cardNumber.collectAsState()
     val cardHolder by viewModel.cardHolder.collectAsState()
-    val expiryDate by viewModel.expiryDate.collectAsState()
+    val expiryMonth by viewModel.expiryMonth.collectAsState()
+    val expiryYear by viewModel.expiryYear.collectAsState()
     val cvv by viewModel.cvv.collectAsState()
 
-    val cardNumberError by viewModel.cardNumberError.collectAsState()
-    val cardHolderError by viewModel.cardHolderError.collectAsState()
-    val expiryError by viewModel.expiryError.collectAsState()
-    val cvvError by viewModel.cvvError.collectAsState()
-
-    val showGeneralError by viewModel.showGeneralError.collectAsState()
+    val isComplete by viewModel.isComplete.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val successMessage by viewModel.successMessage.collectAsState()
     val apiError by viewModel.apiError.collectAsState()
@@ -208,22 +202,12 @@ fun CheckoutScreen(
                     OutlinedTextField(
                         value = cardNumber,
                         onValueChange = viewModel::onCardNumberChanged,
-                        placeholder = { Text(stringResource(R.string.checkout_card_number_hint)) },
-                        isError = cardNumberError != null,
+                        placeholder = { Text("1234567812345678") },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         shape = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = if (cardNumberError != null) Color(0xFFEF4444) else SubscriptionColors.brand,
-                            unfocusedBorderColor = if (cardNumberError != null) Color(0xFFEF4444) else SubscriptionColors.inputBorder,
-                            focusedContainerColor = SubscriptionColors.inputBg,
-                            unfocusedContainerColor = SubscriptionColors.inputBg
-                        ),
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
-                    cardNumberError?.let {
-                        Text(it, fontSize = 12.sp, color = SubscriptionColors.errorText, modifier = Modifier.padding(top = 2.dp))
-                    }
                 }
 
                 Spacer(Modifier.height(12.dp))
@@ -236,51 +220,45 @@ fun CheckoutScreen(
                         value = cardHolder,
                         onValueChange = viewModel::onCardHolderChanged,
                         placeholder = { Text(stringResource(R.string.checkout_cardholder_hint)) },
-                        isError = cardHolderError != null,
                         shape = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = if (cardHolderError != null) Color(0xFFEF4444) else SubscriptionColors.brand,
-                            unfocusedBorderColor = if (cardHolderError != null) Color(0xFFEF4444) else SubscriptionColors.inputBorder,
-                            focusedContainerColor = SubscriptionColors.inputBg,
-                            unfocusedContainerColor = SubscriptionColors.inputBg
-                        ),
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
-                    cardHolderError?.let {
-                        Text(it, fontSize = 12.sp, color = SubscriptionColors.errorText, modifier = Modifier.padding(top = 2.dp))
-                    }
                 }
 
                 Spacer(Modifier.height(12.dp))
 
-                // Vencimiento y CVV
+                // Mes, Año y CVV en una fila
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(stringResource(R.string.card_expiry_label), fontSize = 13.sp, fontWeight = FontWeight.Medium, color = SubscriptionColors.textLabel)
+                        Text(stringResource(R.string.card_month_label), fontSize = 13.sp, fontWeight = FontWeight.Medium, color = SubscriptionColors.textLabel)
                         Spacer(Modifier.height(4.dp))
                         OutlinedTextField(
-                            value = expiryDate,
-                            onValueChange = viewModel::onExpiryChanged,
-                            placeholder = { Text(stringResource(R.string.checkout_expiry_hint)) },
-                            isError = expiryError != null,
+                            value = expiryMonth,
+                            onValueChange = viewModel::onExpiryMonthChanged,
+                            placeholder = { Text("01") },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             shape = RoundedCornerShape(12.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = if (expiryError != null) Color(0xFFEF4444) else SubscriptionColors.brand,
-                                unfocusedBorderColor = if (expiryError != null) Color(0xFFEF4444) else SubscriptionColors.inputBorder,
-                                focusedContainerColor = SubscriptionColors.inputBg,
-                                unfocusedContainerColor = SubscriptionColors.inputBg
-                            ),
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth()
                         )
-                        expiryError?.let {
-                            Text(it, fontSize = 12.sp, color = SubscriptionColors.errorText, modifier = Modifier.padding(top = 2.dp))
-                        }
+                    }
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(stringResource(R.string.card_year_label), fontSize = 13.sp, fontWeight = FontWeight.Medium, color = SubscriptionColors.textLabel)
+                        Spacer(Modifier.height(4.dp))
+                        OutlinedTextField(
+                            value = expiryYear,
+                            onValueChange = viewModel::onExpiryYearChanged,
+                            placeholder = { Text("28") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            shape = RoundedCornerShape(12.dp),
+                            singleLine = true,
+                            modifier = Modifier.fillMaxWidth()
+                        )
                     }
 
                     Column(modifier = Modifier.weight(1f)) {
@@ -289,47 +267,35 @@ fun CheckoutScreen(
                         OutlinedTextField(
                             value = cvv,
                             onValueChange = viewModel::onCvvChanged,
-                            placeholder = { Text(stringResource(R.string.checkout_cvv_hint)) },
-                            isError = cvvError != null,
+                            placeholder = { Text("123") },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             shape = RoundedCornerShape(12.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = if (cvvError != null) Color(0xFFEF4444) else SubscriptionColors.brand,
-                                unfocusedBorderColor = if (cvvError != null) Color(0xFFEF4444) else SubscriptionColors.inputBorder,
-                                focusedContainerColor = SubscriptionColors.inputBg,
-                                unfocusedContainerColor = SubscriptionColors.inputBg
-                            ),
                             singleLine = true,
                             modifier = Modifier.fillMaxWidth()
                         )
-                        cvvError?.let {
-                            Text(it, fontSize = 12.sp, color = SubscriptionColors.errorText, modifier = Modifier.padding(top = 2.dp))
-                        }
                     }
                 }
 
-                Spacer(Modifier.height(8.dp))
-
-                Spacer(Modifier.height(10.dp))
+                Spacer(Modifier.height(20.dp))
 
                 // Botón principal
                 Button(
                     onClick = { viewModel.submit(onSuccessNavigation = onSuccessFinished) },
-                    enabled = !isLoading,
+                    enabled = isComplete && !isLoading,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = SubscriptionColors.brand,
-                        disabledContainerColor = SubscriptionColors.brand.copy(alpha = 0.6f)
+                        disabledContainerColor = SubscriptionColors.brand.copy(alpha = 0.5f)
                     )
                 ) {
                     if (isLoading) {
                         CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
                     } else {
                         Text(
-                            text = if (plan.isFreeTrial) stringResource(R.string.activate_free_trial_btn) else stringResource(R.string.confirm_and_pay_btn),
+                            text = if (plan.isFreeTrial) stringResource(R.string.activate_free_trial_btn) else stringResource(R.string.pay_amount_btn, plan.priceText),
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFFFFFFFF)
@@ -337,35 +303,15 @@ fun CheckoutScreen(
                     }
                 }
 
-                // Error de validación del formulario
-                if (showGeneralError) {
-                    Spacer(Modifier.height(6.dp))
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 4.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Error,
-                            contentDescription = null,
-                            tint = SubscriptionColors.errorStrong,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Text(
-                            text = stringResource(R.string.error_fill_mandatory_dot),
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = SubscriptionColors.errorStrong
-                        )
+                // Error de la API (sin internet, etc.)
+                apiError?.let { err ->
+                    Spacer(Modifier.height(10.dp))
+                    val errorText = when (err) {
+                        "NETWORK_ERROR" -> stringResource(R.string.check_internet_connection)
+                        "UNEXPECTED_ERROR" -> stringResource(R.string.error_unexpected_retry)
+                        else -> err
                     }
-                }
-
-                // Error de la API (sin internet, plan duplicado, etc.)
-                apiError?.let {
-                    Spacer(Modifier.height(6.dp))
-                    Text(it, fontSize = 13.sp, color = SubscriptionColors.errorStrong)
+                    Text(errorText, fontSize = 13.sp, color = SubscriptionColors.errorStrong)
                 }
 
                 Spacer(Modifier.height(16.dp))
@@ -388,7 +334,7 @@ fun CheckoutScreen(
                 Spacer(Modifier.height(30.dp))
             }
 
-            // Pantalla de verificación: palomita verde + sonido + aviso de bienvenida
+            // Pantalla de éxito
             if (successMessage != null) {
                 LogroSonidoEffect()
                 LaunchedEffect(Unit) { if (eraComprador) NotificacionesHelper.mostrarBienvenidaVendedor(context) }

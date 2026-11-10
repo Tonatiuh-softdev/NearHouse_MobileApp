@@ -1147,6 +1147,7 @@
     <string name="admin_user_delete_warning_body">%1$s has %2$d listings linked to the account. They will be deleted together with the account, its photos and reports.</string>
     <string name="admin_user_delete_list_title">The account and its personal data will be deleted</string>
     <string name="admin_user_delete_item_personal">Name, email and phone</string>
+    <string name="success_plan_active_until">Ready! Your %1$s plan is active until %2$s</string>
     <string name="admin_user_delete_item_access">Access and credentials</string>
     <string name="admin_user_delete_item_activity">Preferences and account activity</string>
     <string name="admin_user_delete_footnote">By continuing, you confirm that you reviewed the identity and the impact of this deletion.</string>
@@ -1174,4 +1175,8 @@
     <string name="notif_body_report_attended">We took action on “%1$s”. Thanks for helping us keep NearHouse safe.</string>
     <string name="notif_body_report_discarded">We found that “%1$s” does not break the rules. Thanks for letting us know.</string>
     <string name="notif_body_removed">“%1$s” is no longer visible because it does not comply with NearHouse rules. Reason: %2$s.</string>
+    <string name="card_month_label">Month</string>
+    <string name="card_year_label">Year</string>
+    <string name="pay_amount_btn">Pay %1$s</string>
+    <string name="check_internet_connection">Check your internet connection</string>
 </resources>
