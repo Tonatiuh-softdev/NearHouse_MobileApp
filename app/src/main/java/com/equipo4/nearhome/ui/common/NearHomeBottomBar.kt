@@ -49,7 +49,8 @@ fun NearHomeBottomBar(
                     IconButton(
                         onClick = {
                             val now = System.currentTimeMillis()
-                            if (now - lastClickTime > 400) {
+                            // Si es otra pestaña, cambia inmediatamente. Si es la misma, aplica debounce.
+                            if (index != selectedTab || now - lastClickTime > 400) {
                                 lastClickTime = now
                                 onTabSelected(index)
                             }

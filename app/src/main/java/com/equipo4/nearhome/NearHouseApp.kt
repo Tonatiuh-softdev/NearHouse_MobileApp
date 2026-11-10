@@ -359,16 +359,13 @@ fun NearHouseApp() {
                 navController.popBackStack(targetRoot, inclusive = false)
             }
         } else {
-            // La campana (index 2) siempre abre Notificaciones desde cero y actualizada.
-            // Si restaurara el estado guardado, volvería a la pantalla a la que se entró desde un aviso.
-            val restaurarPila = index != 2
             navController.navigate(targetRoot) {
                 popUpTo(AppRoutes.HOME) {
                     inclusive = false
-                    saveState = restaurarPila
+                    saveState = false
                 }
                 launchSingleTop = true
-                restoreState = restaurarPila
+                restoreState = false
             }
         }
     }
@@ -605,11 +602,12 @@ fun NearHouseApp() {
                 onMyListingsClick = {
                     scope.launch {
                         if (CurrentUserStore.roleOrNull() == null) {
-                            CurrentUserStore.refresh(authApi)
+                            runCatching { CurrentUserStore.refresh(authApi) }
                         }
-                        when (CurrentUserStore.roleOrNull()) {
+                        val role = CurrentUserStore.roleOrNull() 
+                            ?: UserRole.fromDb(SessionManager(context).getUserRole())
+                        when (role) {
                             UserRole.COMPRADOR -> navController.navigate(AppRoutes.SUBSCRIPTION)
-                            null -> Unit // sin datos no se decide, para no mandar a un vendedor a suscripciones
                             else -> navController.navigate(AppRoutes.MY_LISTINGS)
                         }
                     }

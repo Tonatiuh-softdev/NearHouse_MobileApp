@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.equipo4.nearhome.R
+import com.equipo4.nearhome.data.local.SessionManager
 import com.equipo4.nearhome.data.repository.MyListingsRepository
 import com.equipo4.nearhome.data.session.CurrentUserStore
 import com.equipo4.nearhome.di.NetworkModule
@@ -19,8 +20,13 @@ import com.equipo4.nearhome.data.repository.Repositories
 class MyListingsViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = MyListingsRepository(application)
+    private val session = SessionManager(application)
 
-    private val _uiState = MutableStateFlow(MyListingsUiState())
+    private val _uiState = MutableStateFlow(
+        MyListingsUiState(
+            role = UserRole.fromDb(session.getUserRole())
+        )
+    )
     val uiState: StateFlow<MyListingsUiState> = _uiState.asStateFlow()
 
     /** Aviso para mostrar en un snackbar (anuncio eliminado o el error si no se pudo). */
@@ -39,7 +45,7 @@ class MyListingsViewModel(application: Application) : AndroidViewModel(applicati
                         userPhone = user?.telefono?.takeIf { it.isNotBlank() } ?: "",
                         userPhotoUrl = user?.takeIf { it.tieneFoto && it.fotoVersion != null }
                             ?.let { NetworkModule.fotoPerfilUrl(it.fotoVersion!!) },
-                        role = UserRole.fromDb(user?.rol)
+                        role = UserRole.fromDb(user?.rol ?: session.getUserRole())
                     )
                 }
             }

@@ -23,11 +23,24 @@ class SavedViewModel(
 
     init {
         viewModelScope.launch {
-            repository.observeSaved()
-                .catch { _uiState.update { s -> s.copy(isLoading = false, errorMessage = AppStrings.get(R.string.saved_error_load)) } }
-                .collect { list ->
-                    _uiState.update { it.copy(isLoading = false, errorMessage = null, properties = list) }
+            // 1. Observar propiedades guardadas
+            launch {
+                repository.observeSaved()
+                    .catch { _uiState.update { s -> s.copy(isLoading = false, errorMessage = AppStrings.get(R.string.saved_error_load)) } }
+                    .collect { list ->
+                        _uiState.update { it.copy(errorMessage = null, properties = list) }
+                    }
+            }
+
+            // 2. Cargar / refrescar datos iniciales
+            launch {
+                try {
+                    _uiState.update { it.copy(isLoading = true) }
+                    repository.refresh()
+                } finally {
+                    _uiState.update { it.copy(isLoading = false) }
                 }
+            }
         }
     }
 
@@ -38,6 +51,16 @@ class SavedViewModel(
             val success = repository.refresh()
             _uiState.update { it.copy(isRefreshing = false) }
             onFinished(success)
+        }
+    }
+
+    fun onScreenResumed() {
+        viewModelScope.launch {
+            if (_uiState.value.properties.isEmpty()) {
+                _uiState.update { it.copy(isLoading = true) }
+            }
+            repository.refresh()
+            _uiState.update { it.copy(isLoading = false) }
         }
     }
 

@@ -138,6 +138,12 @@ class HomeViewModel(
     }
 
     fun onScreenResumed() {
-        viewModelScope.launch { repository.refresh() }
+        viewModelScope.launch {
+            if (_uiState.value.properties.isEmpty()) {
+                _uiState.update { it.copy(isLoading = true) }
+            }
+            repository.refresh()
+            _uiState.update { it.copy(isLoading = false) }
+        }
     }
 }
