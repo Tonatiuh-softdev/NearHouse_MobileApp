@@ -536,6 +536,15 @@ fun NearHouseApp() {
             // NUEVO: Pedir permiso de notificaciones (Android 13+)
             PedirPermisoNotificaciones()
 
+            // Registrar este celular para recibir avisos cada vez que se llega a Home con sesión
+            // (login, registro, Google...). Sin esto, tras cerrar sesión e iniciar de nuevo,
+            // el servidor no tiene el token y no llegan notificaciones hasta reiniciar la app.
+            LaunchedEffect(Unit) {
+                if (sessionManager.isLoggedIn()) {
+                    TokenManager.registrarTokenActual(context, scope)
+                }
+            }
+
             HomeScreen(
                 reselectTrigger = homeReselectTrigger,
                 onPropertyClick = { propertyId ->
@@ -604,7 +613,7 @@ fun NearHouseApp() {
                         if (CurrentUserStore.roleOrNull() == null) {
                             runCatching { CurrentUserStore.refresh(authApi) }
                         }
-                        val role = CurrentUserStore.roleOrNull() 
+                        val role = CurrentUserStore.roleOrNull()
                             ?: UserRole.fromDb(SessionManager(context).getUserRole())
                         when (role) {
                             UserRole.COMPRADOR -> navController.navigate(AppRoutes.SUBSCRIPTION)
