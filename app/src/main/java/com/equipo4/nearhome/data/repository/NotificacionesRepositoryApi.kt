@@ -48,7 +48,7 @@ class NotificacionesRepositoryApi(context: Context) : NotificacionesRepository {
 
     override suspend fun totalNoLeidas(): Result<Int> = withContext(Dispatchers.IO) {
         try {
-            Result.success(api.noLeidas().totalNoLeidas)
+            Result.success(api.noLeidas().total)
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -165,7 +165,7 @@ private fun NotificacionDto.toDominio(): Notificacion {
     return Notificacion(
         id = id.toString(),
         tipo = tipoDominio,
-        timestampMs = parseIsoAFecha(fecha),
+        timestampMs = fecha,
         leida = leida,
         imagenUrl = imagen,
         publicacionId = idPublicacion?.toString(),
@@ -177,11 +177,6 @@ private fun NotificacionDto.toDominio(): Notificacion {
         fechaPlanIso = datos?.get("fecha")
     )
 }
-
-/** ISO → epoch ms. Si falla, usa "ahora". */
-private fun parseIsoAFecha(iso: String): Long = runCatching {
-    OffsetDateTime.parse(iso).toInstant().toEpochMilli()
-}.getOrDefault(System.currentTimeMillis())
 
 /** Formatea una fecha ISO al idioma actual de la app, ej. "6 nov 2026". */
 fun formatearFechaPlan(iso: String?): String =

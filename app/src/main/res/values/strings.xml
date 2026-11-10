@@ -1165,6 +1165,9 @@
     <string name="notif_menu_delete_all">Borrar todas</string>
     <string name="notif_menu_delete_confirm_title">¿Borrar todas las notificaciones?</string>
     <string name="notif_menu_delete_confirm_body">Esta acción no se puede deshacer.</string>
+    <string name="notif_time_now">Ahora mismo</string>
+    <string name="notif_time_minutes">Hace %1$d min</string>
+    <string name="notif_time_hours">Hace %1$d h</string>
     <string name="notif_delete_single">Eliminar</string>
     <string name="notif_pub_unavailable">Esta publicación ya no está disponible</string>
 

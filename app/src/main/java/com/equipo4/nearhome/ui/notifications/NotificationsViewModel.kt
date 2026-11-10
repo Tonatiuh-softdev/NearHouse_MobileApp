@@ -27,9 +27,8 @@ class NotificationsViewModel(
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
 
-    // Contador para la campana (Barra inferior)
-    private val _unreadCount = MutableStateFlow(0)
-    val unreadCount: StateFlow<Int> = _unreadCount.asStateFlow()
+    // Contador para la campana (barra inferior). Es el mismo para toda la app.
+    val unreadCount: StateFlow<Int> = ContadorNotificaciones.noLeidas
 
     init {
         loadNotifications()
@@ -54,7 +53,7 @@ class NotificationsViewModel(
     fun refreshUnreadCount() {
         viewModelScope.launch {
             repository.totalNoLeidas().onSuccess { count ->
-                _unreadCount.value = count
+                ContadorNotificaciones.actualizar(count)
             }
         }
     }
@@ -74,7 +73,7 @@ class NotificationsViewModel(
                 success = false
             }
             repository.totalNoLeidas().onSuccess { count ->
-                _unreadCount.value = count
+                ContadorNotificaciones.actualizar(count)
             }
             _isRefreshing.value = false
             onFinished(success)
@@ -88,7 +87,7 @@ class NotificationsViewModel(
     fun marcarTodasLeidas() {
         viewModelScope.launch {
             repository.marcarTodasLeidas().onSuccess {
-                _unreadCount.value = 0
+                ContadorNotificaciones.actualizar(0)
                 loadNotifications()
             }
         }
@@ -97,7 +96,7 @@ class NotificationsViewModel(
     fun borrarTodas() {
         viewModelScope.launch {
             repository.borrarTodas().onSuccess {
-                _unreadCount.value = 0
+                ContadorNotificaciones.actualizar(0)
                 loadNotifications()
             }
         }
