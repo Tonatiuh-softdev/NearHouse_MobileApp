@@ -1176,9 +1176,14 @@
     <string name="notif_title_removed">Retiramos tu publicación</string>
 
     <!-- Cuerpos (textos) de los 9 tipos -->
+    <string name="success_plan_active_until">¡Listo! Tu plan %1$s está activo hasta el %2$s</string>
     <string name="notif_body_plan">Tu plan %1$s está activo hasta el %2$s. Ya puedes publicar tus propiedades.</string>
     <string name="notif_body_report_sent">Gracias por avisarnos. Un administrador revisará “%1$s”.</string>
     <string name="notif_body_report_attended">Tomamos medidas sobre “%1$s”. Gracias por ayudarnos a cuidar NearHouse.</string>
     <string name="notif_body_report_discarded">No encontramos que “%1$s” incumpla las reglas. Gracias por avisarnos.</string>
     <string name="notif_body_removed">“%1$s” ya no está visible porque no cumple las reglas de NearHouse. Motivo: %2$s.</string>
+    <string name="card_month_label">Mes</string>
+    <string name="card_year_label">Año</string>
+    <string name="pay_amount_btn">Pagar %1$s</string>
+    <string name="check_internet_connection">Comprueba tu conexión a internet</string>
 </resources>

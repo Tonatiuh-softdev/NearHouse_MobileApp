@@ -45,14 +45,14 @@ class SubscriptionRepository(context: Context) {
         if (respuesta.isSuccessful && cuerpo != null) {
             Resultado.Ok(cuerpo)
         } else {
-            Resultado.Error(mensajeApi(respuesta.errorBody()?.string()) ?: app.getString(R.string.error_unexpected_retry))
+            Resultado.Error(mensajeApi(respuesta.errorBody()?.string()) ?: "UNEXPECTED_ERROR")
         }
     } catch (e: CancellationException) {
         throw e
     } catch (e: IOException) {
-        Resultado.Error(app.getString(R.string.network_error_connection))
+        Resultado.Error("NETWORK_ERROR")
     } catch (e: Exception) {
-        Resultado.Error(app.getString(R.string.error_unexpected_retry))
+        Resultado.Error("UNEXPECTED_ERROR")
     }
 
     private fun mensajeApi(raw: String?): String? = try {

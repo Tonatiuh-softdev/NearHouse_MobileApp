@@ -14,8 +14,10 @@ data class ChoosePlanUiState(
     val planes: List<SubscriptionPlan> = emptyList(),
     val cargando: Boolean = true,
     val errorCarga: Boolean = false,
+    val errorCargaMensaje: String? = null,
     val pruebaDisponible: Boolean = false,
     val planActualId: Int? = null,
+    val selectedPlanId: Int? = null,
     val guardando: Boolean = false,
     val errorAccion: String? = null
 )
@@ -43,16 +45,23 @@ class ChoosePlanViewModel(application: Application) : AndroidViewModel(applicati
 
     fun cargarPlanes() {
         viewModelScope.launch {
-            _uiState.update { it.copy(cargando = true, errorCarga = false) }
+            _uiState.update { it.copy(cargando = true, errorCarga = false, errorCargaMensaje = null) }
             when (val r = repo.obtenerPlanes()) {
                 is Resultado.Ok -> {
                     val planes = r.valor.map { it.toModel() }
                     SubscriptionPlanCache.plans = planes
-                    _uiState.update { it.copy(planes = planes, cargando = false) }
+                    _uiState.update { state ->
+                        val newSelected = state.selectedPlanId?.let { id -> if (planes.any { it.id == id }) id else null }
+                        state.copy(planes = planes, cargando = false, selectedPlanId = newSelected)
+                    }
                 }
-                is Resultado.Error -> _uiState.update { it.copy(cargando = false, errorCarga = true) }
+                is Resultado.Error -> _uiState.update { it.copy(cargando = false, errorCarga = true, errorCargaMensaje = r.mensaje) }
             }
         }
+    }
+
+    fun seleccionarPlan(planId: Int) {
+        _uiState.update { it.copy(selectedPlanId = planId) }
     }
 
     fun contratar(plan: SubscriptionPlan, onDone: () -> Unit) {
