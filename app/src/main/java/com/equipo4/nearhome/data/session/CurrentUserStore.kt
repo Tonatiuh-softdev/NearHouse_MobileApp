@@ -1,5 +1,7 @@
 package com.equipo4.nearhome.data.session
 
+import com.equipo4.nearhome.data.repository.PropiedadRepositoryApi
+import com.equipo4.nearhome.data.repository.Repositories
 import com.equipo4.nearhome.network.AuthApi
 import com.equipo4.nearhome.network.UsuarioMeDto
 import com.equipo4.nearhome.ui.profile.UserRole
@@ -23,6 +25,7 @@ object CurrentUserStore {
 
     fun clear() {
         _user.value = null
+        (Repositories.propiedades as? PropiedadRepositoryApi)?.clearSavedMemory()
     }
 
     fun set(user: UsuarioMeDto) {

@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.util.Collections
 import kotlin.coroutines.cancellation.CancellationException
 
 /** URL de una foto del anuncio. Es pública: Coil la carga sin sesión. */
@@ -31,15 +32,12 @@ fun fotoUsuarioUrl(userId: Int, version: Long): String =
     "${NetworkModule.BASE_URL}api/v1/usuarios/$userId/foto?v=$version"
 
 /**
- * Anuncios reales: lee del API los que están PUBLICADA. Cada vez que una pantalla empieza a observar
- * se vuelve a pedir la lista, así un anuncio recién aprobado aparece sin reiniciar la app.
- * "Guardados" se queda en el teléfono (la base no tiene tabla de favoritos).
+ * Anuncios reales y guardados persistidos en PostgreSQL a través de la API.
  */
 class PropiedadRepositoryApi(context: Context) : PropiedadRepository {
 
     private val appContext = context.applicationContext
     private val session = SessionManager(appContext)
-    private val prefs = appContext.getSharedPreferences("nearhome_saved", Context.MODE_PRIVATE)
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private val api: PublicacionesApi by lazy {
@@ -47,8 +45,9 @@ class PropiedadRepositoryApi(context: Context) : PropiedadRepository {
             .create(PublicacionesApi::class.java)
     }
 
-    private val savedIds = MutableStateFlow(prefs.getStringSet(KEY_SAVED, emptySet()).orEmpty().toSet())
+    private val savedIds = MutableStateFlow<Set<String>>(emptySet())
     private val remote = MutableStateFlow<List<Property>>(emptyList())
+    private val inFlightToggles = Collections.synchronizedSet(mutableSetOf<String>())
     private var loadJob: Job? = null
     @Volatile private var reloadPending = false
 
@@ -63,10 +62,14 @@ class PropiedadRepositoryApi(context: Context) : PropiedadRepository {
     override suspend fun getById(propertyId: String): Property? {
         val saved = propertyId in savedIds.value
         remote.value.firstOrNull { it.id == propertyId }?.let { return it.copy(isSaved = saved) }
-        // Un anuncio que aún no está publicado (el del propio vendedor) no está en la lista: se pide aparte
         val id = propertyId.toIntOrNull() ?: return null
         return try {
-            api.obtener(id).toProperty(session.getUserId()).copy(isSaved = saved)
+            val dto = api.obtener(id)
+            val property = dto.toProperty(session.getUserId())
+            if (dto.guardada) {
+                savedIds.update { it + propertyId }
+            }
+            property.copy(isSaved = propertyId in savedIds.value)
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
@@ -76,16 +79,46 @@ class PropiedadRepositoryApi(context: Context) : PropiedadRepository {
     }
 
     override suspend fun setSaved(propertyId: String, saved: Boolean) {
-        val next = if (saved) savedIds.value + propertyId else savedIds.value - propertyId
-        prefs.edit().putStringSet(KEY_SAVED, next).apply()
-        savedIds.update { next }
+        val id = propertyId.toIntOrNull() ?: return
+        if (!inFlightToggles.add(propertyId)) return // Ya hay una petición en curso para esta propiedad
+
+        val previousSaved = savedIds.value
+        val nextSaved = if (saved) previousSaved + propertyId else previousSaved - propertyId
+        savedIds.value = nextSaved
+
+        try {
+            val response = if (saved) api.guardar(id) else api.eliminarGuardado(id)
+            if (!response.isSuccessful) {
+                savedIds.value = previousSaved
+                throw Exception("No se pudo guardar. Revisa tu conexión.")
+            }
+        } catch (e: Exception) {
+            savedIds.value = previousSaved
+            if (e is CancellationException) throw e
+            throw Exception("No se pudo guardar. Revisa tu conexión.")
+        } finally {
+            inFlightToggles.remove(propertyId)
+        }
     }
 
     override suspend fun refresh(): Boolean {
         return try {
             val userId = session.getUserId()
-            val list = api.listar().map { it.toProperty(userId) }
+            val list = api.listar().map { pub ->
+                if (pub.guardada) {
+                    savedIds.update { it + pub.id.toString() }
+                }
+                pub.toProperty(userId)
+            }
             remote.value = list
+
+            // Cargar también la lista completa de guardados desde el API si hay sesión iniciada
+            if (session.isLoggedIn()) {
+                val guardadosDtos = api.listarGuardados(1)
+                val newSavedIds = guardadosDtos.map { it.id.toString() }.toSet()
+                savedIds.update { it + newSavedIds }
+            }
+
             true
         } catch (e: CancellationException) {
             throw e
@@ -95,7 +128,11 @@ class PropiedadRepositoryApi(context: Context) : PropiedadRepository {
         }
     }
 
-    /** Pide la lista al API. Si ya hay una petición en curso, la vuelve a pedir al terminar en vez de perder el cambio. */
+    fun clearSavedMemory() {
+        savedIds.value = emptySet()
+        inFlightToggles.clear()
+    }
+
     private fun reload() {
         if (loadJob?.isActive == true) {
             reloadPending = true
@@ -111,7 +148,6 @@ class PropiedadRepositoryApi(context: Context) : PropiedadRepository {
 
     private companion object {
         const val TAG = "NearHomeApi"
-        const val KEY_SAVED = "saved_ids"
     }
 }
 
@@ -150,7 +186,6 @@ internal fun PublicacionDto.toProperty(userId: Int?): Property {
         rules = reglas,
         sellerId = vendedor.id,
         sellerName = vendedor.nombre,
-        // Si el anuncio es del usuario con sesión, se usa la misma función que carga su foto de perfil
         sellerPhotoUrl = if (vendedor.tieneFoto && vendedor.fotoVersion != null) {
             if (esDueno) {
                 NetworkModule.fotoPerfilUrl(vendedor.fotoVersion.toString())
@@ -161,6 +196,7 @@ internal fun PublicacionDto.toProperty(userId: Int?): Property {
         sellerEmail = vendedor.correo,
         sellerPhone = vendedor.telefono,
         isOwner = esDueno,
+        isSaved = guardada,
         registeredAt = fechaRegistro
     )
 }

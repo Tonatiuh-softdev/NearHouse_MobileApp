@@ -194,7 +194,11 @@ fun HomeScreen(
                                     ) {
                                         PropertyCard(
                                             property = property,
-                                            onToggleSave = { viewModel.toggleSaveProperty(property.id) },
+                                            onToggleSave = {
+                                                viewModel.toggleSaveProperty(property.id) { msg ->
+                                                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                                                }
+                                            },
                                             onClick = { onPropertyClick(property.id) }
                                         )
                                     }

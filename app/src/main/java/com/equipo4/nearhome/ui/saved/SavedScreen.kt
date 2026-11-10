@@ -1,5 +1,7 @@
 package com.equipo4.nearhome.ui.saved
 
+import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeOut
@@ -12,6 +14,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,6 +24,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -31,16 +35,11 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
+import com.equipo4.nearhome.ui.common.NoConnectionState
 import com.equipo4.nearhome.ui.common.PropertyCard
 import com.equipo4.nearhome.ui.common.PropertyListSkeleton
-import com.equipo4.nearhome.ui.common.NoConnectionState
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-
-import android.widget.Toast
-import androidx.activity.compose.BackHandler
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.ui.platform.LocalContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,6 +52,7 @@ fun SavedScreen(
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
     val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
     var removing by remember { mutableStateOf(setOf<String>()) }
     val listState = rememberLazyListState()
 
@@ -64,6 +64,22 @@ fun SavedScreen(
 
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
         viewModel.onScreenResumed()
+    }
+
+    LaunchedEffect(uiState.snackbarMessage) {
+        uiState.snackbarMessage?.let { msg ->
+            val hasUndo = uiState.lastUnsavedProperty != null
+            val result = snackbarHostState.showSnackbar(
+                message = msg,
+                actionLabel = if (hasUndo) "Deshacer" else null,
+                duration = SnackbarDuration.Short
+            )
+            if (result == SnackbarResult.ActionPerformed) {
+                viewModel.undoUnsave()
+            } else {
+                viewModel.onSnackbarConsumed()
+            }
+        }
     }
 
     val triggerReload = {
@@ -95,6 +111,7 @@ fun SavedScreen(
                 onTabSelected = onBottomTabSelected
             )
         },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         PullToRefreshBox(
@@ -145,7 +162,7 @@ fun SavedScreen(
                                             removing = removing + property.id
                                             scope.launch {
                                                 delay(320)
-                                                viewModel.onUnsave(property.id)
+                                                viewModel.onUnsave(property)
                                                 removing = removing - property.id
                                             }
                                         },

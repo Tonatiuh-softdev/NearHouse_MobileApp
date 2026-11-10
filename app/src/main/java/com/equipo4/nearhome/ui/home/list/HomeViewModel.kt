@@ -44,7 +44,6 @@ class HomeViewModel(
             }
 
             // 3. Ejecutar la sincronización/carga inicial de la BD/Red.
-            // HASTA que esta corrutina termine, se apaga el isLoading.
             launch {
                 try {
                     _uiState.update { it.copy(isLoading = true, loadError = false) }
@@ -53,7 +52,6 @@ class HomeViewModel(
                 } catch (e: Exception) {
                     _uiState.update { it.copy(loadError = true) }
                 } finally {
-                    // Esperamos a que se procese el primer filtrado en background antes de ocultar el Skeleton
                     withContext(Dispatchers.Default) {
                         computeFilteredList()
                     }
@@ -126,9 +124,15 @@ class HomeViewModel(
         PropertyFilterManager.resetFilters()
     }
 
-    fun toggleSaveProperty(propertyId: String) {
+    fun toggleSaveProperty(propertyId: String, onError: (String) -> Unit = {}) {
         val current = allProperties.firstOrNull { it.id == propertyId } ?: return
-        viewModelScope.launch { repository.setSaved(propertyId, !current.isSaved) }
+        viewModelScope.launch {
+            try {
+                repository.setSaved(propertyId, !current.isSaved)
+            } catch (e: Exception) {
+                onError("No se pudo guardar. Revisa tu conexión.")
+            }
+        }
     }
 
     fun recargar(onFinished: (Boolean) -> Unit = {}) {

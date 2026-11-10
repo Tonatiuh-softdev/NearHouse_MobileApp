@@ -2,17 +2,17 @@ package com.equipo4.nearhome.ui.saved
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.equipo4.nearhome.R
 import com.equipo4.nearhome.data.repository.Repositories
+import com.equipo4.nearhome.domain.model.Property
 import com.equipo4.nearhome.domain.repository.PropiedadRepository
+import com.equipo4.nearhome.util.AppStrings
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-
-import com.equipo4.nearhome.util.AppStrings
-import com.equipo4.nearhome.R
 
 class SavedViewModel(
     private val repository: PropiedadRepository = Repositories.propiedades
@@ -23,7 +23,7 @@ class SavedViewModel(
 
     init {
         viewModelScope.launch {
-            // 1. Observar propiedades guardadas
+            // 1. Observar propiedades guardadas en tiempo real desde el repositorio central
             launch {
                 repository.observeSaved()
                     .catch { _uiState.update { s -> s.copy(isLoading = false, loadError = true, errorMessage = AppStrings.get(R.string.saved_error_load)) } }
@@ -32,7 +32,7 @@ class SavedViewModel(
                     }
             }
 
-            // 2. Cargar / refrescar datos iniciales
+            // 2. Cargar datos iniciales desde el API
             launch {
                 try {
                     _uiState.update { it.copy(isLoading = true, loadError = false) }
@@ -67,8 +67,37 @@ class SavedViewModel(
         }
     }
 
-    /** Quita la propiedad de guardados; la lista se actualiza sola porque observa el repositorio. */
-    fun onUnsave(propertyId: String) {
-        viewModelScope.launch { repository.setSaved(propertyId, false) }
+    /** Quita la propiedad de guardados; guarda copia para opción "Deshacer". */
+    fun onUnsave(property: Property) {
+        viewModelScope.launch {
+            try {
+                repository.setSaved(property.id, false)
+                _uiState.update {
+                    it.copy(
+                        lastUnsavedProperty = property,
+                        snackbarMessage = "Quitada de guardados"
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(snackbarMessage = "No se pudo guardar. Revisa tu conexión.") }
+            }
+        }
+    }
+
+    /** Deshace la acción de quitar guardado (vuelve a enviar POST a la API). */
+    fun undoUnsave() {
+        val propertyToRestore = _uiState.value.lastUnsavedProperty ?: return
+        viewModelScope.launch {
+            try {
+                repository.setSaved(propertyToRestore.id, true)
+                _uiState.update { it.copy(lastUnsavedProperty = null, snackbarMessage = null) }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(snackbarMessage = "No se pudo guardar. Revisa tu conexión.") }
+            }
+        }
+    }
+
+    fun onSnackbarConsumed() {
+        _uiState.update { it.copy(snackbarMessage = null) }
     }
 }

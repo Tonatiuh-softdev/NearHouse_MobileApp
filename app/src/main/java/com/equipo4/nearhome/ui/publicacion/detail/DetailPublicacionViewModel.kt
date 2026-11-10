@@ -2,13 +2,13 @@ package com.equipo4.nearhome.ui.publicacion.detail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.equipo4.nearhome.R
 import com.equipo4.nearhome.data.repository.Repositories
 import com.equipo4.nearhome.domain.model.ListingType
 import com.equipo4.nearhome.domain.model.Property
 import com.equipo4.nearhome.domain.model.PropertyType
 import com.equipo4.nearhome.domain.repository.PropiedadRepository
 import com.equipo4.nearhome.util.AppStrings
-import com.equipo4.nearhome.R
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -37,13 +37,20 @@ class DetailPublicacionViewModel(
         }
     }
 
-    fun toggleGuardar() {
+    fun toggleGuardar(onFailure: (String) -> Unit = {}) {
         val currentState = _uiState.value
         if (currentState is DetailPublicacionUiState.Success) {
             val pub = currentState.publicacion
             val nuevoEstadoGuardado = !pub.estaGuardado
             _uiState.value = DetailPublicacionUiState.Success(pub.copy(estaGuardado = nuevoEstadoGuardado))
-            viewModelScope.launch { repository.setSaved(pub.id, nuevoEstadoGuardado) }
+            viewModelScope.launch {
+                try {
+                    repository.setSaved(pub.id, nuevoEstadoGuardado)
+                } catch (e: Exception) {
+                    _uiState.value = DetailPublicacionUiState.Success(pub.copy(estaGuardado = pub.estaGuardado))
+                    onFailure("No se pudo guardar. Revisa tu conexión.")
+                }
+            }
         }
     }
 }

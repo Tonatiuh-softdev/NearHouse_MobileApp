@@ -61,7 +61,8 @@ data class PublicacionDto(
     val fotos: List<Int>,
     val vendedor: VendedorDto,
     val fechaRegistro: Long,
-    val revision: RevisionDto?
+    val revision: RevisionDto?,
+    val guardada: Boolean = false
 )
 
 data class RechazarDto(val motivo: String)
@@ -81,6 +82,17 @@ interface PublicacionesApi {
     /** Elimina un anuncio del usuario con sesión. Responde 204 sin cuerpo. */
     @DELETE("api/v1/publicaciones/{id}")
     suspend fun eliminar(@Path("id") id: Int): Response<Unit>
+
+    // ---- Guardados (Favoritos en BD) ----
+
+    @GET("api/v1/guardados")
+    suspend fun listarGuardados(@Query("pagina") pagina: Int = 1): List<PublicacionDto>
+
+    @POST("api/v1/guardados/{id}")
+    suspend fun guardar(@Path("id") id: Int): Response<Unit>
+
+    @DELETE("api/v1/guardados/{id}")
+    suspend fun eliminarGuardado(@Path("id") id: Int): Response<Unit>
 
     // ---- Administrador ----
 
