@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notification_channel_name">Avisos de NearHouse</string>
+    <string name="notification_channel_description">Avisos sobre tus publicaciones, reportes y cuenta</string>
+</resources>

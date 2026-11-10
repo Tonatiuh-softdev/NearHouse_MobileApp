@@ -1,5 +1,6 @@
 package com.equipo4.nearhome.ui.admin.reports
 
+import com.equipo4.nearhome.util.LogroSonidoEffect
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -32,6 +33,7 @@ fun ReportConfirmationScreen(
     )
     val report by viewModel.report.collectAsState()
     val successColors = noticeColors(NoticeTone.SUCCESS)
+    LogroSonidoEffect()
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background

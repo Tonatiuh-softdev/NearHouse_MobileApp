@@ -1,5 +1,6 @@
 package com.equipo4.nearhome.ui.auth.register
 
+import com.equipo4.nearhome.util.LogroSonidoEffect
 import com.equipo4.nearhome.ui.common.nearHouseLogoPainter
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
@@ -646,6 +647,7 @@ private fun OtpVerificationContent(
 
 @Composable
 private fun VerifiedSuccessContent() {
+    LogroSonidoEffect()
     val cs = MaterialTheme.colorScheme
     Surface(
         modifier = Modifier.fillMaxSize(),

@@ -2,6 +2,10 @@ package com.equipo4.nearhome.ui.notifications
 
 import android.Manifest
 import android.app.NotificationChannel
+import android.content.ContentResolver
+import android.media.AudioAttributes
+import android.net.Uri
+import com.equipo4.nearhome.R
 import android.app.NotificationManager
 import android.content.Context
 import android.content.pm.PackageManager
@@ -14,18 +18,35 @@ import androidx.core.content.ContextCompat
 
 object NotificacionesHelper {
 
-    const val CANAL_AVISOS_ID = "avisos"
+    const val CANAL_AVISOS_ID = "nearhouse_avisos"
+
+    // Canales viejos que se borran al iniciar (el sonido de un canal no se puede cambiar una vez creado)
+    private const val CANAL_AVISOS_ANTERIOR_ID = "avisos"
+    private const val CANAL_FCM_POR_DEFECTO_ID = "fcm_fallback_notification_channel"
+
+    /** Sonido propio de NearHouse para las notificaciones (res/raw/sonido_notificacion.ogg). */
+    fun sonidoNotificacionUri(context: Context): Uri =
+        Uri.parse("${ContentResolver.SCHEME_ANDROID_RESOURCE}://${context.packageName}/${R.raw.sonido_notificacion}")
 
     /** Crea el canal "avisos" (obligatorio en Android 8+). Llámalo en el onCreate de MainActivity. */
     fun crearCanal(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val name = "Avisos de NearHouse"
-            val descriptionText = "Avisos sobre tus publicaciones, reportes y cuenta"
+            val name = context.getString(R.string.notification_channel_name)
+            val descriptionText = context.getString(R.string.notification_channel_description)
             val importance = NotificationManager.IMPORTANCE_HIGH
             val channel = NotificationChannel(CANAL_AVISOS_ID, name, importance).apply {
                 description = descriptionText
+                setSound(
+                    sonidoNotificacionUri(context),
+                    AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_NOTIFICATION)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                        .build()
+                )
             }
             val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.deleteNotificationChannel(CANAL_AVISOS_ANTERIOR_ID)
+            notificationManager.deleteNotificationChannel(CANAL_FCM_POR_DEFECTO_ID)
             notificationManager.createNotificationChannel(channel)
         }
     }

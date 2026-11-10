@@ -8,8 +8,10 @@ import com.equipo4.nearhome.data.repository.Repositories
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 
 object TokenManager {
 
@@ -50,8 +52,9 @@ object TokenManager {
             } catch (e: Exception) {
                 Log.e("FCM", "Error al borrar token: ${e.message}")
             } finally {
-                // Pase lo que pase, cerramos la sesión al final
-                onFinished()
+                // Pase lo que pase, cerramos la sesión al final.
+                // onFinished navega (NavController), así que debe correr en el hilo principal.
+                withContext(NonCancellable + Dispatchers.Main) { onFinished() }
             }
         }
     }

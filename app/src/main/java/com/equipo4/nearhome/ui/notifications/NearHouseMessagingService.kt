@@ -71,6 +71,7 @@ class NearHouseMessagingService : FirebaseMessagingService() {
             .setContentText(body)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
+            .setSound(NotificacionesHelper.sonidoNotificacionUri(this)) // Android 7 o menor (sin canales)
             .setContentIntent(pendingIntent) // Aquí enlazamos el toque
 
         if (NotificacionesHelper.tienePermiso(this)) {

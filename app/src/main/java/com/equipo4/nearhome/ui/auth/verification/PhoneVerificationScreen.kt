@@ -1,5 +1,6 @@
 package com.equipo4.nearhome.ui.auth.verification
 
+import com.equipo4.nearhome.util.LogroSonidoEffect
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -349,6 +350,7 @@ private fun OtpInputField(
 
 @Composable
 private fun VerifiedSuccessScreen() {
+    LogroSonidoEffect()
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = SuccessBg

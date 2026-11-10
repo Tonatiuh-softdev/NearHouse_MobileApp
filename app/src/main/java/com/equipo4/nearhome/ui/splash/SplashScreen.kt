@@ -26,6 +26,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.equipo4.nearhome.data.local.SessionManager
 import com.equipo4.nearhome.ui.common.nearHouseLogoLayers
+import com.equipo4.nearhome.util.NearHouseSounds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -51,6 +52,7 @@ fun SplashScreen(onFinished: (isLoggedIn: Boolean) -> Unit) {
     val swooshReveal = remember { Animatable(0f) } // 0 = oculto, 1 = totalmente dibujado
 
     LaunchedEffect(Unit) {
+        NearHouseSounds.play(context, NearHouseSounds.Sound.CARGA)
         coroutineScope {
             launch { baseAlpha.animateTo(1f, tween(400, easing = FastOutSlowInEasing)) }
             launch {

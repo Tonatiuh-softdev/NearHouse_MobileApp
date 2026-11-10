@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notification_channel_name">NearHouse alerts</string>
+    <string name="notification_channel_description">Alerts about your listings, reports and account</string>
+</resources>
