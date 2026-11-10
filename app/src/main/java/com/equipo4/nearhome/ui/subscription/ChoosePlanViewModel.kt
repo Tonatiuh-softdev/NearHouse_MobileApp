@@ -77,4 +77,18 @@ class ChoosePlanViewModel(application: Application) : AndroidViewModel(applicati
             }
         }
     }
+
+    fun cancelarPlan(onDone: () -> Unit = {}) {
+        if (_uiState.value.guardando) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(guardando = true, errorAccion = null) }
+            when (val r = repo.cancelarPlan()) {
+                is Resultado.Ok -> {
+                    _uiState.update { it.copy(guardando = false) }
+                    onDone()
+                }
+                is Resultado.Error -> _uiState.update { it.copy(guardando = false, errorAccion = r.mensaje) }
+            }
+        }
+    }
 }

@@ -33,6 +33,79 @@ fun ChoosePlanScreen(
     onFreeTrialActivated: () -> Unit = {}
 ) {
     val ui by viewModel.uiState.collectAsState()
+    var mostrarDialogoCancelar by remember { mutableStateOf(false) }
+
+    if (mostrarDialogoCancelar) {
+        AlertDialog(
+            onDismissRequest = {
+                if (!ui.guardando) mostrarDialogoCancelar = false
+            },
+            title = {
+                Text(
+                    text = stringResource(R.string.cancel_subscription_dialog_title),
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.cancel_subscription_dialog_body),
+                        fontSize = 14.sp,
+                        color = SubscriptionColors.textBody
+                    )
+                    if (ui.guardando) {
+                        Box(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    }
+                    if (ui.errorAccion != null) {
+                        Text(
+                            text = ui.errorAccion ?: "",
+                            fontSize = 13.sp,
+                            color = SubscriptionColors.errorStrong
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.cancelarPlan(
+                            onDone = {
+                                mostrarDialogoCancelar = false
+                            }
+                        )
+                    },
+                    enabled = !ui.guardando,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFDC2626)
+                    )
+                ) {
+                    Text(
+                        stringResource(R.string.cancel_subscription_dialog_confirm),
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { mostrarDialogoCancelar = false },
+                    enabled = !ui.guardando
+                ) {
+                    Text(stringResource(R.string.common_cancel))
+                }
+            }
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -98,7 +171,9 @@ fun ChoosePlanScreen(
                         esActual = esActual,
                         esPrueba = esPrueba,
                         onSelect = {
-                            if (!esActual) {
+                            if (esActual) {
+                                mostrarDialogoCancelar = true
+                            } else {
                                 onPlanSelected(plan)
                             }
                         }
@@ -121,7 +196,7 @@ private fun PlanCard(
         Modifier
             .fillMaxWidth()
             .padding(top = if (plan.isPopular) 16.dp else 0.dp)
-            .clickable(enabled = !esActual, onClick = onSelect)
+            .clickable(onClick = onSelect)
     ) {
         Card(
             modifier = Modifier.fillMaxWidth().padding(top = if (plan.isPopular) 12.dp else 0.dp),
@@ -179,17 +254,19 @@ private fun PlanCard(
 
                 Button(
                     onClick = onSelect,
-                    enabled = !esActual,
                     modifier = Modifier.fillMaxWidth().height(48.dp),
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (esPrueba) Color(0xFF16A34A) else SubscriptionColors.brand,
-                        disabledContainerColor = Color(0xFF9CA3AF)
+                        containerColor = when {
+                            esActual -> Color(0xFFDC2626)
+                            esPrueba -> Color(0xFF16A34A)
+                            else -> SubscriptionColors.brand
+                        }
                     )
                 ) {
                     Text(
                         text = when {
-                            esActual -> stringResource(R.string.plan_current_btn)
+                            esActual -> stringResource(R.string.cancel_plan_btn)
                             esPrueba -> stringResource(R.string.free_month_btn)
                             else -> stringResource(R.string.choose_plan_btn)
                         },

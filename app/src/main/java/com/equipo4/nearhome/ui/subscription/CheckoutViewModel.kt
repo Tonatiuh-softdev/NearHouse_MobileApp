@@ -2,6 +2,8 @@ package com.equipo4.nearhome.ui.subscription
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.TextRange
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -18,45 +20,114 @@ class CheckoutViewModel(
     private val repo: SubscriptionRepository
 ) : ViewModel() {
 
-    val cardNumber = MutableStateFlow("") // max 16 digits
-    val cardHolder = MutableStateFlow("") // max 50 chars, letters & spaces
-    val expiryMonth = MutableStateFlow("") // max 2 digits, 01-12
-    val expiryYear = MutableStateFlow("") // max 2 digits
-    val cvv = MutableStateFlow("") // max 3 digits
+    val cardNumber = MutableStateFlow(TextFieldValue(""))
+    val cardHolder = MutableStateFlow(TextFieldValue(""))
+    val expiry = MutableStateFlow(TextFieldValue(""))
+    val cvv = MutableStateFlow(TextFieldValue(""))
 
     val isLoading = MutableStateFlow(false)
     val successMessage = MutableStateFlow<String?>(null)
     val apiError = MutableStateFlow<String?>(null)
 
     val isComplete: StateFlow<Boolean> = combine(
-        cardNumber, cardHolder, expiryMonth, expiryYear, cvv
-    ) { num, holder, month, year, c ->
-        val m = month.toIntOrNull() ?: 0
-        num.length == 16 &&
-        holder.isNotBlank() && holder.all { it.isLetter() || it.isWhitespace() } &&
-        month.length == 2 && m in 1..12 &&
-        year.length == 2 &&
-        c.length == 3
+        cardNumber, cardHolder, expiry, cvv
+    ) { num, holder, exp, c ->
+        val numDigits = num.text.filter { it.isDigit() }
+        val holderText = holder.text
+        val expDigits = exp.text.filter { it.isDigit() }
+        val cvvText = c.text
+        val m = expDigits.take(2).toIntOrNull() ?: 0
+
+        numDigits.length == 16 &&
+        holderText.isNotBlank() && holderText.all { it.isLetter() || it.isWhitespace() } &&
+        expDigits.length == 4 && m in 1..12 &&
+        cvvText.length == 3
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
-    fun onCardNumberChanged(input: String) {
-        cardNumber.value = input.filter { it.isDigit() }.take(16)
+    fun onCardNumberChanged(input: TextFieldValue) {
+        val originalText = input.text
+        val oldSelection = input.selection.start
+        val digits = originalText.filter { it.isDigit() }.take(16)
+
+        val digitsBeforeCursor = originalText.take(oldSelection.coerceIn(0, originalText.length)).count { it.isDigit() }
+
+        val formatted = StringBuilder()
+        var newCursorPos = 0
+        var countedDigits = 0
+
+        for (i in digits.indices) {
+            if (i > 0 && i % 4 == 0) {
+                formatted.append(' ')
+                if (countedDigits == digitsBeforeCursor) {
+                    newCursorPos = formatted.length - 1
+                }
+            }
+            if (countedDigits == digitsBeforeCursor) {
+                newCursorPos = formatted.length
+            }
+            formatted.append(digits[i])
+            countedDigits++
+            if (countedDigits == digitsBeforeCursor) {
+                newCursorPos = formatted.length
+            }
+        }
+        if (digitsBeforeCursor >= digits.length) {
+            newCursorPos = formatted.length
+        }
+
+        cardNumber.value = TextFieldValue(
+            text = formatted.toString(),
+            selection = TextRange(newCursorPos.coerceIn(0, formatted.length))
+        )
     }
 
-    fun onCardHolderChanged(input: String) {
-        cardHolder.value = input.filter { it.isLetter() || it.isWhitespace() }.take(50)
+    fun onCardHolderChanged(input: TextFieldValue) {
+        val filteredText = input.text.filter { it.isLetter() || it.isWhitespace() }.take(50)
+        val newPos = input.selection.start.coerceAtMost(filteredText.length)
+        cardHolder.value = TextFieldValue(text = filteredText, selection = TextRange(newPos))
     }
 
-    fun onExpiryMonthChanged(input: String) {
-        expiryMonth.value = input.filter { it.isDigit() }.take(2)
+    fun onExpiryChanged(input: TextFieldValue) {
+        val originalText = input.text
+        val oldSelection = input.selection.start
+        val digits = originalText.filter { it.isDigit() }.take(4)
+
+        val digitsBeforeCursor = originalText.take(oldSelection.coerceIn(0, originalText.length)).count { it.isDigit() }
+
+        val formatted = StringBuilder()
+        var newCursorPos = 0
+        var countedDigits = 0
+
+        for (i in digits.indices) {
+            if (i == 2) {
+                formatted.append(" / ")
+                if (countedDigits == digitsBeforeCursor) {
+                    newCursorPos = formatted.length - 3
+                }
+            }
+            if (countedDigits == digitsBeforeCursor) {
+                newCursorPos = formatted.length
+            }
+            formatted.append(digits[i])
+            countedDigits++
+            if (countedDigits == digitsBeforeCursor) {
+                newCursorPos = formatted.length
+            }
+        }
+        if (digitsBeforeCursor >= digits.length) {
+            newCursorPos = formatted.length
+        }
+
+        expiry.value = TextFieldValue(
+            text = formatted.toString(),
+            selection = TextRange(newCursorPos.coerceIn(0, formatted.length))
+        )
     }
 
-    fun onExpiryYearChanged(input: String) {
-        expiryYear.value = input.filter { it.isDigit() }.take(2)
-    }
-
-    fun onCvvChanged(input: String) {
-        cvv.value = input.filter { it.isDigit() }.take(3)
+    fun onCvvChanged(input: TextFieldValue) {
+        val filteredText = input.text.filter { it.isDigit() }.take(3)
+        val newPos = input.selection.start.coerceAtMost(filteredText.length)
+        cvv.value = TextFieldValue(text = filteredText, selection = TextRange(newPos))
     }
 
     fun submit(onSuccessNavigation: () -> Unit) {

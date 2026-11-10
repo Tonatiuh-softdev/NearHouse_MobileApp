@@ -109,6 +109,10 @@
     <string name="most_popular">Más popular</string>
     <string name="free_month_btn">1er mes gratis</string>
     <string name="choose_plan_btn">Elegir este plan</string>
+    <string name="cancel_plan_btn">Cancelar plan</string>
+    <string name="cancel_subscription_dialog_title">¿Quieres cancelar tu suscripción?</string>
+    <string name="cancel_subscription_dialog_body">¿Estás seguro de que deseas cancelar tu suscripción actual?</string>
+    <string name="cancel_subscription_dialog_confirm">Aceptar</string>
     <string name="free_trial_title">Prueba gratuita</string>
     <string name="confirm_payment_title">Confirmar pago</string>
     <string name="free_trial_banner_title">No se te cobrará durante tu primer mes</string>

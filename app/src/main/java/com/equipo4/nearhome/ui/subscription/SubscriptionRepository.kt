@@ -7,6 +7,7 @@ import com.equipo4.nearhome.data.session.CurrentUserStore
 import com.equipo4.nearhome.di.NetworkModule
 import com.equipo4.nearhome.network.AuthApi
 import com.equipo4.nearhome.network.ContratarPlanRequest
+import com.equipo4.nearhome.network.ContratarPlanResponse
 import com.equipo4.nearhome.network.PlanDto
 import com.equipo4.nearhome.network.UsuarioMeDto
 import org.json.JSONObject
@@ -39,6 +40,18 @@ class SubscriptionRepository(context: Context) {
             is Resultado.Error -> Resultado.Error(r.mensaje)
         }
 
+    /** Cancela la suscripción simbólicamente actualizando el estado local del usuario. */
+    suspend fun cancelarPlan(): Resultado<UsuarioMeDto> {
+        val curUser: UsuarioMeDto? = CurrentUserStore.user.value
+        return if (curUser != null) {
+            val updated = curUser.copy(plan = null)
+            CurrentUserStore.set(updated)
+            Resultado.Ok(updated)
+        } else {
+            Resultado.Error("NO_USER")
+        }
+    }
+
     private suspend fun <T> llamar(bloque: suspend () -> Response<T>): Resultado<T> = try {
         val respuesta = bloque()
         val cuerpo = respuesta.body()
@@ -56,8 +69,16 @@ class SubscriptionRepository(context: Context) {
     }
 
     private fun mensajeApi(raw: String?): String? = try {
-        JSONObject(raw ?: "").optString("error").takeIf { it.isNotBlank() }
+        if (raw.isNullOrBlank()) null
+        else {
+            val json = JSONObject(raw)
+            json.optString("error").takeIf { it.isNotBlank() }
+                ?: json.optString("mensaje").takeIf { it.isNotBlank() }
+                ?: json.optString("message").takeIf { it.isNotBlank() }
+                ?: json.optString("detail").takeIf { it.isNotBlank() }
+                ?: raw.takeIf { it.length < 100 }
+        }
     } catch (e: Exception) {
-        null
+        raw?.takeIf { it.length < 100 }
     }
 }
