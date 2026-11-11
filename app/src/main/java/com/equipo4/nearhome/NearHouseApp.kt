@@ -85,6 +85,7 @@ import com.equipo4.nearhome.ui.createlisting.CreateListingPreviewScreen
 import com.equipo4.nearhome.ui.createlisting.DestinoCrearAnuncio
 import com.equipo4.nearhome.ui.createlisting.destinoCrearAnuncio
 import com.equipo4.nearhome.ui.auth.CompletarPerfilGoogleScreen
+import com.equipo4.nearhome.data.model.RegistroTemporal
 import com.equipo4.nearhome.ui.auth.GoogleAuthState
 import com.equipo4.nearhome.ui.auth.GoogleAuthViewModel
 import com.equipo4.nearhome.ui.auth.GoogleAuthViewModelFactory
@@ -118,7 +119,6 @@ object AppRoutes {
     const val SIGN_UP = "signup"
     const val FORGOT_PASSWORD = "forgot_password"
     const val COMPLETE_PROFILE = "complete_profile"
-    const val COMPLETAR_PERFIL_GOOGLE = "completar_perfil_google"
     const val PHONE_VERIFICATION = "phone_verification"
     const val HOME = "home"
     const val MAP = "home_map"
@@ -247,7 +247,18 @@ fun NearHouseApp() {
                 googleAuthViewModel.reiniciarEstado()
             }
             is GoogleAuthState.RequiresRegistration -> {
-                navController.navigate(AppRoutes.COMPLETAR_PERFIL_GOOGLE)
+                // Usuario nuevo con Google: completa su perfil y verifica su teléfono por SMS
+                // con las mismas pantallas del registro normal. No necesita contraseña.
+                val proof = (googleAuthState as GoogleAuthState.RequiresRegistration).proofData
+                val apellidos = proof.apellidos.trim().split(Regex("\\s+"), limit = 2)
+                RegistroTemporal.limpiar()
+                RegistroTemporal.googleProofToken = proof.googleProofToken
+                RegistroTemporal.correo = proof.correo
+                RegistroTemporal.nombre = proof.nombre.trim()
+                RegistroTemporal.primerApellido = apellidos.getOrNull(0).orEmpty()
+                RegistroTemporal.segundoApellido = apellidos.getOrNull(1)
+                googleAuthViewModel.reiniciarEstado()
+                navController.navigate(AppRoutes.COMPLETE_PROFILE)
             }
             is GoogleAuthState.Error -> {
                 Toast.makeText(context, (googleAuthState as GoogleAuthState.Error).mensaje, Toast.LENGTH_LONG).show()
@@ -449,6 +460,7 @@ fun NearHouseApp() {
             )
         }
 
+        // Pantalla Términos y Condiciones
         composable(AppRoutes.TERMS_AND_CONDITIONS) {
             TerminosCondicionesScreen(
                 onBackClick = {
@@ -457,6 +469,7 @@ fun NearHouseApp() {
             )
         }
 
+        // Pantalla Política de Privacidad
         composable(AppRoutes.PRIVACY_POLICY) {
             PoliticaPrivacidadScreen(
                 onBackClick = {
@@ -465,6 +478,7 @@ fun NearHouseApp() {
             )
         }
 
+        // Pantalla 3: Completa tu Perfil tradicional
         composable(AppRoutes.COMPLETE_PROFILE) {
             CompleteProfileScreen(
                 onCompleteProfileSuccess = { phoneNumber ->
@@ -500,6 +514,7 @@ fun NearHouseApp() {
             }
         }
 
+        // Pantalla 4: Verificación de Teléfono
         composable(
             route = "${AppRoutes.PHONE_VERIFICATION}/{phoneNumber}",
             arguments = listOf(navArgument("phoneNumber") { type = NavType.StringType })
@@ -511,10 +526,24 @@ fun NearHouseApp() {
                     navController.navigate(AppRoutes.LOGIN) {
                         popUpTo(AppRoutes.LOGIN) { inclusive = true }
                     }
+                },
+                // Registro con Google: se guarda la sesión y entra directo a la app
+                onSessionStarted = { sesion ->
+                    sessionManager.saveSession(
+                        token = sesion.token,
+                        userId = sesion.usuario.id,
+                        nombre = sesion.usuario.nombre,
+                        rol = sesion.usuario.rol,
+                        correo = sesion.usuario.correo
+                    )
+                    navController.navigate(AppRoutes.HOME) {
+                        popUpTo(0) { inclusive = true }
+                    }
                 }
             )
         }
 
+        // Pantalla 5: Recuperación de contraseña
         composable(
             route = "${AppRoutes.FORGOT_PASSWORD}?email={email}",
             arguments = listOf(navArgument("email") { type = NavType.StringType; defaultValue = "" })
@@ -535,9 +564,14 @@ fun NearHouseApp() {
             )
         }
 
+        // Pantalla 6: Home (Lista de inmuebles)
         composable(AppRoutes.HOME) {
+            // NUEVO: Pedir permiso de notificaciones (Android 13+)
             PedirPermisoNotificaciones()
 
+            // Registrar este celular para recibir avisos cada vez que se llega a Home con sesión
+            // (login, registro, Google...). Sin esto, tras cerrar sesión e iniciar de nuevo,
+            // el servidor no tiene el token y no llegan notificaciones hasta reiniciar la app.
             LaunchedEffect(Unit) {
                 if (sessionManager.isLoggedIn()) {
                     TokenManager.registrarTokenActual(context, scope)
@@ -560,6 +594,7 @@ fun NearHouseApp() {
             )
         }
 
+        // Pantalla: Propiedades guardadas
         composable(AppRoutes.SAVED) {
             SavedScreen(
                 reselectTrigger = savedReselectTrigger,
@@ -570,6 +605,7 @@ fun NearHouseApp() {
             )
         }
 
+        // Pantalla: Notificaciones
         composable(AppRoutes.NOTIFICATIONS) {
             val viewModel: NotificationsViewModel = viewModel(
                 factory = object : ViewModelProvider.Factory {
@@ -602,6 +638,7 @@ fun NearHouseApp() {
             )
         }
 
+        // Pantalla: Perfil
         composable(AppRoutes.PROFILE) {
             ProfileScreen(
                 reselectTrigger = profileReselectTrigger,
@@ -613,6 +650,7 @@ fun NearHouseApp() {
                 onTermsClick = { navController.navigate(AppRoutes.TERMS_AND_CONDITIONS) },
                 onPrivacyClick = { navController.navigate(AppRoutes.PRIVACY_POLICY) },
                 onLogoutClick = {
+                    // NUEVO: Borrar el token de la API antes de cerrar sesión
                     TokenManager.borrarTokenActual(context, scope) {
                         sessionManager.clearSession()
                         CurrentUserStore.clear()
@@ -631,6 +669,7 @@ fun NearHouseApp() {
             )
         }
 
+        // Pantalla: Mis Anuncios (Vendedor / Admin / SuperAdmin)
         composable(AppRoutes.MY_LISTINGS) {
             MyListingsScreen(
                 onBackClick = { navController.popBackStack() },
@@ -644,6 +683,7 @@ fun NearHouseApp() {
             )
         }
 
+        // Pantalla: Editar Perfil (Vendedor / Admin / SuperAdmin)
         composable(AppRoutes.EDIT_PROFILE) {
             EditProfileScreen(
                 onNavigateToMyListingsWithSnackbar = { message ->
@@ -663,6 +703,7 @@ fun NearHouseApp() {
             )
         }
 
+        // Flujo: Crear anuncio
         navigation(
             route = AppRoutes.CREATE_LISTING_GRAPH,
             startDestination = AppRoutes.CREATE_LISTING_STEP1
@@ -750,6 +791,7 @@ fun NearHouseApp() {
             }
         }
 
+        // Flujo: Editar anuncio (mismas pantallas, ViewModel con datos precargados)
         navigation(
             route = AppRoutes.CREATE_LISTING_EDIT,
             startDestination = AppRoutes.CREATE_LISTING_STEP1,
@@ -889,6 +931,7 @@ fun NearHouseApp() {
             }
         }
 
+        // Pantalla: Detalle de publicación (única ruta)
         composable(
             route = "${AppRoutes.PUBLICACION_DETAIL}/{publicacionId}",
             arguments = listOf(navArgument("publicacionId") { type = NavType.StringType })
@@ -914,6 +957,7 @@ fun NearHouseApp() {
             )
         }
 
+        // Pantalla: Perfil de otro usuario (anunciante, quien reportó o cuenta del panel)
         composable(
             route = "${AppRoutes.USER_PROFILE}/{userId}",
             arguments = listOf(navArgument("userId") { type = NavType.IntType })
@@ -926,6 +970,7 @@ fun NearHouseApp() {
                     navController.navigate("${AppRoutes.PUBLICACION_DETAIL}/$propertyId")
                 },
                 onManageAccountClick = {
+                    // Si se llegó desde el detalle de esa cuenta, solo se regresa (no se apilan pantallas)
                     val previous = navController.previousBackStackEntry?.destination?.route
                     if (previous?.startsWith(AppRoutes.ADMIN_USER_DETAIL) == true) {
                         navController.popBackStack()
@@ -936,6 +981,7 @@ fun NearHouseApp() {
             )
         }
 
+        // Pantalla: Panel de administración
         composable(AppRoutes.ADMIN_PANEL) {
             AdminPanelScreen(
                 onBackClick = {
@@ -954,6 +1000,7 @@ fun NearHouseApp() {
             )
         }
 
+        // Pantalla: Reportes
         composable(AppRoutes.ADMIN_REPORTS) {
             ReportsScreen(
                 onBackClick = {
@@ -966,6 +1013,7 @@ fun NearHouseApp() {
             )
         }
 
+        // Pantalla: Usuarios (Admin). Lista real con búsqueda, filtros por rol y estatus, y paginación
         composable(AppRoutes.ADMIN_USERS) {
             UsersListScreen(
                 onBackClick = { navController.popBackStack() },
@@ -976,6 +1024,7 @@ fun NearHouseApp() {
             )
         }
 
+        // Pantalla: Detalle de usuario (Admin), solo lectura
         composable(
             route = "${AppRoutes.ADMIN_USER_DETAIL}/{userId}",
             arguments = listOf(navArgument("userId") { type = NavType.StringType })
@@ -985,6 +1034,7 @@ fun NearHouseApp() {
                 userId = userId,
                 onBackClick = { navController.popBackStack() },
                 onViewProfileClick = {
+                    // Igual que arriba: si venimos del perfil, regresamos a él
                     val previous = navController.previousBackStackEntry?.destination?.route
                     if (previous?.startsWith(AppRoutes.USER_PROFILE) == true) {
                         navController.popBackStack()
@@ -995,6 +1045,7 @@ fun NearHouseApp() {
             )
         }
 
+        // Pantalla: Detalle del Reporte
         composable(
             route = "${AppRoutes.ADMIN_REPORT_DETAIL}/{reportId}",
             arguments = listOf(navArgument("reportId") { type = NavType.StringType })
@@ -1017,6 +1068,7 @@ fun NearHouseApp() {
             )
         }
 
+        // Pantalla: Confirmación de Reporte Atendido
         composable(
             route = "${AppRoutes.ADMIN_REPORT_CONFIRMATION}/{reportId}",
             arguments = listOf(navArgument("reportId") { type = NavType.StringType })
@@ -1032,6 +1084,7 @@ fun NearHouseApp() {
             )
         }
 
+        // Pantalla: Anuncios (administración)
         composable(AppRoutes.ADMIN_LISTINGS) { entry ->
             val message by entry.savedStateHandle
                 .getStateFlow<String?>(AppRoutes.LISTING_MESSAGE, null).collectAsState()
@@ -1045,6 +1098,7 @@ fun NearHouseApp() {
             )
         }
 
+        // Pantalla: Filtrar anuncios (comparte el ViewModel de la lista)
         composable(AppRoutes.ADMIN_LISTING_FILTERS) { entry ->
             val parent = remember(entry) { navController.getBackStackEntry(AppRoutes.ADMIN_LISTINGS) }
             ListingFiltersScreen(
@@ -1054,6 +1108,7 @@ fun NearHouseApp() {
             )
         }
 
+        // Pantalla: Detalle del anuncio
         composable(
             route = "${AppRoutes.ADMIN_LISTING_DETAIL}/{listingId}",
             arguments = listOf(navArgument("listingId") { type = NavType.StringType })
@@ -1073,6 +1128,7 @@ fun NearHouseApp() {
             )
         }
 
+        // Pantalla: Confirmación (Aprobar, Rechazar, Desactivar, Reactivar o Eliminar)
         composable(
             route = "${AppRoutes.ADMIN_LISTING_ACTION}/{listingId}/{action}",
             arguments = listOf(
@@ -1100,6 +1156,7 @@ fun NearHouseApp() {
             }
         }
 
+        // Pantalla: Mapa de inmuebles
         composable(AppRoutes.MAP) {
             MapScreen(
                 onToggleToList = {
@@ -1118,6 +1175,7 @@ fun NearHouseApp() {
             )
         }
 
+        // Pantalla: Filtros de búsqueda
         composable(AppRoutes.SEARCH_FILTERS) {
             SearchFiltersScreen(
                 onBackClick = { navController.popBackStack() },
@@ -1125,12 +1183,14 @@ fun NearHouseApp() {
             )
         }
 
+        // Flujo: Reportar publicación (el ViewModel se comparte entre las dos pantallas)
         navigation(
             route = "${AppRoutes.REPORT_GRAPH}/{publicacionId}",
             startDestination = AppRoutes.REPORT_CATEGORY,
             arguments = listOf(navArgument("publicacionId") { type = NavType.StringType })
         ) {
             composable(AppRoutes.REPORT_CATEGORY) { entry ->
+                // El id llega al grafo padre, no a las pantallas hijas
                 val parentEntry = remember(entry) {
                     navController.getBackStackEntry("${AppRoutes.REPORT_GRAPH}/{publicacionId}")
                 }
@@ -1160,6 +1220,7 @@ fun NearHouseApp() {
                     publicacionId = publicacionId,
                     onBackClick = { navController.popBackStack() },
                     onReportSubmitted = {
+                        // Cierra todo el flujo y regresa al detalle de la publicación
                         navController.popBackStack("${AppRoutes.REPORT_GRAPH}/{publicacionId}", inclusive = true)
                     }
                 )

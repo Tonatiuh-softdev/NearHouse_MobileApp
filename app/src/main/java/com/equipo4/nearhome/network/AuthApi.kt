@@ -207,10 +207,11 @@ interface AuthApi {
         @Body request: GoogleAuthRequest
     ): Response<JsonObject>
 
+    // Registro final con Google: comprobante de Google + token de Firebase del SMS
     @POST("api/v1/auth/register/google")
     suspend fun registrarConGoogleFinal(
         @Body request: GoogleRegisterRequest
-    ): Response<JsonObject>
+    ): Response<LoginResponse>
 
     // 1. Solicitar código de 6 dígitos al correo (Brevo)
     @POST("api/v1/auth/solicitar-codigo-correo")
