@@ -28,13 +28,6 @@ data class DesactivarCuentaRequest(
     val googleToken: String? = null
 )
 
-/** Respuesta de POST /usuarios/me/eliminar: cuándo se borrará la cuenta. */
-data class EliminarCuentaResponse(
-    val fechaEliminacion: String,
-    /** Lista para mostrar, por ejemplo "5 de diciembre de 2026". */
-    val fechaEliminacionTexto: String
-)
-
 data class CodigoContrasenaResponse(
     val correoOculto: String,
     val tieneContrasena: Boolean
@@ -85,6 +78,21 @@ data class VerificarCodigoRecuperarResponse(
 data class NuevaContrasenaRecuperarRequest(
     val comprobante: String,
     val contrasenaNueva: String
+)
+
+data class ValidarCambioTelefonoRequest(
+    val telefonoNuevo: String,
+    val contrasena: String? = null,
+    val googleToken: String? = null
+)
+
+data class ValidarCambioTelefonoResponse(
+    val comprobante: String
+)
+
+data class CambiarTelefonoRequest(
+    val comprobante: String,
+    val tokenFirebase: String
 )
 
 data class LoginResponse(
@@ -232,10 +240,6 @@ interface AuthApi {
     @POST("api/v1/usuarios/me/desactivar")
     suspend fun desactivarCuenta(@Body request: DesactivarCuentaRequest): Response<Unit>
 
-    // Eliminar cuenta: queda desactivada y se borra en 30 días si no vuelve a iniciar sesión
-    @POST("api/v1/usuarios/me/eliminar")
-    suspend fun eliminarCuenta(@Body request: DesactivarCuentaRequest): Response<EliminarCuentaResponse>
-
     // Cambio / Creación de contraseña
     @POST("api/v1/usuarios/me/contrasena/codigo")
     suspend fun solicitarCodigoContrasena(): Response<CodigoContrasenaResponse>
@@ -252,6 +256,13 @@ interface AuthApi {
 
     @POST("api/v1/usuarios/me/correo/confirmar")
     suspend fun confirmarCambioCorreo(@Body request: ConfirmarCambioCorreoRequest): Response<UsuarioMeDto>
+
+    // Cambio de teléfono
+    @POST("api/v1/usuarios/me/telefono/validar")
+    suspend fun validarCambioTelefono(@Body request: ValidarCambioTelefonoRequest): Response<ValidarCambioTelefonoResponse>
+
+    @PUT("api/v1/usuarios/me/telefono")
+    suspend fun cambiarTelefono(@Body request: CambiarTelefonoRequest): Response<UsuarioMeDto>
 
     // Recuperar contraseña
     @POST("api/v1/auth/recuperar/solicitar-codigo")
