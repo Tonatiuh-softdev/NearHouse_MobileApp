@@ -9,10 +9,12 @@ import com.equipo4.nearhome.data.session.CurrentUserStore
 import com.equipo4.nearhome.di.NetworkModule
 import com.equipo4.nearhome.network.AuthApi
 import com.equipo4.nearhome.network.CambiarContrasenaRequest
+import com.equipo4.nearhome.network.CambiarTelefonoRequest
 import com.equipo4.nearhome.network.ConfirmarCambioCorreoRequest
 import com.equipo4.nearhome.network.DesactivarCuentaRequest
 import com.equipo4.nearhome.network.SolicitarCodigoCambioCorreoRequest
 import com.equipo4.nearhome.network.UsuarioMeDto
+import com.equipo4.nearhome.network.ValidarCambioTelefonoRequest
 import com.equipo4.nearhome.network.VerificarCodigoContrasenaRequest
 import com.equipo4.nearhome.ui.profile.UserRole
 import com.equipo4.nearhome.ui.subscription.PlanDates
@@ -24,8 +26,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.json.JSONObject
-import android.content.Context
-import com.equipo4.nearhome.data.remote.GoogleAuthManager
 import java.io.IOException
 
 class AccountAdminViewModel(application: Application) : AndroidViewModel(application) {
@@ -43,36 +43,10 @@ class AccountAdminViewModel(application: Application) : AndroidViewModel(applica
 
     init {
         viewModelScope.launch {
-            try {
-                _uiState.update { it.copy(isLoading = true, loadError = false) }
-                val response = CurrentUserStore.refresh(authApi)
-                _uiState.update { it.copy(loadError = !response.isSuccessful) }
-            } catch (e: Exception) {
-                _uiState.update { it.copy(loadError = true) }
-            } finally {
-                _uiState.update { it.copy(isLoading = false) }
-            }
-
             CurrentUserStore.user.collect { user ->
                 _uiState.update {
                     it.copy(isLoading = false, userData = user?.toAccountData())
                 }
-            }
-        }
-    }
-
-    fun reload() {
-        viewModelScope.launch {
-            // Si se reintenta desde "sin conexión", la pantalla se queda igual hasta tener resultado
-            val retrying = _uiState.value.loadError && _uiState.value.userData == null
-            try {
-                _uiState.update { it.copy(isLoading = !retrying, isRetrying = retrying, loadError = retrying) }
-                val response = CurrentUserStore.refresh(authApi)
-                _uiState.update { it.copy(loadError = !response.isSuccessful) }
-            } catch (e: Exception) {
-                _uiState.update { it.copy(loadError = true) }
-            } finally {
-                _uiState.update { it.copy(isLoading = false, isRetrying = false) }
             }
         }
     }
@@ -99,6 +73,43 @@ class AccountAdminViewModel(application: Application) : AndroidViewModel(applica
         when (event) {
             AccountAdminUiEvent.OnOptionClick -> {
                 _uiState.update { it.copy(userMessage = R.string.coming_soon) }
+            }
+
+            // --- Cambio de Teléfono ---
+            AccountAdminUiEvent.OnPhoneOptionClick -> {
+                _uiState.update {
+                    it.copy(
+                        phoneStep = PhoneFlowStep.NEW_PHONE,
+                        countryCodeInput = "+52",
+                        newPhoneInput = "",
+                        phoneCurrentPasswordInput = "",
+                        phoneCurrentPasswordError = null,
+                        newPhoneError = null,
+                        phoneGeneralError = null,
+                        phoneProofToken = null,
+                        isPhoneValidating = false,
+                        isPhoneSaving = false,
+                        phoneSaveError = null
+                    )
+                }
+            }
+            is AccountAdminUiEvent.OnCountryCodeChanged -> {
+                _uiState.update { it.copy(countryCodeInput = event.text) }
+            }
+            is AccountAdminUiEvent.OnNewPhoneChanged -> {
+                _uiState.update { it.copy(newPhoneInput = event.text, newPhoneError = null, phoneGeneralError = null) }
+            }
+            is AccountAdminUiEvent.OnPhoneCurrentPasswordChanged -> {
+                _uiState.update { it.copy(phoneCurrentPasswordInput = event.text, phoneCurrentPasswordError = null, phoneGeneralError = null) }
+            }
+            is AccountAdminUiEvent.OnValidatePhoneSubmitted -> {
+                validarCambioTelefono(event.googleToken, event.onSuccessValidated)
+            }
+            AccountAdminUiEvent.OnPhoneFlowDismissed -> {
+                limpiarEstadoMemoriaTelefono()
+            }
+            is AccountAdminUiEvent.OnConfirmPhoneSmsSubmitted -> {
+                cambiarTelefono(event.tokenFirebase)
             }
 
             // --- Cambio de Correo ---
@@ -215,25 +226,18 @@ class AccountAdminViewModel(application: Application) : AndroidViewModel(applica
                 desactivarCuenta(event.googleToken)
             }
             AccountAdminUiEvent.OnDeleteRequested -> {
-                _uiState.update {
-                    it.copy(showDeleteDialog = true, deleteInputText = "", deletePasswordInput = "", deleteError = null)
-                }
+                _uiState.update { it.copy(showDeleteDialog = true, deleteInputText = "") }
             }
             AccountAdminUiEvent.OnDeleteDismissed -> {
-                if (!_uiState.value.isDeleting && !_uiState.value.isGoogleConfirming) {
-                    _uiState.update {
-                        it.copy(showDeleteDialog = false, deleteInputText = "", deletePasswordInput = "", deleteError = null)
-                    }
-                }
+                _uiState.update { it.copy(showDeleteDialog = false, deleteInputText = "") }
             }
             is AccountAdminUiEvent.OnDeleteInputChanged -> {
-                _uiState.update { it.copy(deleteInputText = event.text, deleteError = null) }
+                _uiState.update { it.copy(deleteInputText = event.text) }
             }
-            is AccountAdminUiEvent.OnDeletePasswordChanged -> {
-                _uiState.update { it.copy(deletePasswordInput = event.text, deleteError = null) }
-            }
-            is AccountAdminUiEvent.OnDeleteConfirmed -> {
-                eliminarCuenta(event.googleToken)
+            AccountAdminUiEvent.OnDeleteConfirmed -> {
+                _uiState.update {
+                    it.copy(showDeleteDialog = false, deleteInputText = "", userMessage = R.string.coming_soon)
+                }
             }
             AccountAdminUiEvent.OnUserMessageConsumed -> {
                 _uiState.update { it.copy(userMessage = null) }
@@ -241,6 +245,129 @@ class AccountAdminViewModel(application: Application) : AndroidViewModel(applica
             AccountAdminUiEvent.OnSnackbarMessageConsumed -> {
                 _uiState.update { it.copy(snackbarSuccessMessage = null) }
             }
+        }
+    }
+
+    private fun validarCambioTelefono(googleToken: String?, onSuccessValidated: (String) -> Unit) {
+        val currentState = _uiState.value
+        val digits = currentState.newPhoneInput.filter { it.isDigit() }
+        val fullPhone = currentState.countryCodeInput + digits
+
+        viewModelScope.launch {
+            _uiState.update {
+                it.copy(
+                    isPhoneValidating = true,
+                    phoneCurrentPasswordError = null,
+                    newPhoneError = null,
+                    phoneGeneralError = null
+                )
+            }
+            try {
+                val hasPass = currentState.userData?.tieneContrasena == true
+                val request = ValidarCambioTelefonoRequest(
+                    telefonoNuevo = fullPhone,
+                    contrasena = if (hasPass) currentState.phoneCurrentPasswordInput else null,
+                    googleToken = googleToken
+                )
+                val response = authApi.validarCambioTelefono(request)
+                val body = response.body()
+                if (response.isSuccessful && body != null) {
+                    _uiState.update {
+                        it.copy(
+                            isPhoneValidating = false,
+                            phoneProofToken = body.comprobante,
+                            phoneStep = PhoneFlowStep.SMS_VERIFICATION,
+                            phoneGeneralError = null
+                        )
+                    }
+                    onSuccessValidated(fullPhone)
+                } else {
+                    val rawError = response.errorBody()?.string()
+                    val errorMsg = parseErrorMessage(rawError, "Error al validar el teléfono")
+                    when (response.code()) {
+                        403 -> {
+                            if (hasPass) {
+                                _uiState.update { it.copy(isPhoneValidating = false, phoneCurrentPasswordError = "La contraseña actual no es correcta") }
+                            } else {
+                                _uiState.update { it.copy(isPhoneValidating = false, phoneGeneralError = "Esa cuenta de Google no es la de tu cuenta de NearHouse. Elige la correcta.") }
+                            }
+                        }
+                        409 -> {
+                            _uiState.update { it.copy(isPhoneValidating = false, newPhoneError = "Ese teléfono ya está registrado") }
+                        }
+                        429 -> {
+                            _uiState.update { it.copy(isPhoneValidating = false, phoneGeneralError = "Has realizado demasiados intentos para cambiar tu teléfono. Intenta de nuevo en un rato.") }
+                        }
+                        else -> {
+                            _uiState.update { it.copy(isPhoneValidating = false, phoneGeneralError = errorMsg) }
+                        }
+                    }
+                }
+            } catch (_: IOException) {
+                _uiState.update {
+                    it.copy(isPhoneValidating = false, phoneGeneralError = "No se pudo conectar con el servidor. Revisa tu conexión a internet e inténtalo de nuevo")
+                }
+            } catch (_: Exception) {
+                _uiState.update {
+                    it.copy(isPhoneValidating = false, phoneGeneralError = "Ocurrió un error inesperado. Inténtalo de nuevo")
+                }
+            }
+        }
+    }
+
+    private fun cambiarTelefono(tokenFirebase: String) {
+        val proof = _uiState.value.phoneProofToken ?: return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isPhoneSaving = true, phoneSaveError = null) }
+            try {
+                val request = CambiarTelefonoRequest(comprobante = proof, tokenFirebase = tokenFirebase)
+                val response = authApi.cambiarTelefono(request)
+                if (response.isSuccessful) {
+                    CurrentUserStore.refresh(authApi)
+                    limpiarEstadoMemoriaTelefono()
+                    _uiState.update { it.copy(snackbarSuccessMessage = "Teléfono actualizado") }
+                } else {
+                    val rawError = response.errorBody()?.string()
+                    val errorMsg = parseErrorMessage(rawError, "El tiempo para cambiar el teléfono expiró, vuelve a intentarlo")
+                    if (response.code() == 409) {
+                        _uiState.update {
+                            it.copy(
+                                isPhoneSaving = false,
+                                phoneStep = PhoneFlowStep.NEW_PHONE,
+                                phoneGeneralError = "El tiempo para cambiar el teléfono expiró, vuelve a intentarlo"
+                            )
+                        }
+                    } else {
+                        _uiState.update { it.copy(isPhoneSaving = false, phoneSaveError = errorMsg) }
+                    }
+                }
+            } catch (_: IOException) {
+                _uiState.update {
+                    it.copy(isPhoneSaving = false, phoneSaveError = "No se pudo conectar con el servidor. Revisa tu conexión a internet e inténtalo de nuevo")
+                }
+            } catch (_: Exception) {
+                _uiState.update {
+                    it.copy(isPhoneSaving = false, phoneSaveError = "Ocurrió un error inesperado. Inténtalo de nuevo")
+                }
+            }
+        }
+    }
+
+    private fun limpiarEstadoMemoriaTelefono() {
+        _uiState.update {
+            it.copy(
+                phoneStep = PhoneFlowStep.NONE,
+                countryCodeInput = "+52",
+                newPhoneInput = "",
+                phoneCurrentPasswordInput = "",
+                phoneCurrentPasswordError = null,
+                newPhoneError = null,
+                isPhoneValidating = false,
+                phoneGeneralError = null,
+                phoneProofToken = null,
+                isPhoneSaving = false,
+                phoneSaveError = null
+            )
         }
     }
 
@@ -328,7 +455,6 @@ class AccountAdminViewModel(application: Application) : AndroidViewModel(applica
                 )
                 val response = authApi.confirmarCambioCorreo(request)
                 if (response.isSuccessful) {
-                    // Refrescar usuario inmediatamente en CurrentUserStore
                     CurrentUserStore.refresh(authApi)
                     limpiarEstadoMemoriaCorreo()
                     _uiState.update { it.copy(snackbarSuccessMessage = "Correo actualizado") }
@@ -612,87 +738,11 @@ class AccountAdminViewModel(application: Application) : AndroidViewModel(applica
         }
     }
 
-    /**
-     * Abre la ventana de Google para que una cuenta sin contraseña confirme que es suya,
-     * y con ese token desactiva ([eliminar] = false) o programa la eliminación ([eliminar] = true).
-     */
-    fun confirmarConGoogle(context: Context, eliminar: Boolean) {
-        if (_uiState.value.isGoogleConfirming || _uiState.value.isDeactivating || _uiState.value.isDeleting) return
-        viewModelScope.launch {
-            _uiState.update { it.copy(isGoogleConfirming = true, deactivateError = null, deleteError = null) }
-            val resultado = GoogleAuthManager(context).getFirebaseIdToken()
-            _uiState.update { it.copy(isGoogleConfirming = false) }
-            resultado.fold(
-                onSuccess = { token ->
-                    // token == null: cerró la ventana de Google sin elegir cuenta; no se muestra error
-                    if (token != null) {
-                        if (eliminar) eliminarCuenta(token) else desactivarCuenta(token)
-                    }
-                },
-                onFailure = { error ->
-                    val msg = error.message ?: "No se pudo confirmar con Google. Inténtalo de nuevo"
-                    _uiState.update {
-                        if (eliminar) it.copy(deleteError = msg) else it.copy(deactivateError = msg)
-                    }
-                }
-            )
-        }
-    }
-
-    private fun eliminarCuenta(googleToken: String?) {
-        val currentState = _uiState.value
-        if (currentState.isDeleting) return
-
-        viewModelScope.launch {
-            _uiState.update { it.copy(isDeleting = true, deleteError = null) }
-            try {
-                val request = DesactivarCuentaRequest(
-                    contrasena = currentState.deletePasswordInput.takeIf { it.isNotBlank() },
-                    googleToken = googleToken
-                )
-                val response = authApi.eliminarCuenta(request)
-                val body = response.body()
-                if (response.isSuccessful && body != null) {
-                    sessionManager.clearSession()
-                    // La fecha en el idioma de la app ("5 de diciembre de 2026" / "December 5, 2026")
-                    val locale = getApplication<Application>().resources.configuration.locales[0]
-                    val fecha = runCatching { PlanDates.formatear(body.fechaEliminacion, locale) }
-                        .getOrDefault(body.fechaEliminacionTexto)
-                    _uiState.update {
-                        it.copy(
-                            isDeleting = false,
-                            showDeleteDialog = false,
-                            deletePasswordInput = "",
-                            deletionScheduledDate = fecha
-                        )
-                    }
-                } else {
-                    val rawError = response.errorBody()?.string()
-                    val errorMsg = parseErrorMessage(rawError, "No se pudo eliminar la cuenta. Inténtalo de nuevo")
-                    _uiState.update { it.copy(isDeleting = false, deleteError = errorMsg) }
-                }
-            } catch (_: IOException) {
-                _uiState.update {
-                    it.copy(
-                        isDeleting = false,
-                        deleteError = "No se pudo conectar con el servidor. Revisa tu conexión a internet e inténtalo de nuevo"
-                    )
-                }
-            } catch (_: Exception) {
-                _uiState.update {
-                    it.copy(isDeleting = false, deleteError = "Ocurrió un error inesperado. Inténtalo de nuevo")
-                }
-            }
-        }
-    }
-
-    /** Mensaje de error de la API: primero el detalle (más claro), si no, el error general. */
     private fun parseErrorMessage(rawError: String?, defaultMsg: String): String {
         if (rawError.isNullOrBlank()) return defaultMsg
         return try {
             val json = JSONObject(rawError)
-            val detalle = json.optJSONArray("detalles")?.optString(0).orEmpty()
-            detalle.ifBlank { json.optString("error", defaultMsg) }
+            json.optString("error", defaultMsg)
         } catch (_: Exception) {
             defaultMsg
         }
@@ -704,5 +754,6 @@ class AccountAdminViewModel(application: Application) : AndroidViewModel(applica
         emailResendTimerJob?.cancel()
         limpiarEstadoMemoriaContrasena()
         limpiarEstadoMemoriaCorreo()
+        limpiarEstadoMemoriaTelefono()
     }
 }
