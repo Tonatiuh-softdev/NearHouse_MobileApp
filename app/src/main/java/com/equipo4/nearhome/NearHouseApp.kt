@@ -82,7 +82,7 @@ import com.equipo4.nearhome.ui.createlisting.CreateListingStep2Screen
 import com.equipo4.nearhome.ui.createlisting.CreateListingStep3Screen
 import com.equipo4.nearhome.ui.createlisting.CreateListingStep4Screen
 import com.equipo4.nearhome.ui.createlisting.CreateListingPreviewScreen
-import com.equipo4.nearhome.ui.auth.CompletarPerfilGoogleScreen
+import com.equipo4.nearhome.data.model.RegistroTemporal
 import com.equipo4.nearhome.ui.auth.GoogleAuthState
 import com.equipo4.nearhome.ui.auth.GoogleAuthViewModel
 import com.equipo4.nearhome.ui.auth.GoogleAuthViewModelFactory
@@ -116,7 +116,6 @@ object AppRoutes {
     const val SIGN_UP = "signup"
     const val FORGOT_PASSWORD = "forgot_password"
     const val COMPLETE_PROFILE = "complete_profile"
-    const val COMPLETAR_PERFIL_GOOGLE = "completar_perfil_google"
     const val PHONE_VERIFICATION = "phone_verification"
     const val HOME = "home"
     const val MAP = "home_map"
@@ -251,7 +250,18 @@ fun NearHouseApp() {
                 googleAuthViewModel.reiniciarEstado()
             }
             is GoogleAuthState.RequiresRegistration -> {
-                navController.navigate(AppRoutes.COMPLETAR_PERFIL_GOOGLE)
+                // Usuario nuevo con Google: completa su perfil y verifica su teléfono por SMS
+                // con las mismas pantallas del registro normal. No necesita contraseña.
+                val proof = (googleAuthState as GoogleAuthState.RequiresRegistration).proofData
+                val apellidos = proof.apellidos.trim().split(Regex("\\s+"), limit = 2)
+                RegistroTemporal.limpiar()
+                RegistroTemporal.googleProofToken = proof.googleProofToken
+                RegistroTemporal.correo = proof.correo
+                RegistroTemporal.nombre = proof.nombre.trim()
+                RegistroTemporal.primerApellido = apellidos.getOrNull(0).orEmpty()
+                RegistroTemporal.segundoApellido = apellidos.getOrNull(1)
+                googleAuthViewModel.reiniciarEstado()
+                navController.navigate(AppRoutes.COMPLETE_PROFILE)
             }
             is GoogleAuthState.Error -> {
                 Toast.makeText(context, (googleAuthState as GoogleAuthState.Error).mensaje, Toast.LENGTH_LONG).show()
@@ -430,6 +440,7 @@ fun NearHouseApp() {
                     navController.popBackStack()
                 },
                 onSignUpSuccess = {
+                    RegistroTemporal.googleProofToken = null // registro normal, no el de Google
                     navController.navigate(AppRoutes.COMPLETE_PROFILE) {
                         popUpTo(AppRoutes.SIGN_UP) { inclusive = true }
                     }
@@ -474,33 +485,6 @@ fun NearHouseApp() {
             )
         }
 
-        // Pantalla 3b: Completar Perfil con Google (Caso C - Usuario nuevo)
-        composable(AppRoutes.COMPLETAR_PERFIL_GOOGLE) {
-            val state = googleAuthState
-            var proofDataSaved by remember { mutableStateOf<com.equipo4.nearhome.data.remote.dto.GoogleProofResponse?>(null) }
-
-            if (state is GoogleAuthState.RequiresRegistration) {
-                proofDataSaved = state.proofData
-            }
-
-            proofDataSaved?.let { proofData ->
-                CompletarPerfilGoogleScreen(
-                    proofData = proofData,
-                    viewModel = googleAuthViewModel,
-                    onRegistroExitoso = {
-                        sessionManager.setLoggedIn(true)
-                        navController.navigate(AppRoutes.HOME) {
-                            popUpTo(AppRoutes.LOGIN) { inclusive = true }
-                        }
-                    },
-                    onVolverAlLogin = {
-                        googleAuthViewModel.reiniciarEstado()
-                        navController.popBackStack(AppRoutes.LOGIN, inclusive = false)
-                    }
-                )
-            }
-        }
-
         // Pantalla 4: Verificación de Teléfono
         composable(
             route = "${AppRoutes.PHONE_VERIFICATION}/{phoneNumber}",
@@ -512,6 +496,19 @@ fun NearHouseApp() {
                 onNavigateToLogin = {
                     navController.navigate(AppRoutes.LOGIN) {
                         popUpTo(AppRoutes.LOGIN) { inclusive = true }
+                    }
+                },
+                // Registro con Google: se guarda la sesión y entra directo a la app
+                onSessionStarted = { sesion ->
+                    sessionManager.saveSession(
+                        token = sesion.token,
+                        userId = sesion.usuario.id,
+                        nombre = sesion.usuario.nombre,
+                        rol = sesion.usuario.rol,
+                        correo = sesion.usuario.correo
+                    )
+                    navController.navigate(AppRoutes.HOME) {
+                        popUpTo(0) { inclusive = true }
                     }
                 }
             )

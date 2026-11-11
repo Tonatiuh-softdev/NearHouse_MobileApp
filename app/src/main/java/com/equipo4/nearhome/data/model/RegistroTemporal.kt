@@ -13,6 +13,9 @@ object RegistroTemporal {
     var segundoApellido: String? = null
     var telefono: String? = null
 
+    /** Solo en el registro con Google: el comprobante que dio la API al entrar con Google. */
+    var googleProofToken: String? = null
+
     fun limpiar() {
         correo = null
         contrasena = null
@@ -21,5 +24,6 @@ object RegistroTemporal {
         primerApellido = null
         segundoApellido = null
         telefono = null
+        googleProofToken = null
     }
 }

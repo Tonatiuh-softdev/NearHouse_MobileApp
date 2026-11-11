@@ -2,6 +2,7 @@ package com.equipo4.nearhome.data.repository
 
 import com.equipo4.nearhome.data.remote.dto.GoogleAuthRequestDto
 import com.equipo4.nearhome.data.remote.dto.GoogleAuthResponseDto
+import com.equipo4.nearhome.data.remote.dto.GoogleRegisterRequest
 import com.equipo4.nearhome.network.AuthApi
 import com.equipo4.nearhome.network.CheckTelefonoRequest
 import com.equipo4.nearhome.network.LoginResponse
@@ -83,6 +84,45 @@ class AuthRepository(
                 Result.success(body)
             } else {
                 // Por ejemplo: "El número que verificaste por SMS no coincide con el que escribiste"
+                val mensaje = mensajeDeErrorApi(
+                    response.errorBody()?.string(),
+                    AppStrings.get(R.string.auth_error_invalid_data)
+                )
+                Result.failure(Exception(mensaje))
+            }
+        } catch (e: Exception) {
+            Result.failure(Exception(AppStrings.get(R.string.auth_error_comm, e.message.orEmpty())))
+        }
+    }
+
+    /**
+     * Registro final con Google: comprobante de Google + token de Firebase del SMS.
+     * No lleva contraseña ni código de correo (Google ya verificó el correo).
+     */
+    suspend fun registrarConGoogle(
+        nombre: String,
+        primerApellido: String,
+        segundoApellido: String?,
+        telefono: String,
+        googleProofToken: String,
+        tokenFirebase: String
+    ): Result<LoginResponse> {
+        return try {
+            val request = GoogleRegisterRequest(
+                nombre = nombre,
+                apellidos = primerApellido,
+                telefono = telefono,
+                googleProofToken = googleProofToken,
+                smsToken = tokenFirebase,
+                segundoApellido = segundoApellido
+            )
+            val response = authApi.registrarConGoogleFinal(request)
+            val body = response.body()
+
+            if (response.isSuccessful && body != null) {
+                Result.success(body)
+            } else {
+                // Por ejemplo: el comprobante de Google expiró, o el teléfono ya está registrado
                 val mensaje = mensajeDeErrorApi(
                     response.errorBody()?.string(),
                     AppStrings.get(R.string.auth_error_invalid_data)

@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.equipo4.nearhome.R
+import com.equipo4.nearhome.network.LoginResponse
 import kotlinx.coroutines.delay
 
 import androidx.compose.ui.res.stringResource
@@ -74,7 +75,9 @@ private val SuccessGreenCircle = Color(0xFF52C41A)
 fun PhoneVerificationScreen(
     phoneNumber: String = "",
     viewModel: PhoneVerificationViewModel = viewModel(),
-    onNavigateToLogin: () -> Unit = {}
+    onNavigateToLogin: () -> Unit = {},
+    // Registro con Google: ya hay sesión, se entra directo a la app
+    onSessionStarted: (LoginResponse) -> Unit = {}
 ) {
     // Firebase necesita la Activity para mandar el SMS
     val activity = LocalContext.current.findActivity()
@@ -93,9 +96,10 @@ fun PhoneVerificationScreen(
     val uiState by viewModel.uiState.collectAsState()
 
     if (uiState.isVerified) {
+        val sesionNueva = uiState.sesionNueva
         LaunchedEffect(Unit) {
             delay(2000L)
-            onNavigateToLogin()
+            if (sesionNueva != null) onSessionStarted(sesionNueva) else onNavigateToLogin()
         }
 
         VerifiedSuccessScreen()
