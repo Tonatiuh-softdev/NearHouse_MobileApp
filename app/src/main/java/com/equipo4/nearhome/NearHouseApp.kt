@@ -84,7 +84,6 @@ import com.equipo4.nearhome.ui.createlisting.CreateListingStep4Screen
 import com.equipo4.nearhome.ui.createlisting.CreateListingPreviewScreen
 import com.equipo4.nearhome.ui.createlisting.DestinoCrearAnuncio
 import com.equipo4.nearhome.ui.createlisting.destinoCrearAnuncio
-import com.equipo4.nearhome.ui.auth.CompletarPerfilGoogleScreen
 import com.equipo4.nearhome.data.model.RegistroTemporal
 import com.equipo4.nearhome.ui.auth.GoogleAuthState
 import com.equipo4.nearhome.ui.auth.GoogleAuthViewModel
@@ -488,31 +487,6 @@ fun NearHouseApp() {
             )
         }
 
-        composable(AppRoutes.COMPLETAR_PERFIL_GOOGLE) {
-            val state = googleAuthState
-            var proofDataSaved by remember { mutableStateOf<com.equipo4.nearhome.data.remote.dto.GoogleProofResponse?>(null) }
-
-            if (state is GoogleAuthState.RequiresRegistration) {
-                proofDataSaved = state.proofData
-            }
-
-            proofDataSaved?.let { proofData ->
-                CompletarPerfilGoogleScreen(
-                    proofData = proofData,
-                    viewModel = googleAuthViewModel,
-                    onRegistroExitoso = {
-                        sessionManager.setLoggedIn(true)
-                        navController.navigate(AppRoutes.HOME) {
-                            popUpTo(AppRoutes.LOGIN) { inclusive = true }
-                        }
-                    },
-                    onVolverAlLogin = {
-                        googleAuthViewModel.reiniciarEstado()
-                        navController.popBackStack(AppRoutes.LOGIN, inclusive = false)
-                    }
-                )
-            }
-        }
 
         // Pantalla 4: Verificación de Teléfono
         composable(

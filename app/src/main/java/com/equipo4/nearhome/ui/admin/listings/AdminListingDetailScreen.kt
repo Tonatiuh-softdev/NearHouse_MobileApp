@@ -41,6 +41,10 @@ import com.equipo4.nearhome.ui.theme.adminAccent
 import com.equipo4.nearhome.ui.theme.listingStatusColors
 import com.equipo4.nearhome.ui.theme.noticeColors
 import com.equipo4.nearhome.ui.theme.onAdminAccent
+import coil.compose.AsyncImage
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -334,7 +338,19 @@ private fun AdminDataCard(listing: AdminListing) {
         trailing = formatDate(listing.registeredAt)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            AvatarInitial(listing.advertiser.name)
+            val foto = listing.advertiser.photoUrl
+            if (foto != null) {
+                AsyncImage(
+                    model = foto,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(CircleShape)
+                )
+            } else {
+                AvatarInitial(listing.advertiser.name)
+            }
             Spacer(Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
@@ -346,7 +362,6 @@ private fun AdminDataCard(listing: AdminListing) {
                 Text(listing.advertiser.email, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
-
     }
 }
 
