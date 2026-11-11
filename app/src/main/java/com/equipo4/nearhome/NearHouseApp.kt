@@ -23,6 +23,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.navigation.compose.NavHost
@@ -341,26 +342,17 @@ fun NearHouseApp() {
     fun getSectionForRoute(route: String?): Int {
         if (route == null) return 0
         return when {
-            route == AppRoutes.HOME || route == AppRoutes.MAP -> 0
+            route == AppRoutes.HOME || route == AppRoutes.MAP || route.startsWith("home") -> 0
             route == AppRoutes.SAVED -> 1
             route == AppRoutes.NOTIFICATIONS -> 2
             route == AppRoutes.PROFILE ||
                     route == AppRoutes.ACCOUNT_ADMIN ||
                     route == AppRoutes.MY_LISTINGS ||
                     route == AppRoutes.EDIT_PROFILE ||
-                    route == AppRoutes.ADMIN_PANEL ||
-                    route == AppRoutes.ADMIN_REPORTS ||
-                    route == AppRoutes.ADMIN_USERS ||
-                    route == AppRoutes.ADMIN_LISTINGS ||
-                    route == AppRoutes.ADMIN_LISTING_FILTERS ||
+                    route.startsWith("admin_") ||
+                    route.startsWith("create_listing") ||
                     route.startsWith(AppRoutes.SUBSCRIPTION) ||
-                    route.startsWith(AppRoutes.CHECKOUT) ||
-                    route.startsWith(AppRoutes.CREATE_LISTING_GRAPH) ||
-                    route.startsWith(AppRoutes.CREATE_LISTING_EDIT) ||
-                    route.startsWith(AppRoutes.ADMIN_USER_DETAIL) ||
-                    route.startsWith(AppRoutes.ADMIN_REPORT_DETAIL) ||
-                    route.startsWith(AppRoutes.ADMIN_LISTING_DETAIL) ||
-                    route.startsWith(AppRoutes.ADMIN_LISTING_ACTION) -> 3
+                    route.startsWith(AppRoutes.CHECKOUT) -> 3
             else -> -1
         }
     }
@@ -384,11 +376,10 @@ fun NearHouseApp() {
         } else {
             navController.navigate(targetRoot) {
                 popUpTo(AppRoutes.HOME) {
-                    inclusive = false
-                    saveState = false
+                    saveState = true
                 }
                 launchSingleTop = true
-                restoreState = false
+                restoreState = true
             }
         }
     }
