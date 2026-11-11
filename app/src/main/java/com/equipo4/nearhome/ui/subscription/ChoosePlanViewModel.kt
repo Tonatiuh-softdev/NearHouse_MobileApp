@@ -13,6 +13,8 @@ import kotlinx.coroutines.launch
 data class ChoosePlanUiState(
     val planes: List<SubscriptionPlan> = emptyList(),
     val cargando: Boolean = true,
+    /** true mientras se reintenta desde la pantalla "sin conexión". */
+    val reintentando: Boolean = false,
     val errorCarga: Boolean = false,
     val errorCargaMensaje: String? = null,
     val pruebaDisponible: Boolean = false,
@@ -45,17 +47,19 @@ class ChoosePlanViewModel(application: Application) : AndroidViewModel(applicati
 
     fun cargarPlanes() {
         viewModelScope.launch {
-            _uiState.update { it.copy(cargando = true, errorCarga = false, errorCargaMensaje = null) }
+            // Si se reintenta desde "sin conexión", la pantalla se queda igual hasta tener resultado
+            val retrying = _uiState.value.errorCarga
+            _uiState.update { it.copy(cargando = !retrying, reintentando = retrying) }
             when (val r = repo.obtenerPlanes()) {
                 is Resultado.Ok -> {
                     val planes = r.valor.map { it.toModel() }
                     SubscriptionPlanCache.plans = planes
                     _uiState.update { state ->
                         val newSelected = state.selectedPlanId?.let { id -> if (planes.any { it.id == id }) id else null }
-                        state.copy(planes = planes, cargando = false, selectedPlanId = newSelected)
+                        state.copy(planes = planes, cargando = false, reintentando = false, errorCarga = false, errorCargaMensaje = null, selectedPlanId = newSelected)
                     }
                 }
-                is Resultado.Error -> _uiState.update { it.copy(cargando = false, errorCarga = true, errorCargaMensaje = r.mensaje) }
+                is Resultado.Error -> _uiState.update { it.copy(cargando = false, reintentando = false, errorCarga = true, errorCargaMensaje = r.mensaje) }
             }
         }
     }
@@ -69,6 +73,20 @@ class ChoosePlanViewModel(application: Application) : AndroidViewModel(applicati
         viewModelScope.launch {
             _uiState.update { it.copy(guardando = true, errorAccion = null) }
             when (val r = repo.contratar(plan.id)) {
+                is Resultado.Ok -> {
+                    _uiState.update { it.copy(guardando = false) }
+                    onDone()
+                }
+                is Resultado.Error -> _uiState.update { it.copy(guardando = false, errorAccion = r.mensaje) }
+            }
+        }
+    }
+
+    fun cancelarPlan(onDone: () -> Unit = {}) {
+        if (_uiState.value.guardando) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(guardando = true, errorAccion = null) }
+            when (val r = repo.cancelarPlan()) {
                 is Resultado.Ok -> {
                     _uiState.update { it.copy(guardando = false) }
                     onDone()

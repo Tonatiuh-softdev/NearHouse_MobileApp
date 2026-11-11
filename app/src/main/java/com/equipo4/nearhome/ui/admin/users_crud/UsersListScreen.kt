@@ -1,5 +1,6 @@
 package com.equipo4.nearhome.ui.admin.users_crud
 
+import com.equipo4.nearhome.ui.common.ListRowsSkeleton
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -228,9 +229,7 @@ fun UsersListScreen(
         Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
             when {
                 state.isLoading && state.users.isEmpty() -> {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                    }
+                    ListRowsSkeleton(modifier = Modifier.fillMaxSize())
                 }
 
                 state.errorMessage != null && state.users.isEmpty() -> {

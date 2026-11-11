@@ -53,22 +53,3 @@ fun applyListingFilters(
         SortOrder.OLDEST_FIRST -> filtered.sortedBy { it.registeredAt }
     }
 }
-
-// ---------------- formulario de las pantallas de confirmación ----------------
-
-const val MIN_REJECT_CHARS = 10
-
-data class ActionForm(
-    val checks: List<Boolean> = listOf(false, false, false),
-    val text: String = "",
-    val acknowledged: Boolean = false
-)
-
-fun isActionFormValid(action: ListingAction, form: ActionForm): Boolean =
-    when (action) {
-        ListingAction.APROBAR -> form.checks.all { it }
-        ListingAction.RECHAZAR -> form.text.trim().length >= MIN_REJECT_CHARS
-        ListingAction.DESACTIVAR -> form.text.isNotBlank()
-        ListingAction.REACTIVAR -> true
-        ListingAction.ELIMINAR -> form.text.isNotBlank() && form.acknowledged
-    }

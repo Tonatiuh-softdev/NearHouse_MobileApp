@@ -1,5 +1,6 @@
 package com.equipo4.nearhome.ui.admin.users_crud.detail
 
+import com.equipo4.nearhome.ui.common.DetailBlocksSkeleton
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -136,12 +137,7 @@ fun UserDetailScreen(
     ) { innerPadding ->
         when (val estado = state) {
             is UserDetailUiState.Loading -> {
-                Box(
-                    modifier = Modifier.fillMaxSize().padding(innerPadding),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-                }
+                DetailBlocksSkeleton(modifier = Modifier.fillMaxSize().padding(innerPadding))
             }
 
             is UserDetailUiState.Error -> {

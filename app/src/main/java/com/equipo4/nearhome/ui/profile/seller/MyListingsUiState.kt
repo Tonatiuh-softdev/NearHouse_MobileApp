@@ -28,6 +28,8 @@ data class MyListingsUiState(
     val role: UserRole = UserRole.COMPRADOR,
     val listings: List<MyListingItem> = emptyList(),
     val isLoading: Boolean = false,
+    /** true mientras se reintenta desde la pantalla "sin conexión". */
+    val isRetrying: Boolean = false,
     /** True si no se pudieron cargar los anuncios. */
     val loadError: Boolean = false
 )

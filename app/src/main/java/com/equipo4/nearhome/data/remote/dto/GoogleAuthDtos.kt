@@ -11,10 +11,11 @@ data class GoogleAuthRequest(
 @Serializable
 data class GoogleRegisterRequest(
     val nombre: String,
-    val apellidos: String,
+    val apellidos: String,              // primer apellido
     val telefono: String,
     val googleProofToken: String,
-    val smsToken: String
+    val smsToken: String,               // token de Firebase después de verificar el SMS
+    val segundoApellido: String? = null
 )
 
 @Serializable

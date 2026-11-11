@@ -129,7 +129,7 @@ fun SavedScreen(
                     }
 
                     uiState.loadError && uiState.properties.isEmpty() -> {
-                        NoConnectionState(onRetry = triggerReload)
+                        NoConnectionState(onRetry = triggerReload, isRetrying = uiState.isRefreshing)
                     }
 
                     // 2. Estado de error

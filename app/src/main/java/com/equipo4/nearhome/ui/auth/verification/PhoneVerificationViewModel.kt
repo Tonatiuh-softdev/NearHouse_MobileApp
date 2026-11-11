@@ -165,6 +165,12 @@ class PhoneVerificationViewModel(
 
     /** Registro final: datos del registro + comprobante del correo + token de Firebase. */
     private suspend fun registrarEnApi(tokenFirebase: String) {
+        // Si viene del botón de Google, el registro final es el de Google
+        RegistroTemporal.googleProofToken?.let { comprobanteGoogle ->
+            registrarConGoogleEnApi(comprobanteGoogle, tokenFirebase)
+            return
+        }
+
         val result = authRepository.registrarUsuario(
             correo = RegistroTemporal.correo.orEmpty(),
             contrasena = RegistroTemporal.contrasena.orEmpty(),
@@ -181,6 +187,31 @@ class PhoneVerificationViewModel(
             tokenFirebaseVerificado = null
             timerJob?.cancel()
             _uiState.update { it.copy(isLoading = false, isVerified = true) }
+        } else {
+            _uiState.update { it.copy(isLoading = false) }
+            mostrarError(
+                result.exceptionOrNull()?.message ?: AppStrings.get(R.string.phone_verify_register_error)
+            )
+        }
+    }
+
+    /** Registro final con Google: nombre, apellidos, teléfono, comprobante de Google y token de Firebase. */
+    private suspend fun registrarConGoogleEnApi(comprobanteGoogle: String, tokenFirebase: String) {
+        val result = authRepository.registrarConGoogle(
+            nombre = RegistroTemporal.nombre.orEmpty(),
+            primerApellido = RegistroTemporal.primerApellido.orEmpty(),
+            segundoApellido = RegistroTemporal.segundoApellido?.takeIf { it.isNotBlank() },
+            telefono = RegistroTemporal.telefono.orEmpty(),
+            googleProofToken = comprobanteGoogle,
+            tokenFirebase = tokenFirebase
+        )
+
+        val sesion = result.getOrNull()
+        if (sesion != null) {
+            RegistroTemporal.limpiar()
+            tokenFirebaseVerificado = null
+            timerJob?.cancel()
+            _uiState.update { it.copy(isLoading = false, isVerified = true, sesionNueva = sesion) }
         } else {
             _uiState.update { it.copy(isLoading = false) }
             mostrarError(

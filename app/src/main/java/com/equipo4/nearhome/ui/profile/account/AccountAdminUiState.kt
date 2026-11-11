@@ -29,9 +29,14 @@ enum class EmailFlowStep {
     VERIFY_CODE
 }
 
+enum class PhoneFlowStep {
+    NONE,
+    NEW_PHONE,
+    SMS_VERIFICATION
+}
+
 data class AccountAdminUiState(
     val isLoading: Boolean = false,
-    val loadError: Boolean = false,
     val userData: UserAccountData? = null,
 
     // Flujo de Contraseña
@@ -65,6 +70,19 @@ data class AccountAdminUiState(
     val canResendEmailCode: Boolean = false,
     val googleTokenForEmailChange: String? = null,
 
+    // Flujo de Cambio de Teléfono
+    val phoneStep: PhoneFlowStep = PhoneFlowStep.NONE,
+    val countryCodeInput: String = "+52",
+    val newPhoneInput: String = "",
+    val phoneCurrentPasswordInput: String = "",
+    val phoneCurrentPasswordError: String? = null,
+    val newPhoneError: String? = null,
+    val isPhoneValidating: Boolean = false,
+    val phoneGeneralError: String? = null,
+    val phoneProofToken: String? = null,
+    val isPhoneSaving: Boolean = false,
+    val phoneSaveError: String? = null,
+
     // Diálogos de Desactivación y Eliminación
     val showDeactivateDialog: Boolean = false,
     val deactivatePasswordInput: String = "",
@@ -73,23 +91,13 @@ data class AccountAdminUiState(
     val isDeactivatedSuccess: Boolean = false,
     val showDeleteDialog: Boolean = false,
     val deleteInputText: String = "",
-    val deletePasswordInput: String = "",
-    val deleteError: String? = null,
-    val isDeleting: Boolean = false,
-    /** Fecha en que se borrará la cuenta, cuando la eliminación ya quedó programada. */
-    val deletionScheduledDate: String? = null,
-    /** Se está abriendo la ventana de Google para confirmar desactivar o eliminar. */
-    val isGoogleConfirming: Boolean = false,
     @param:StringRes val userMessage: Int? = null,
     val snackbarSuccessMessage: String? = null
 ) {
     val isDeleteButtonEnabled: Boolean
         get() {
             val input = deleteInputText.trim().uppercase()
-            val textoCorrecto = input == "ELIMINAR" || input == "DELETE"
-            // Con contraseña hay que escribirla; las cuentas de Google confirman con Google al tocar el botón
-            val identidadLista = userData?.tieneContrasena != true || deletePasswordInput.isNotBlank()
-            return textoCorrecto && identidadLista && !isDeleting && !isGoogleConfirming
+            return input == "ELIMINAR" || input == "DELETE"
         }
 
     val isNewPasswordFormValid: Boolean
@@ -111,10 +119,23 @@ data class AccountAdminUiState(
             val passwordValid = if (hasPassword) emailCurrentPasswordInput.isNotBlank() else true
             return isFormatValid && isDifferent && passwordValid && !isEmailCodeSending
         }
+
+    val isNewPhoneFormValid: Boolean
+        get() {
+            val digits = newPhoneInput.filter { it.isDigit() }
+            val fullPhone = countryCodeInput + digits
+            val is10Digits = digits.length == 10
+            val isDifferent = fullPhone != userData?.phone
+            val hasPassword = userData?.tieneContrasena == true
+            val passwordValid = if (hasPassword) phoneCurrentPasswordInput.isNotBlank() else true
+            return is10Digits && isDifferent && passwordValid && !isPhoneValidating
+        }
 }
 
 sealed interface AccountAdminUiEvent {
     data object OnOptionClick : AccountAdminUiEvent
+
+    // Eventos Cambio de Correo
     data object OnEmailOptionClick : AccountAdminUiEvent
     data class OnNewEmailChanged(val text: String) : AccountAdminUiEvent
     data class OnEmailCurrentPasswordChanged(val text: String) : AccountAdminUiEvent
@@ -125,6 +146,16 @@ sealed interface AccountAdminUiEvent {
     data object OnResendEmailCodeRequested : AccountAdminUiEvent
     data object OnReturnToNewEmailStepRequested : AccountAdminUiEvent
 
+    // Eventos Cambio de Teléfono
+    data object OnPhoneOptionClick : AccountAdminUiEvent
+    data class OnCountryCodeChanged(val text: String) : AccountAdminUiEvent
+    data class OnNewPhoneChanged(val text: String) : AccountAdminUiEvent
+    data class OnPhoneCurrentPasswordChanged(val text: String) : AccountAdminUiEvent
+    data class OnValidatePhoneSubmitted(val googleToken: String? = null, val onSuccessValidated: (String) -> Unit = {}) : AccountAdminUiEvent
+    data object OnPhoneFlowDismissed : AccountAdminUiEvent
+    data class OnConfirmPhoneSmsSubmitted(val tokenFirebase: String) : AccountAdminUiEvent
+
+    // Eventos Contraseña
     data object OnPasswordOptionClick : AccountAdminUiEvent
     data object OnRequestCodeConfirmed : AccountAdminUiEvent
     data object OnPasswordFlowDismissed : AccountAdminUiEvent
@@ -136,14 +167,14 @@ sealed interface AccountAdminUiEvent {
     data class OnConfirmPasswordChanged(val text: String) : AccountAdminUiEvent
     data object OnSaveNewPasswordSubmitted : AccountAdminUiEvent
 
+    // Eventos Desactivar / Eliminar
     data object OnDeactivateRequested : AccountAdminUiEvent
     data class OnDeactivatePasswordChanged(val text: String) : AccountAdminUiEvent
     data class OnDeactivateConfirmed(val googleToken: String? = null) : AccountAdminUiEvent
     data object OnDeactivateDismissed : AccountAdminUiEvent
 
     data object OnDeleteRequested : AccountAdminUiEvent
-    data class OnDeleteConfirmed(val googleToken: String? = null) : AccountAdminUiEvent
-    data class OnDeletePasswordChanged(val text: String) : AccountAdminUiEvent
+    data object OnDeleteConfirmed : AccountAdminUiEvent
     data object OnDeleteDismissed : AccountAdminUiEvent
     data class OnDeleteInputChanged(val text: String) : AccountAdminUiEvent
 

@@ -7,7 +7,6 @@ import androidx.lifecycle.viewModelScope
 import com.equipo4.nearhome.data.local.SessionManager
 import com.equipo4.nearhome.data.remote.dto.GoogleAuthRequest
 import com.equipo4.nearhome.data.remote.dto.GoogleProofResponse
-import com.equipo4.nearhome.data.remote.dto.GoogleRegisterRequest
 import com.equipo4.nearhome.network.AuthApi
 import com.equipo4.nearhome.network.NetworkClient
 import com.google.gson.Gson
@@ -76,43 +75,6 @@ class GoogleAuthViewModel(
                     } else {
                         _uiState.value = GoogleAuthState.Error(mensajeError)
                     }
-                }
-            } catch (_: IOException) {
-                _uiState.value = GoogleAuthState.Error("No se pudo conectar con el servidor. Revisa tu conexión a internet e inténtalo de nuevo")
-            } catch (_: Exception) {
-                _uiState.value = GoogleAuthState.Error("Ocurrió un error inesperado. Inténtalo de nuevo")
-            }
-        }
-    }
-
-    /**
-     * Envía los datos finales de registro desde la pantalla Completar Perfil
-     */
-    fun registrarConGoogleFinal(
-        nombre: String,
-        apellidos: String,
-        telefono: String,
-        googleProofToken: String,
-        smsToken: String
-    ) {
-        viewModelScope.launch {
-            _uiState.value = GoogleAuthState.Loading
-            try {
-                val req = GoogleRegisterRequest(
-                    nombre = nombre.trim(),
-                    apellidos = apellidos.trim(),
-                    telefono = telefono.trim(),
-                    googleProofToken = googleProofToken,
-                    smsToken = smsToken
-                )
-                val response = apiService.registrarConGoogleFinal(req)
-                if (response.isSuccessful && response.body() != null) {
-                    val json: JsonObject = response.body()!!
-                    guardarSesionDesdeJson(json)
-                    _uiState.value = GoogleAuthState.SessionSuccess
-                } else {
-                    val mensajeError = extraerMensajeError(response.errorBody()?.string())
-                    _uiState.value = GoogleAuthState.Error(mensajeError)
                 }
             } catch (_: IOException) {
                 _uiState.value = GoogleAuthState.Error("No se pudo conectar con el servidor. Revisa tu conexión a internet e inténtalo de nuevo")

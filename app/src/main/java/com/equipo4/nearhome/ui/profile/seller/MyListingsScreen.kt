@@ -36,7 +36,6 @@ import com.equipo4.nearhome.ui.common.PropertyCard
 import com.equipo4.nearhome.ui.common.PropertyListSkeleton
 import com.equipo4.nearhome.ui.common.MyListingsHeaderSkeleton
 import com.equipo4.nearhome.ui.common.NoConnectionState
-import com.equipo4.nearhome.ui.profile.UserRole
 import androidx.compose.ui.draw.alpha
 import com.equipo4.nearhome.ui.common.DeleteListingDialog
 import com.equipo4.nearhome.ui.common.DangerSnackbarHost
@@ -60,13 +59,6 @@ fun MyListingsScreen(
 
     // Cada vez que se muestra la pantalla se piden los anuncios, para ver su estado actual
     LaunchedEffect(Unit) { viewModel.loadMyListings() }
-
-    // Regla de control de acceso: Si el usuario en sesión es COMPRADOR, regresa a Cuenta.
-    LaunchedEffect(uiState.role) {
-        if (uiState.role == UserRole.COMPRADOR) {
-            onBackClick()
-        }
-    }
 
     // Aviso de anuncio eliminado (o del error)
     LaunchedEffect(message) {
@@ -98,7 +90,7 @@ fun MyListingsScreen(
     Scaffold(
         bottomBar = { NearHomeBottomBar(selectedTab = 3, onTabSelected = onBottomTabSelected) },
         snackbarHost = { DangerSnackbarHost(snackbar) },
-        containerColor = MaterialTheme.colorScheme.background // Adaptable a modo oscuro/claro
+        containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
@@ -106,7 +98,6 @@ fun MyListingsScreen(
                 .padding(innerPadding),
             contentPadding = PaddingValues(bottom = 24.dp)
         ) {
-            // Carga inicial -> Muestra Skeleton de Encabezado y de Tarjetas
             if (uiState.isLoading && uiState.listings.isEmpty()) {
                 item {
                     MyListingsHeaderSkeleton()
@@ -115,7 +106,6 @@ fun MyListingsScreen(
                     PropertyListSkeleton(count = 3)
                 }
             } else {
-                // Sección Encabezado Real
                 item {
                     HeaderSection(
                         uiState = uiState,
@@ -125,10 +115,9 @@ fun MyListingsScreen(
                     )
                 }
 
-                // Sección Lista, error o Estado Vacío
                 when {
                     uiState.loadError && uiState.listings.isEmpty() -> item {
-                        NoConnectionState(onRetry = viewModel::loadMyListings)
+                        NoConnectionState(onRetry = viewModel::loadMyListings, isRetrying = uiState.isRetrying)
                     }
 
                     uiState.listings.isEmpty() -> item { EmptyListingsMessage() }
@@ -163,7 +152,6 @@ private fun HeaderSection(
             .padding(horizontal = 20.dp, vertical = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Barra Superior
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -187,7 +175,6 @@ private fun HeaderSection(
 
         Spacer(Modifier.height(8.dp))
 
-        // Avatar: foto de perfil o ícono por defecto
         Box(
             modifier = Modifier
                 .size(90.dp)
@@ -214,7 +201,6 @@ private fun HeaderSection(
 
         Spacer(Modifier.height(12.dp))
 
-        // Nombre completo
         Text(
             text = uiState.userName.ifBlank { stringResource(R.string.profile_default_name) },
             fontSize = 18.sp,
@@ -224,7 +210,6 @@ private fun HeaderSection(
 
         Spacer(Modifier.height(6.dp))
 
-        // Correo electrónico
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 imageVector = Icons.Outlined.Email,
@@ -242,7 +227,6 @@ private fun HeaderSection(
 
         Spacer(Modifier.height(4.dp))
 
-        // Teléfono
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 imageVector = Icons.Outlined.Phone,
@@ -260,7 +244,6 @@ private fun HeaderSection(
 
         Spacer(Modifier.height(16.dp))
 
-        // Botón "Crear anuncio +"
         Button(
             onClick = onCreateListingClick,
             shape = RoundedCornerShape(8.dp),
@@ -283,7 +266,6 @@ private fun HeaderSection(
     }
 }
 
-/** Tarjeta de un anuncio del vendedor: la misma del home, con su estado, el menú de tres puntos y, si lo rechazaron, el motivo. */
 @Composable
 private fun MyListingCard(
     item: MyListingItem,
@@ -380,27 +362,6 @@ private fun StatusChip(status: ListingStatus, modifier: Modifier = Modifier) {
             maxLines = 1,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
         )
-    }
-}
-
-@Composable
-private fun LoadErrorMessage(onRetry: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 32.dp, vertical = 40.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Text(
-            text = stringResource(R.string.my_listings_load_error),
-            fontSize = 14.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center
-        )
-        OutlinedButton(onClick = onRetry, shape = RoundedCornerShape(10.dp)) {
-            Text(stringResource(R.string.create_listing_retry))
-        }
     }
 }
 

@@ -19,7 +19,9 @@ import com.equipo4.nearhome.R
 @Composable
 fun NoConnectionState(
     onRetry: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    /** true mientras se reintenta: la pantalla se queda igual y el botón muestra un indicador. */
+    isRetrying: Boolean = false
 ) {
     val surfaceVariant = MaterialTheme.colorScheme.surfaceVariant
     val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
@@ -55,8 +57,17 @@ fun NoConnectionState(
         Spacer(modifier = Modifier.height(20.dp))
         Button(
             onClick = onRetry,
+            enabled = !isRetrying,
             shape = RoundedCornerShape(10.dp)
         ) {
+            if (isRetrying) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(18.dp),
+                    strokeWidth = 2.dp,
+                    color = LocalContentColor.current
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+            }
             Text(stringResource(R.string.create_listing_retry))
         }
     }

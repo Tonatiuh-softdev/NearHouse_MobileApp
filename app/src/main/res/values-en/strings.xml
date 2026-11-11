@@ -108,6 +108,10 @@
     <string name="most_popular">Most popular</string>
     <string name="free_month_btn">1st month free</string>
     <string name="choose_plan_btn">Choose this plan</string>
+    <string name="cancel_plan_btn">Cancel plan</string>
+    <string name="cancel_subscription_dialog_title">Do you want to cancel your subscription?</string>
+    <string name="cancel_subscription_dialog_body">Are you sure you want to cancel your current subscription?</string>
+    <string name="cancel_subscription_dialog_confirm">Accept</string>
     <string name="free_trial_title">Free trial</string>
     <string name="confirm_payment_title">Confirm payment</string>
     <string name="free_trial_banner_title">You won\'t be charged during your first month</string>
@@ -149,6 +153,7 @@
     <string name="profile_dark_mode_subtitle">Choose how you want to view the application.</string>
     <string name="logout_confirm_message">Are you sure you want to log out?</string>
     <string name="logout_cancel">No</string>
+    <string name="plan_required_to_publish">You need a plan to publish.</string>
     <!--  Panel de administración  -->
     <string name="admin_panel_title">Admin panel</string>
     <!--  Anuncios (administración)  -->
@@ -304,61 +309,81 @@
     <string name="listing_msg_deactivated">Listing deactivated</string>
     <string name="listing_msg_reactivated">Listing reactivated</string>
     <string name="listing_msg_deleted">Listing %1$s was deleted</string>
-    <!--  Aprobar  -->
-    <string name="listing_approve_title">Approve listing</string>
-    <string name="listing_approve_question">Approve this listing?</string>
-    <string name="listing_approve_body">Upon approval, the listing will be active and visible to users.</string>
-    <string name="listing_approve_checklist_title">Before approving</string>
-    <string name="listing_approve_check_1">Photos correspond to the property</string>
-    <string name="listing_approve_check_2">Title, price and description are consistent</string>
-    <string name="listing_approve_check_3">Advertiser details are complete</string>
-    <string name="listing_approve_confirm">Approve and activate</string>
-    <!--  Rechazar  -->
-    <string name="listing_reject_title">Reject listing</string>
-    <string name="listing_reject_question">Reject this listing?</string>
-    <string name="listing_reject_body">The listing will not be published. Write the reason for record.</string>
-    <string name="listing_reject_label">Rejection reason</string>
-    <string name="listing_reject_hint">Minimum %1$d characters</string>
-    <string name="listing_reject_error_required">This field is required to confirm rejection</string>
-    <string name="listing_reject_error_min">Write at least %1$d characters</string>
-    <string name="listing_reject_confirm">Confirm rejection</string>
-    <!--  Desactivar  -->
-    <string name="listing_deactivate_title">Deactivate listing</string>
-    <string name="listing_deactivate_question">Deactivate this listing?</string>
-    <string name="listing_deactivate_body">The listing will no longer be visible to users.</string>
-    <string name="listing_deactivate_warning">Deactivation is temporary. You can reactivate the listing whenever you need.</string>
-    <string name="listing_deactivate_label">Deactivation cause</string>
-    <string name="listing_deactivate_error_required">This field is required to confirm deactivation</string>
-    <string name="listing_deactivate_confirm">Deactivate listing</string>
-    <!--  Reactivar  -->
-    <string name="listing_reactivate_title">Reactivate listing</string>
-    <string name="listing_reactivate_question">Reactivate this listing?</string>
-    <string name="listing_reactivate_body">The listing will be active again.</string>
-    <string name="listing_previous_deactivation">Previous deactivation reason</string>
-    <string name="listing_previous_date">Date</string>
-    <string name="listing_previous_cause">Cause</string>
-    <string name="listing_previous_by">Registered by</string>
-    <string name="listing_reactivate_notice">Reactivation is immediate. The listing will be visible to users again.</string>
-    <string name="listing_reactivate_confirm">Reactivate listing</string>
-    <!--  Eliminar  -->
-    <string name="listing_delete_title">Delete listing</string>
-    <string name="listing_delete_question">Delete this listing?</string>
-    <string name="listing_delete_body">Review carefully before continuing.</string>
-    <plurals name="listing_delete_warning">
-        <item quantity="one">Deletion is permanent. %d photo will be deleted and cannot be recovered.</item>
-        <item quantity="other">Deletion is permanent. %d photos will be deleted and cannot be recovered.</item>
+    <!-- Approve -->
+    <string name="listing_approve_subtitle">Administrative confirmation</string>
+    <string name="listing_approve_header">Approve this listing?</string>
+    <string name="listing_approve_header_body">It will be visible to people searching for properties.</string>
+    <string name="listing_approve_check_1">The photos match the property</string>
+    <string name="listing_approve_check_2">The price and listing type are clear</string>
+    <string name="listing_approve_check_3">The description does not violate our policies</string>
+    <string name="listing_approve_history_note">The approval, date, and administrator will be recorded in the history.</string>
+
+    <!-- Reject -->
+    <string name="listing_reject_subtitle">Reason required</string>
+    <string name="listing_reject_header">Explain why this listing is being rejected</string>
+    <string name="listing_reject_header_body">The property owner will see the reason and can correct the listing.</string>
+    <string name="listing_reject_label_required">Rejection reason *</string>
+    <string name="listing_reject_placeholder">Enter a clear and specific reason...</string>
+    <string name="listing_reject_saved_title">The reason will be saved</string>
+    <string name="listing_reject_saved_body">It can be viewed later in the listings change history.</string>
+    <string name="listing_reject_blocked">The rejection confirmation will remain disabled until a reason is provided.</string>
+
+    <!-- Deactivate -->
+    <string name="listing_deactivate_subtitle">Temporary action</string>
+    <string name="listing_deactivate_header">Pause listing</string>
+    <string name="listing_deactivate_header_body">It will no longer be displayed, but can be reactivated later.</string>
+    <string name="listing_deactivate_warning_title">Temporary and reversible deactivation</string>
+    <string name="listing_deactivate_warning_body">No photos or data will be deleted. An administrator can reactivate the listing from its details.</string>
+    <string name="listing_deactivate_label_required">Reason for deactivation *</string>
+    <string name="listing_deactivate_placeholder">Explain why the listing is being deactivated...</string>
+    <string name="listing_deactivate_note">The reason, date, and responsible administrator will be recorded in the history.</string>
+
+    <!-- Reactivate -->
+    <string name="listing_reactivate_subtitle">Administrative confirmation</string>
+    <string name="listing_reactivate_header">Reactivate this listing?</string>
+    <string name="listing_reactivate_header_body">It will be available again in searches and results.</string>
+    <string name="listing_reactivate_note">Reactivation will take effect immediately and will be recorded in the history.</string>
+
+    <!-- Delete -->
+    <string name="listing_delete_subtitle">Irreversible action</string>
+    <string name="listing_delete_header">Permanently delete</string>
+    <string name="listing_delete_header_body">This action cannot be undone.</string>
+    <string name="listing_delete_alert_title">The listing will be permanently removed</string>
+    <string name="listing_delete_alert_body">The listing, its photos, received contacts, and public record will be deleted. Only a minimal audit record will remain.</string>
+    <string name="listing_delete_label_required">Reason for deletion *</string>
+    <string name="listing_delete_placeholder">Enter the reason for deletion...</string>
+    <string name="listing_delete_list_title">The following will be deleted</string>
+    <string name="listing_delete_row_info">Details, price, and location</string>
+    <plurals name="listing_delete_row_gallery">
+        <item quantity="one">Gallery with %d photo</item>
+        <item quantity="other">Gallery with %d photos</item>
     </plurals>
-    <string name="listing_delete_label">Deletion reason</string>
-    <string name="listing_delete_error_required">This field is required to confirm deletion</string>
-    <string name="listing_delete_list_title">Will be deleted</string>
-    <string name="listing_delete_item_listing">The listing and its description</string>
-    <plurals name="listing_delete_item_photos">
-        <item quantity="one">%d photo</item>
-        <item quantity="other">%d photos</item>
-    </plurals>
+    <string name="listing_delete_row_contacts">Visibility and associated contacts</string>
+    <string name="listing_delete_footnote">The date, administrator, and reason will be kept only for auditing purposes.</string>
     <string name="listing_delete_item_history">Status change history</string>
-    <string name="listing_delete_acknowledge">I confirm that I reviewed the listing and understand that deletion is terminal</string>
+    <string name="listing_delete_acknowledge">I confirm that I have reviewed the listing and understand that deletion is permanent</string>
     <string name="listing_delete_confirm">Delete permanently</string>
+
+    <string name="listing_approve_title">Approve listing</string>
+    <string name="listing_reject_title">Reject listing</string>
+    <string name="listing_deactivate_title">Deactivate listing</string>
+    <string name="listing_reactivate_title">Reactivate listing</string>
+    <string name="listing_delete_title">Delete listing</string>
+
+    <string name="listing_approve_confirm">Approve and activate</string>
+    <string name="listing_reject_confirm">Confirm rejection</string>
+    <string name="listing_deactivate_confirm">Deactivate listing</string>
+    <string name="listing_reactivate_confirm">Reactivate listing</string>
+
+    <string name="listing_approve_checklist_title">Before approving</string>
+    <string name="listing_previous_deactivation">Previous deactivation reason</string>
+    <string name="listing_previous_by">Registered by</string>
+
+    <string name="listing_reject_error_required">This field is required to confirm the rejection</string>
+    <string name="listing_reject_error_min">Enter at least %1$d characters</string>
+    <string name="listing_deactivate_error_required">This field is required to confirm the deactivation</string>
+    <string name="listing_delete_error_required">This field is required to confirm the deletion</string>
+
     <!--  Crear anuncio: general  -->
     <string name="create_listing_title">Create listing</string>
     <string name="create_listing_step_format">Step %1$d of %2$d</string>

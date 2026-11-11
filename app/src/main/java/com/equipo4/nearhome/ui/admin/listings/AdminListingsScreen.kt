@@ -1,5 +1,6 @@
 package com.equipo4.nearhome.ui.admin.listings
 
+import com.equipo4.nearhome.ui.common.ListRowsSkeleton
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -134,9 +135,7 @@ fun AdminListingsScreen(
 
             when {
                 state.results.isEmpty() && state.isLoading -> {
-                    Box(modifier = Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = adminAccent())
-                    }
+                    ListRowsSkeleton(modifier = Modifier.weight(1f).fillMaxWidth())
                 }
 
                 state.results.isEmpty() && state.loadError -> {

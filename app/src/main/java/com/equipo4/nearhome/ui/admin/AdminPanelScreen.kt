@@ -1,5 +1,7 @@
 package com.equipo4.nearhome.ui.admin
 
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -36,6 +38,10 @@ fun AdminPanelScreen(
     onBottomTabSelected: (Int) -> Unit = {}
 ) {
     val pendingCount by viewModel.pendingCount.collectAsState()
+    val pendingListingsCount by viewModel.pendingListingsCount.collectAsState()
+
+    // Al volver al panel (por ejemplo, después de atender un reporte) se actualiza el número rojo
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refresh() }
 
     Scaffold(
         topBar = {
@@ -115,7 +121,7 @@ fun AdminPanelScreen(
                         icon = Icons.Outlined.Home,
                         title = stringResource(R.string.admin_ads),
                         subtitle = stringResource(R.string.admin_ads_subtitle),
-                        badgeCount = 0,
+                        badgeCount = pendingListingsCount,
                         showDivider = false,
                         onClick = onNavigateToAds
                     )

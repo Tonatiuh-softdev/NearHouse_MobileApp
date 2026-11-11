@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -16,10 +17,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -55,14 +59,31 @@ fun CheckoutScreen(
 
     val cardNumber by viewModel.cardNumber.collectAsState()
     val cardHolder by viewModel.cardHolder.collectAsState()
-    val expiryMonth by viewModel.expiryMonth.collectAsState()
-    val expiryYear by viewModel.expiryYear.collectAsState()
+    val expiry by viewModel.expiry.collectAsState()
     val cvv by viewModel.cvv.collectAsState()
 
     val isComplete by viewModel.isComplete.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val successMessage by viewModel.successMessage.collectAsState()
     val apiError by viewModel.apiError.collectAsState()
+
+    var showErrors by remember { mutableStateOf(false) }
+
+    val cardNumberFocusRequester = remember { FocusRequester() }
+    val cardHolderFocusRequester = remember { FocusRequester() }
+    val expiryFocusRequester = remember { FocusRequester() }
+    val cvvFocusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(cardNumber) {
+        if (cardNumber.text.filter { it.isDigit() }.length == 16) {
+            cardHolderFocusRequester.requestFocus()
+        }
+    }
+    LaunchedEffect(expiry) {
+        if (expiry.text.filter { it.isDigit() }.length == 4) {
+            cvvFocusRequester.requestFocus()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -99,6 +120,8 @@ fun CheckoutScreen(
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
                     .padding(20.dp)
+                    .imePadding()
+                    .navigationBarsPadding()
             ) {
                 // Banner de prueba gratuita
                 if (plan.isFreeTrial) {
@@ -202,12 +225,25 @@ fun CheckoutScreen(
                     OutlinedTextField(
                         value = cardNumber,
                         onValueChange = viewModel::onCardNumberChanged,
-                        placeholder = { Text("1234567812345678") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        placeholder = { Text(stringResource(R.string.checkout_card_number_hint)) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
+                        keyboardActions = KeyboardActions(onNext = { cardHolderFocusRequester.requestFocus() }),
                         shape = RoundedCornerShape(12.dp),
                         singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
+                        isError = showErrors && cardNumber.text.filter { it.isDigit() }.length < 16,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .focusRequester(cardNumberFocusRequester)
                     )
+                    if (showErrors && cardNumber.text.filter { it.isDigit() }.length < 16) {
+                        Spacer(Modifier.height(2.dp))
+                        Text(
+                            text = "! Formato inválido(16 dígitos)",
+                            fontSize = 11.sp,
+                            color = SubscriptionColors.errorStrong,
+                            modifier = Modifier.padding(start = 4.dp)
+                        )
+                    }
                 }
 
                 Spacer(Modifier.height(12.dp))
@@ -220,44 +256,39 @@ fun CheckoutScreen(
                         value = cardHolder,
                         onValueChange = viewModel::onCardHolderChanged,
                         placeholder = { Text(stringResource(R.string.checkout_cardholder_hint)) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
+                        keyboardActions = KeyboardActions(onNext = { expiryFocusRequester.requestFocus() }),
                         shape = RoundedCornerShape(12.dp),
                         singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
+                        isError = showErrors && cardHolder.text.isBlank(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .focusRequester(cardHolderFocusRequester)
                     )
                 }
 
                 Spacer(Modifier.height(12.dp))
 
-                // Mes, Año y CVV en una fila
+                // Vencimiento y CVV en una fila
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(stringResource(R.string.card_month_label), fontSize = 13.sp, fontWeight = FontWeight.Medium, color = SubscriptionColors.textLabel)
+                        Text(stringResource(R.string.card_expiry_label), fontSize = 13.sp, fontWeight = FontWeight.Medium, color = SubscriptionColors.textLabel)
                         Spacer(Modifier.height(4.dp))
                         OutlinedTextField(
-                            value = expiryMonth,
-                            onValueChange = viewModel::onExpiryMonthChanged,
-                            placeholder = { Text("01") },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            value = expiry,
+                            onValueChange = viewModel::onExpiryChanged,
+                            placeholder = { Text(stringResource(R.string.checkout_expiry_hint)) },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next),
+                            keyboardActions = KeyboardActions(onNext = { cvvFocusRequester.requestFocus() }),
                             shape = RoundedCornerShape(12.dp),
                             singleLine = true,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(stringResource(R.string.card_year_label), fontSize = 13.sp, fontWeight = FontWeight.Medium, color = SubscriptionColors.textLabel)
-                        Spacer(Modifier.height(4.dp))
-                        OutlinedTextField(
-                            value = expiryYear,
-                            onValueChange = viewModel::onExpiryYearChanged,
-                            placeholder = { Text("28") },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                            shape = RoundedCornerShape(12.dp),
-                            singleLine = true,
-                            modifier = Modifier.fillMaxWidth()
+                            isError = showErrors && expiry.text.filter { it.isDigit() }.length < 4,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .focusRequester(expiryFocusRequester)
                         )
                     }
 
@@ -267,21 +298,36 @@ fun CheckoutScreen(
                         OutlinedTextField(
                             value = cvv,
                             onValueChange = viewModel::onCvvChanged,
-                            placeholder = { Text("123") },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            placeholder = { Text(stringResource(R.string.checkout_cvv_hint)) },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+                            keyboardActions = KeyboardActions(onDone = {
+                                if (isComplete) {
+                                    viewModel.submit(onSuccessNavigation = onSuccessFinished)
+                                } else {
+                                    showErrors = true
+                                }
+                            }),
                             shape = RoundedCornerShape(12.dp),
                             singleLine = true,
-                            modifier = Modifier.fillMaxWidth()
+                            isError = showErrors && cvv.text.length < 3,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .focusRequester(cvvFocusRequester)
                         )
                     }
                 }
 
-                Spacer(Modifier.height(20.dp))
+                Spacer(Modifier.height(36.dp))
 
                 // Botón principal
                 Button(
-                    onClick = { viewModel.submit(onSuccessNavigation = onSuccessFinished) },
-                    enabled = isComplete && !isLoading,
+                    onClick = {
+                        if (isComplete) {
+                            viewModel.submit(onSuccessNavigation = onSuccessFinished)
+                        } else {
+                            showErrors = true
+                        }
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
@@ -295,12 +341,22 @@ fun CheckoutScreen(
                         CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
                     } else {
                         Text(
-                            text = if (plan.isFreeTrial) stringResource(R.string.activate_free_trial_btn) else stringResource(R.string.pay_amount_btn, plan.priceText),
+                            text = if (plan.isFreeTrial) stringResource(R.string.activate_free_trial_btn) else stringResource(R.string.confirm_and_pay_btn),
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFFFFFFFF)
                         )
                     }
+                }
+
+                if (showErrors && !isComplete) {
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = "! Por favor, complete los campos obligatorios.",
+                        fontSize = 12.sp,
+                        color = SubscriptionColors.errorStrong,
+                        modifier = Modifier.padding(start = 4.dp)
+                    )
                 }
 
                 // Error de la API (sin internet, etc.)

@@ -35,6 +35,19 @@ class CompleteProfileViewModel(
     )
     val uiState: StateFlow<CompleteProfileUiState> = _uiState.asStateFlow()
 
+    init {
+        // Registro con Google: llegan el nombre y los apellidos de la cuenta de Google (se pueden editar)
+        if (RegistroTemporal.googleProofToken != null) {
+            _uiState.update {
+                it.copy(
+                    firstName = RegistroTemporal.nombre.orEmpty(),
+                    firstLastName = RegistroTemporal.primerApellido.orEmpty(),
+                    secondLastName = RegistroTemporal.segundoApellido.orEmpty()
+                )
+            }
+        }
+    }
+
     private var firstNameHadFocus = false
     private var firstLastNameHadFocus = false
     private var phoneHadFocus = false

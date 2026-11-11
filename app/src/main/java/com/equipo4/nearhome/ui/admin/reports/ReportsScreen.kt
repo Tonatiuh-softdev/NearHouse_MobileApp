@@ -1,5 +1,6 @@
 package com.equipo4.nearhome.ui.admin.reports
 
+import com.equipo4.nearhome.ui.common.ListRowsSkeleton
 import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
@@ -36,6 +37,7 @@ fun ReportsScreen(
     val pendingReports by viewModel.pendingReports.collectAsState()
     val attendedReports by viewModel.attendedReports.collectAsState()
     val pendingCount by viewModel.pendingCount.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
 
     var selectedTab by remember { mutableIntStateOf(0) }
 
@@ -120,7 +122,10 @@ fun ReportsScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            when (selectedTab) {
+            if (isLoading && pendingReports.isEmpty() && attendedReports.isEmpty()) {
+                // Primera carga sin datos: skeleton en vez de mostrar "no hay pendientes" por un instante
+                ListRowsSkeleton(modifier = Modifier.fillMaxSize())
+            } else when (selectedTab) {
                 0 -> {
                     if (pendingReports.isEmpty()) {
                         EmptyPendingReports(

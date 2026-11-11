@@ -16,13 +16,16 @@ enum class ListingAction {
 
     companion object {
         /**
-         * Botones del Detalle según el estado, en el orden en que se muestran.
-         * Por ahora solo se puede aprobar o rechazar un anuncio pendiente: desactivar, reactivar y eliminar
-         * no tienen dónde guardarse en la base de datos.
+         * Botones de la barra inferior del detalle según el estado, en el orden del mockup.
+         * Desactivar, reactivar y eliminar se muestran aunque el API todavía no los atienda;
+         * el ViewModel avisa con un error si se pulsan.
          */
         fun availableFor(status: ListingStatus): List<ListingAction> = when (status) {
-            ListingStatus.PENDIENTE -> listOf(RECHAZAR, APROBAR)
-            else -> emptyList()
+            ListingStatus.PENDIENTE -> listOf(RECHAZAR, APROBAR, ELIMINAR)
+            ListingStatus.ACTIVO -> listOf(DESACTIVAR, ELIMINAR)
+            ListingStatus.DESACTIVADO -> listOf(REACTIVAR, ELIMINAR)
+            ListingStatus.RECHAZADO -> listOf(APROBAR, ELIMINAR)
+            ListingStatus.RENTADO_VENDIDO -> emptyList()
         }
     }
 }
@@ -32,7 +35,9 @@ data class Advertiser(
     val id: Int? = null,
     val name: String,
     val email: String,
-    val verified: Boolean
+    val verified: Boolean,
+    /** URL de la foto de perfil del anunciante. Null si no tiene. */
+    val photoUrl: String? = null
 )
 
 /** Una línea del historial. from = null cuando el anuncio se registró. */

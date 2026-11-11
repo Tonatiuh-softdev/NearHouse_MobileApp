@@ -1,5 +1,8 @@
 package com.equipo4.nearhome.ui.profile.account
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -35,11 +38,18 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.data.remote.GoogleAuthManager
+import com.equipo4.nearhome.data.remote.TelefonoFirebase
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
-import com.equipo4.nearhome.ui.common.AccountAdminSkeleton
-import com.equipo4.nearhome.ui.common.NoConnectionState
 import com.equipo4.nearhome.ui.profile.UserRole
+import com.google.firebase.auth.PhoneAuthCredential
+import com.google.firebase.auth.PhoneAuthProvider
 import kotlinx.coroutines.launch
+
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
+}
 
 @Composable
 fun AccountAdminRoute(
@@ -60,14 +70,6 @@ fun AccountAdminRoute(
         }
     }
 
-    LaunchedEffect(uiState.deletionScheduledDate) {
-        uiState.deletionScheduledDate?.let { fecha ->
-            val msg = context.getString(R.string.acc_delete_scheduled_msg, fecha)
-            Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
-            onNavigateToLogin(msg)
-        }
-    }
-
     LaunchedEffect(uiState.snackbarSuccessMessage) {
         uiState.snackbarSuccessMessage?.let { msg ->
             Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
@@ -80,9 +82,7 @@ fun AccountAdminRoute(
         onEvent = viewModel::onEvent,
         onNavigateBack = onNavigateBack,
         onNavigateToPlans = onNavigateToPlans,
-        onBottomTabSelected = onBottomTabSelected,
-        onConfirmWithGoogle = { eliminar -> viewModel.confirmarConGoogle(context, eliminar) },
-        onRetry = viewModel::reload
+        onBottomTabSelected = onBottomTabSelected
     )
 }
 
@@ -93,21 +93,26 @@ fun AccountAdminScreen(
     onEvent: (AccountAdminUiEvent) -> Unit,
     onNavigateBack: () -> Unit,
     onNavigateToPlans: () -> Unit,
-    onBottomTabSelected: (Int) -> Unit = {},
-    /** Cuentas sin contraseña (Google): confirma con Google antes de desactivar (false) o eliminar (true). */
-    onConfirmWithGoogle: (eliminar: Boolean) -> Unit = {},
-    onRetry: () -> Unit = {}
+    onBottomTabSelected: (Int) -> Unit = {}
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
+    val activity = context.findActivity()
     val coroutineScope = rememberCoroutineScope()
     val googleAuthManager = remember { GoogleAuthManager(context) }
 
     var isCurrentPasswordVisible by remember { mutableStateOf(false) }
-    var isDeletePasswordVisible by remember { mutableStateOf(false) }
     var isNewPasswordVisible by remember { mutableStateOf(false) }
     var isConfirmPasswordVisible by remember { mutableStateOf(false) }
     var isEmailCurrentPasswordVisible by remember { mutableStateOf(false) }
+    var isPhoneCurrentPasswordVisible by remember { mutableStateOf(false) }
+
+    // Variables locales para el flujo de SMS de cambio de teléfono
+    var smsVerificationId by remember { mutableStateOf<String?>(null) }
+    var smsResendToken by remember { mutableStateOf<PhoneAuthProvider.ForceResendingToken?>(null) }
+    var isSendingSms by remember { mutableStateOf(false) }
+    var smsLocalError by remember { mutableStateOf<String?>(null) }
+    var phoneOtpCode by remember { mutableStateOf(List(6) { "" }) }
 
     uiState.userMessage?.let { messageRes ->
         val message = stringResource(id = messageRes)
@@ -148,32 +153,20 @@ fun AccountAdminScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
-        when {
-            uiState.isLoading -> {
-                AccountAdminSkeleton(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues)
-                )
+        if (uiState.isLoading || uiState.userData == null) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
             }
-            uiState.loadError && uiState.userData == null -> {
-                NoConnectionState(
-                    onRetry = onRetry,
-                    modifier = Modifier.padding(paddingValues)
-                )
-            }
-            uiState.userData == null -> {
-                AccountAdminSkeleton(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues)
-                )
-            }
-            else -> {
-                val userData = uiState.userData
+        } else {
+            val userData = uiState.userData
 
-                Column(
-                    modifier = Modifier
+            Column(
+                modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)
                     .verticalScroll(rememberScrollState())
@@ -213,7 +206,7 @@ fun AccountAdminScreen(
                             useIconContainer = true,
                             iconBackgroundColor = MaterialTheme.colorScheme.surfaceVariant,
                             iconTintColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            onClick = { onEvent(AccountAdminUiEvent.OnOptionClick) }
+                            onClick = { onEvent(AccountAdminUiEvent.OnPhoneOptionClick) }
                         )
                         HorizontalDivider(
                             modifier = Modifier.padding(start = 72.dp, end = 16.dp),
@@ -247,9 +240,9 @@ fun AccountAdminScreen(
                 Surface(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
+                        .padding(horizontal = 16.dp, vertical = 6.dp),
                     shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.surface
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                 ) {
                     OptionRowItem(
                         icon = Icons.Outlined.PublishedWithChanges,
@@ -280,50 +273,320 @@ fun AccountAdminScreen(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // ==================== GESTIÓN DE LA CUENTA ====================
-                if (userData.role != UserRole.SUPER_ADMIN && userData.role != UserRole.ADMIN) {
+                if (userData.role != UserRole.SUPER_ADMIN) {
                     SectionHeader(title = stringResource(id = R.string.section_account_management))
 
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        color = MaterialTheme.colorScheme.surface
-                    ) {
-                        Column {
-                            OptionRowItem(
-                                icon = Icons.Outlined.PowerSettingsNew,
-                                title = stringResource(id = R.string.deactivate_account_title),
-                                subtitle = stringResource(id = R.string.deactivate_account_subtitle),
-                                useIconContainer = true,
-                                iconBackgroundColor = MaterialTheme.colorScheme.surfaceVariant,
-                                iconTintColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                onClick = { onEvent(AccountAdminUiEvent.OnDeactivateRequested) }
-                            )
-                            HorizontalDivider(
-                                modifier = Modifier.padding(start = 72.dp, end = 16.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
-                                thickness = 0.8.dp
-                            )
+                    OptionRowItem(
+                        icon = Icons.Outlined.PowerSettingsNew,
+                        title = stringResource(id = R.string.deactivate_account_title),
+                        subtitle = stringResource(id = R.string.deactivate_account_subtitle),
+                        useIconContainer = true,
+                        iconBackgroundColor = MaterialTheme.colorScheme.surfaceVariant,
+                        iconTintColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        onClick = { onEvent(AccountAdminUiEvent.OnDeactivateRequested) }
+                    )
+                    HorizontalDivider(
+                        modifier = Modifier.padding(start = 72.dp, end = 16.dp),
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                        thickness = 0.8.dp
+                    )
 
-                            OptionRowItem(
-                                icon = Icons.Outlined.Delete,
-                                title = stringResource(id = R.string.delete_account_title),
-                                subtitle = stringResource(id = R.string.delete_account_subtitle),
-                                titleColor = MaterialTheme.colorScheme.error,
-                                useIconContainer = true,
-                                iconBackgroundColor = MaterialTheme.colorScheme.surfaceVariant,
-                                iconTintColor = MaterialTheme.colorScheme.error,
-                                onClick = { onEvent(AccountAdminUiEvent.OnDeleteRequested) }
-                            )
-                        }
-                    }
+                    OptionRowItem(
+                        icon = Icons.Outlined.Delete,
+                        title = stringResource(id = R.string.delete_account_title),
+                        subtitle = stringResource(id = R.string.delete_account_subtitle),
+                        titleColor = MaterialTheme.colorScheme.error,
+                        useIconContainer = true,
+                        iconBackgroundColor = MaterialTheme.colorScheme.surfaceVariant,
+                        iconTintColor = MaterialTheme.colorScheme.error,
+                        onClick = { onEvent(AccountAdminUiEvent.OnDeleteRequested) }
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
             }
         }
-      }
+    }
+
+    // ==================== FLUJO DE CAMBIO DE TELÉFONO ====================
+
+    // PASO 1: CAMBIAR TELÉFONO (INGRESO DE NÚMERO Y CONTRASEÑA / GOOGLE)
+    if (uiState.phoneStep == PhoneFlowStep.NEW_PHONE) {
+        val hasPass = uiState.userData?.tieneContrasena == true
+
+        AlertDialog(
+            onDismissRequest = {
+                if (!uiState.isPhoneValidating) onEvent(AccountAdminUiEvent.OnPhoneFlowDismissed)
+            },
+            title = { Text("Cambiar número de teléfono") },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Text(
+                        text = "Teléfono actual: ${uiState.userData?.phone.orEmpty()}",
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = uiState.countryCodeInput,
+                            onValueChange = { onEvent(AccountAdminUiEvent.OnCountryCodeChanged(it)) },
+                            label = { Text("País") },
+                            singleLine = true,
+                            enabled = !uiState.isPhoneValidating,
+                            modifier = Modifier.width(80.dp)
+                        )
+
+                        OutlinedTextField(
+                            value = uiState.newPhoneInput,
+                            onValueChange = { onEvent(AccountAdminUiEvent.OnNewPhoneChanged(it)) },
+                            label = { Text("Teléfono nuevo") },
+                            singleLine = true,
+                            enabled = !uiState.isPhoneValidating,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone, imeAction = if (hasPass) ImeAction.Next else ImeAction.Done),
+                            isError = uiState.newPhoneError != null,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+
+                    if (uiState.newPhoneError != null) {
+                        Text(
+                            text = uiState.newPhoneError!!,
+                            color = MaterialTheme.colorScheme.error,
+                            fontSize = 12.sp
+                        )
+                    }
+
+                    if (hasPass) {
+                        OutlinedTextField(
+                            value = uiState.phoneCurrentPasswordInput,
+                            onValueChange = { onEvent(AccountAdminUiEvent.OnPhoneCurrentPasswordChanged(it)) },
+                            label = { Text("Contraseña actual") },
+                            singleLine = true,
+                            enabled = !uiState.isPhoneValidating,
+                            visualTransformation = if (isPhoneCurrentPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                            trailingIcon = {
+                                IconButton(onClick = { isPhoneCurrentPasswordVisible = !isPhoneCurrentPasswordVisible }) {
+                                    Icon(
+                                        imageVector = if (isPhoneCurrentPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                                        contentDescription = "Mostrar u ocultar contraseña"
+                                    )
+                                }
+                            },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+                            isError = uiState.phoneCurrentPasswordError != null,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        if (uiState.phoneCurrentPasswordError != null) {
+                            Text(
+                                text = uiState.phoneCurrentPasswordError!!,
+                                color = MaterialTheme.colorScheme.error,
+                                fontSize = 12.sp
+                            )
+                        }
+                    }
+
+                    if (uiState.phoneGeneralError != null) {
+                        Text(
+                            text = uiState.phoneGeneralError!!,
+                            color = MaterialTheme.colorScheme.error,
+                            fontSize = 13.sp
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val handleValidateAndSendSms = { googleToken: String? ->
+                            onEvent(AccountAdminUiEvent.OnValidatePhoneSubmitted(
+                                googleToken = googleToken,
+                                onSuccessValidated = { targetPhone ->
+                                    if (activity != null) {
+                                        isSendingSms = true
+                                        smsLocalError = null
+                                        TelefonoFirebase.enviarCodigo(
+                                            activity = activity,
+                                            telefono = targetPhone,
+                                            tokenReenvio = null,
+                                            eventos = object : TelefonoFirebase.Eventos {
+                                                override fun codigoEnviado(verificationId: String, tokenReenvio: PhoneAuthProvider.ForceResendingToken) {
+                                                    isSendingSms = false
+                                                    smsVerificationId = verificationId
+                                                    smsResendToken = tokenReenvio
+                                                }
+
+                                                override fun verificadoAutomaticamente(credencial: PhoneAuthCredential) {
+                                                    coroutineScope.launch {
+                                                        try {
+                                                            val tokenFirebase = TelefonoFirebase.obtenerToken(credencial)
+                                                            onEvent(AccountAdminUiEvent.OnConfirmPhoneSmsSubmitted(tokenFirebase))
+                                                        } catch (e: Exception) {
+                                                            smsLocalError = e.message
+                                                        }
+                                                    }
+                                                }
+
+                                                override fun error(mensaje: String) {
+                                                    isSendingSms = false
+                                                    smsLocalError = mensaje
+                                                }
+                                            }
+                                        )
+                                    }
+                                }
+                            ))
+                        }
+
+                        if (hasPass) {
+                            handleValidateAndSendSms(null)
+                        } else {
+                            coroutineScope.launch {
+                                val result = googleAuthManager.getFirebaseIdToken()
+                                result.onSuccess { token ->
+                                    if (token != null) {
+                                        handleValidateAndSendSms(token)
+                                    }
+                                }.onFailure { exception ->
+                                    Toast.makeText(context, exception.message ?: "Error al verificar con Google", Toast.LENGTH_LONG).show()
+                                }
+                            }
+                        }
+                    },
+                    enabled = uiState.isNewPhoneFormValid && !uiState.isPhoneValidating && !isSendingSms
+                ) {
+                    if (uiState.isPhoneValidating || isSendingSms) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text(if (hasPass) "Continuar" else "Confirmar con Google y continuar")
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { onEvent(AccountAdminUiEvent.OnPhoneFlowDismissed) },
+                    enabled = !uiState.isPhoneValidating && !isSendingSms
+                ) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+
+    // PASO 2: VERIFICACIÓN POR SMS DE TELÉFONO
+    if (uiState.phoneStep == PhoneFlowStep.SMS_VERIFICATION) {
+        val targetPhone = uiState.countryCodeInput + uiState.newPhoneInput.filter { it.isDigit() }
+        val fullCode = phoneOtpCode.joinToString("")
+        val isConfirmEnabled = fullCode.length == 6 && !uiState.isPhoneSaving
+        val focusRequesters = remember { List(6) { FocusRequester() } }
+
+        AlertDialog(
+            onDismissRequest = {
+                if (!uiState.isPhoneSaving) onEvent(AccountAdminUiEvent.OnPhoneFlowDismissed)
+            },
+            title = { Text("Verificación por SMS") },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text(
+                        text = "Escribe el código de 6 dígitos que enviamos por SMS a $targetPhone",
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    // 6 casillas OTP
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        for (i in 0 until 6) {
+                            OutlinedTextField(
+                                value = phoneOtpCode.getOrElse(i) { "" },
+                                onValueChange = { digit ->
+                                    val cleanDigit = digit.filter { it.isDigit() }.takeLast(1)
+                                    val mutable = phoneOtpCode.toMutableList()
+                                    mutable[i] = cleanDigit
+                                    phoneOtpCode = mutable
+                                    smsLocalError = null
+                                    if (cleanDigit.isNotEmpty() && i < 5) {
+                                        focusRequesters[i + 1].requestFocus()
+                                    }
+                                },
+                                singleLine = true,
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                modifier = Modifier
+                                    .width(44.dp)
+                                    .height(54.dp)
+                                    .focusRequester(focusRequesters[i])
+                            )
+                        }
+                    }
+
+                    val activeError = uiState.phoneSaveError ?: smsLocalError
+                    if (activeError != null) {
+                        Text(
+                            text = activeError,
+                            color = MaterialTheme.colorScheme.error,
+                            fontSize = 13.sp,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val vid = smsVerificationId
+                        if (vid == null) {
+                            // Modo dev/mock sin SMS real
+                            onEvent(AccountAdminUiEvent.OnConfirmPhoneSmsSubmitted("123456"))
+                        } else {
+                            coroutineScope.launch {
+                                try {
+                                    val credencial = TelefonoFirebase.credencialConCodigo(vid, fullCode)
+                                    val tokenFirebase = TelefonoFirebase.obtenerToken(credencial)
+                                    onEvent(AccountAdminUiEvent.OnConfirmPhoneSmsSubmitted(tokenFirebase))
+                                } catch (e: Exception) {
+                                    smsLocalError = e.message ?: "El código de SMS es incorrecto"
+                                }
+                            }
+                        }
+                    },
+                    enabled = isConfirmEnabled && !uiState.isPhoneSaving
+                ) {
+                    if (uiState.isPhoneSaving) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        Text("Verificar")
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { onEvent(AccountAdminUiEvent.OnPhoneFlowDismissed) },
+                    enabled = !uiState.isPhoneSaving
+                ) {
+                    Text("Cancelar")
+                }
+            }
+        )
     }
 
     // ==================== FLUJO DE CAMBIO DE CORREO ====================
@@ -788,7 +1051,8 @@ fun AccountAdminScreen(
                         onValueChange = { onEvent(AccountAdminUiEvent.OnConfirmPasswordChanged(it)) },
                         label = { Text("Confirmar nueva contraseña") },
                         singleLine = true,
-                        enabled = !uiState.isPasswordSaving,                        visualTransformation = if (isConfirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        enabled = !uiState.isPasswordSaving,
+                        visualTransformation = if (isConfirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         trailingIcon = {
                             IconButton(onClick = { isConfirmPasswordVisible = !isConfirmPasswordVisible }) {
                                 Icon(
@@ -839,11 +1103,9 @@ fun AccountAdminScreen(
 
     // ==================== DIÁLOGOS DE DESACTIVACIÓN Y ELIMINACIÓN ====================
     if (uiState.showDeactivateDialog) {
-        val deactivateHasPass = uiState.userData?.tieneContrasena == true
-        val deactivateBusy = uiState.isDeactivating || uiState.isGoogleConfirming
         AlertDialog(
             onDismissRequest = {
-                if (!deactivateBusy) {
+                if (!uiState.isDeactivating) {
                     onEvent(AccountAdminUiEvent.OnDeactivateDismissed)
                 }
             },
@@ -852,32 +1114,24 @@ fun AccountAdminScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(text = stringResource(id = R.string.dialog_deactivate_text))
 
-                    if (deactivateHasPass) {
-                        OutlinedTextField(
-                            value = uiState.deactivatePasswordInput,
-                            onValueChange = { onEvent(AccountAdminUiEvent.OnDeactivatePasswordChanged(it)) },
-                            label = { Text(stringResource(id = R.string.acc_current_password)) },
-                            singleLine = true,
-                            enabled = !deactivateBusy,
-                            visualTransformation = if (isCurrentPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                            trailingIcon = {
-                                IconButton(onClick = { isCurrentPasswordVisible = !isCurrentPasswordVisible }) {
-                                    Icon(
-                                        imageVector = if (isCurrentPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                                        contentDescription = stringResource(id = R.string.acc_toggle_password_cd)
-                                    )
-                                }
-                            },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    } else {
-                        Text(
-                            text = stringResource(id = R.string.acc_google_hint),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontSize = 14.sp
-                        )
-                    }
+                    OutlinedTextField(
+                        value = uiState.deactivatePasswordInput,
+                        onValueChange = { onEvent(AccountAdminUiEvent.OnDeactivatePasswordChanged(it)) },
+                        label = { Text("Contraseña actual") },
+                        singleLine = true,
+                        enabled = !uiState.isDeactivating,
+                        visualTransformation = if (isCurrentPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        trailingIcon = {
+                            IconButton(onClick = { isCurrentPasswordVisible = !isCurrentPasswordVisible }) {
+                                Icon(
+                                    imageVector = if (isCurrentPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                                    contentDescription = "Mostrar u ocultar contraseña"
+                                )
+                            }
+                        },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        modifier = Modifier.fillMaxWidth()
+                    )
 
                     if (uiState.deactivateError != null) {
                         Text(
@@ -890,37 +1144,27 @@ fun AccountAdminScreen(
             },
             confirmButton = {
                 Button(
-                    enabled = (!deactivateHasPass || uiState.deactivatePasswordInput.isNotBlank()) && !deactivateBusy,
+                    enabled = uiState.deactivatePasswordInput.isNotBlank() && !uiState.isDeactivating,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.error,
                         contentColor = MaterialTheme.colorScheme.onError
                     ),
-                    onClick = {
-                        if (deactivateHasPass) {
-                            onEvent(AccountAdminUiEvent.OnDeactivateConfirmed())
-                        } else {
-                            onConfirmWithGoogle(false)
-                        }
-                    }
+                    onClick = { onEvent(AccountAdminUiEvent.OnDeactivateConfirmed()) }
                 ) {
-                    if (deactivateBusy) {
+                    if (uiState.isDeactivating) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(18.dp),
                             color = MaterialTheme.colorScheme.onError,
                             strokeWidth = 2.dp
                         )
                     } else {
-                        Text(
-                            text = stringResource(
-                                id = if (deactivateHasPass) R.string.confirm_deactivate else R.string.acc_confirm_google
-                            )
-                        )
+                        Text(text = stringResource(id = R.string.confirm_deactivate))
                     }
                 }
             },
             dismissButton = {
                 TextButton(
-                    enabled = !deactivateBusy,
+                    enabled = !uiState.isDeactivating,
                     onClick = { onEvent(AccountAdminUiEvent.OnDeactivateDismissed) }
                 ) {
                     Text(text = stringResource(id = R.string.cancel))
@@ -930,8 +1174,6 @@ fun AccountAdminScreen(
     }
 
     if (uiState.showDeleteDialog) {
-        val deleteHasPass = uiState.userData?.tieneContrasena == true
-        val deleteBusy = uiState.isDeleting || uiState.isGoogleConfirming
         AlertDialog(
             onDismissRequest = { onEvent(AccountAdminUiEvent.OnDeleteDismissed) },
             title = {
@@ -950,44 +1192,8 @@ fun AccountAdminScreen(
                         },
                         placeholder = { Text(text = stringResource(id = R.string.dialog_delete_placeholder)) },
                         singleLine = true,
-                        enabled = !deleteBusy,
                         modifier = Modifier.fillMaxWidth()
                     )
-
-                    if (deleteHasPass) {
-                        OutlinedTextField(
-                            value = uiState.deletePasswordInput,
-                            onValueChange = { onEvent(AccountAdminUiEvent.OnDeletePasswordChanged(it)) },
-                            label = { Text(stringResource(id = R.string.acc_current_password)) },
-                            singleLine = true,
-                            enabled = !deleteBusy,
-                            visualTransformation = if (isDeletePasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                            trailingIcon = {
-                                IconButton(onClick = { isDeletePasswordVisible = !isDeletePasswordVisible }) {
-                                    Icon(
-                                        imageVector = if (isDeletePasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                                        contentDescription = stringResource(id = R.string.acc_toggle_password_cd)
-                                    )
-                                }
-                            },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    } else {
-                        Text(
-                            text = stringResource(id = R.string.acc_google_hint),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontSize = 14.sp
-                        )
-                    }
-
-                    if (uiState.deleteError != null) {
-                        Text(
-                            text = uiState.deleteError,
-                            color = MaterialTheme.colorScheme.error,
-                            fontSize = 13.sp
-                        )
-                    }
                 }
             },
             confirmButton = {
@@ -997,34 +1203,13 @@ fun AccountAdminScreen(
                         containerColor = MaterialTheme.colorScheme.error,
                         contentColor = MaterialTheme.colorScheme.onError
                     ),
-                    onClick = {
-                        if (deleteHasPass) {
-                            onEvent(AccountAdminUiEvent.OnDeleteConfirmed())
-                        } else {
-                            onConfirmWithGoogle(true)
-                        }
-                    }
+                    onClick = { onEvent(AccountAdminUiEvent.OnDeleteConfirmed) }
                 ) {
-                    if (deleteBusy) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(18.dp),
-                            color = MaterialTheme.colorScheme.onError,
-                            strokeWidth = 2.dp
-                        )
-                    } else {
-                        Text(
-                            text = stringResource(
-                                id = if (deleteHasPass) R.string.confirm_delete else R.string.acc_confirm_google
-                            )
-                        )
-                    }
+                    Text(text = stringResource(id = R.string.confirm_delete))
                 }
             },
             dismissButton = {
-                TextButton(
-                    enabled = !deleteBusy,
-                    onClick = { onEvent(AccountAdminUiEvent.OnDeleteDismissed) }
-                ) {
+                TextButton(onClick = { onEvent(AccountAdminUiEvent.OnDeleteDismissed) }) {
                     Text(text = stringResource(id = R.string.cancel))
                 }
             }

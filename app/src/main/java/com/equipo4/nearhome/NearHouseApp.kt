@@ -82,7 +82,9 @@ import com.equipo4.nearhome.ui.createlisting.CreateListingStep2Screen
 import com.equipo4.nearhome.ui.createlisting.CreateListingStep3Screen
 import com.equipo4.nearhome.ui.createlisting.CreateListingStep4Screen
 import com.equipo4.nearhome.ui.createlisting.CreateListingPreviewScreen
-import com.equipo4.nearhome.ui.auth.CompletarPerfilGoogleScreen
+import com.equipo4.nearhome.ui.createlisting.DestinoCrearAnuncio
+import com.equipo4.nearhome.ui.createlisting.destinoCrearAnuncio
+import com.equipo4.nearhome.data.model.RegistroTemporal
 import com.equipo4.nearhome.ui.auth.GoogleAuthState
 import com.equipo4.nearhome.ui.auth.GoogleAuthViewModel
 import com.equipo4.nearhome.ui.auth.GoogleAuthViewModelFactory
@@ -116,7 +118,6 @@ object AppRoutes {
     const val SIGN_UP = "signup"
     const val FORGOT_PASSWORD = "forgot_password"
     const val COMPLETE_PROFILE = "complete_profile"
-    const val COMPLETAR_PERFIL_GOOGLE = "completar_perfil_google"
     const val PHONE_VERIFICATION = "phone_verification"
     const val HOME = "home"
     const val MAP = "home_map"
@@ -176,7 +177,7 @@ class MainActivity : AppCompatActivity() {
         )
 
         Repositories.init(applicationContext)
-        NotificacionesHelper.crearCanal(applicationContext) // NUEVO: Crea el canal "avisos"
+        NotificacionesHelper.crearCanal(applicationContext)
 
         super.onCreate(savedInstanceState)
         setContent {
@@ -194,7 +195,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        // Al abrir o volver a la app: actualizar el circulito rojo (pudieron llegar avisos mientras no estaba)
         ContadorNotificaciones.refrescar(applicationContext)
     }
 }
@@ -210,7 +210,6 @@ fun NearHouseApp() {
             .create(AuthApi::class.java)
     }
 
-    // ViewModel global para la autenticación con Google usando su Factory
     val googleAuthViewModel: GoogleAuthViewModel = viewModel(
         factory = GoogleAuthViewModelFactory(context)
     )
@@ -221,26 +220,22 @@ fun NearHouseApp() {
         if (intentData != null) {
             val ruta = intentData.toString().removePrefix("nearhouse://")
             if (ruta.isNotEmpty()) {
-                // Si hay sesión, navegamos. Si no, el flujo normal te manda al login.
                 if (sessionManager.isLoggedIn()) {
                     navController.navigate(ruta) {
                         popUpTo(AppRoutes.HOME) { inclusive = false }
                     }
                 }
             }
-            // Limpiar el intent para que al rotar la pantalla no vuelva a navegar
             (context as? MainActivity)?.intent?.data = null
         }
     }
 
-    // Registrar el token si ya hay sesión iniciada al abrir la app
     LaunchedEffect(Unit) {
         if (sessionManager.isLoggedIn()) {
             TokenManager.registrarTokenActual(context, scope)
         }
     }
 
-    // Escucha global de respuestas de la API de Google
     LaunchedEffect(googleAuthState) {
         when (googleAuthState) {
             is GoogleAuthState.SessionSuccess -> {
@@ -251,7 +246,18 @@ fun NearHouseApp() {
                 googleAuthViewModel.reiniciarEstado()
             }
             is GoogleAuthState.RequiresRegistration -> {
-                navController.navigate(AppRoutes.COMPLETAR_PERFIL_GOOGLE)
+                // Usuario nuevo con Google: completa su perfil y verifica su teléfono por SMS
+                // con las mismas pantallas del registro normal. No necesita contraseña.
+                val proof = (googleAuthState as GoogleAuthState.RequiresRegistration).proofData
+                val apellidos = proof.apellidos.trim().split(Regex("\\s+"), limit = 2)
+                RegistroTemporal.limpiar()
+                RegistroTemporal.googleProofToken = proof.googleProofToken
+                RegistroTemporal.correo = proof.correo
+                RegistroTemporal.nombre = proof.nombre.trim()
+                RegistroTemporal.primerApellido = apellidos.getOrNull(0).orEmpty()
+                RegistroTemporal.segundoApellido = apellidos.getOrNull(1)
+                googleAuthViewModel.reiniciarEstado()
+                navController.navigate(AppRoutes.COMPLETE_PROFILE)
             }
             is GoogleAuthState.Error -> {
                 Toast.makeText(context, (googleAuthState as GoogleAuthState.Error).mensaje, Toast.LENGTH_LONG).show()
@@ -261,7 +267,6 @@ fun NearHouseApp() {
         }
     }
 
-    // Entró con Google a una cuenta desactivada o por eliminarse: se pregunta antes de entrar
     (googleAuthState as? GoogleAuthState.RequiresReactivation)?.let { estado ->
         AlertDialog(
             onDismissRequest = { googleAuthViewModel.reiniciarEstado() },
@@ -308,6 +313,17 @@ fun NearHouseApp() {
         }
     }
 
+    /**
+     * Único punto de entrada para "Crear anuncio". Todas las pantallas lo usan.
+     * Decide según el usuario cargado: directo a crear, o a planes.
+     */
+    val irACrearAnuncio: () -> Unit = {
+        when (destinoCrearAnuncio(CurrentUserStore.user.value)) {
+            DestinoCrearAnuncio.CREAR -> navController.navigate(AppRoutes.CREATE_LISTING_GRAPH)
+            DestinoCrearAnuncio.PLANES -> navController.navigate("${AppRoutes.SUBSCRIPTION}?motivo=crear")
+        }
+    }
+
     var homeReselectTrigger by remember { mutableStateOf(0L) }
     var savedReselectTrigger by remember { mutableStateOf(0L) }
     var notificationsReselectTrigger by remember { mutableStateOf(0L) }
@@ -337,7 +353,7 @@ fun NearHouseApp() {
                     route == AppRoutes.ADMIN_USERS ||
                     route == AppRoutes.ADMIN_LISTINGS ||
                     route == AppRoutes.ADMIN_LISTING_FILTERS ||
-                    route == AppRoutes.SUBSCRIPTION ||
+                    route.startsWith(AppRoutes.SUBSCRIPTION) ||
                     route.startsWith(AppRoutes.CHECKOUT) ||
                     route.startsWith(AppRoutes.CREATE_LISTING_GRAPH) ||
                     route.startsWith(AppRoutes.CREATE_LISTING_EDIT) ||
@@ -385,7 +401,6 @@ fun NearHouseApp() {
         popEnterTransition = { EnterTransition.None },
         popExitTransition = { ExitTransition.None }
     ) {
-        // Pantalla 0: Animación
         composable(AppRoutes.SPLASH) {
             SplashScreen(
                 onFinished = { isLoggedIn ->
@@ -402,7 +417,6 @@ fun NearHouseApp() {
             )
         }
 
-        // Pantalla 1: Login
         composable(AppRoutes.LOGIN) {
             LoginScreen(
                 onNavigateToRegister = {
@@ -423,7 +437,6 @@ fun NearHouseApp() {
             )
         }
 
-        // Pantalla 2: Registro (Sign Up)
         composable(AppRoutes.SIGN_UP) {
             SignUpScreen(
                 onNavigateToLogin = {
@@ -474,32 +487,6 @@ fun NearHouseApp() {
             )
         }
 
-        // Pantalla 3b: Completar Perfil con Google (Caso C - Usuario nuevo)
-        composable(AppRoutes.COMPLETAR_PERFIL_GOOGLE) {
-            val state = googleAuthState
-            var proofDataSaved by remember { mutableStateOf<com.equipo4.nearhome.data.remote.dto.GoogleProofResponse?>(null) }
-
-            if (state is GoogleAuthState.RequiresRegistration) {
-                proofDataSaved = state.proofData
-            }
-
-            proofDataSaved?.let { proofData ->
-                CompletarPerfilGoogleScreen(
-                    proofData = proofData,
-                    viewModel = googleAuthViewModel,
-                    onRegistroExitoso = {
-                        sessionManager.setLoggedIn(true)
-                        navController.navigate(AppRoutes.HOME) {
-                            popUpTo(AppRoutes.LOGIN) { inclusive = true }
-                        }
-                    },
-                    onVolverAlLogin = {
-                        googleAuthViewModel.reiniciarEstado()
-                        navController.popBackStack(AppRoutes.LOGIN, inclusive = false)
-                    }
-                )
-            }
-        }
 
         // Pantalla 4: Verificación de Teléfono
         composable(
@@ -512,6 +499,19 @@ fun NearHouseApp() {
                 onNavigateToLogin = {
                     navController.navigate(AppRoutes.LOGIN) {
                         popUpTo(AppRoutes.LOGIN) { inclusive = true }
+                    }
+                },
+                // Registro con Google: se guarda la sesión y entra directo a la app
+                onSessionStarted = { sesion ->
+                    sessionManager.saveSession(
+                        token = sesion.token,
+                        userId = sesion.usuario.id,
+                        nombre = sesion.usuario.nombre,
+                        rol = sesion.usuario.rol,
+                        correo = sesion.usuario.correo
+                    )
+                    navController.navigate(AppRoutes.HOME) {
+                        popUpTo(0) { inclusive = true }
                     }
                 }
             )
@@ -616,19 +616,7 @@ fun NearHouseApp() {
         composable(AppRoutes.PROFILE) {
             ProfileScreen(
                 reselectTrigger = profileReselectTrigger,
-                onMyListingsClick = {
-                    scope.launch {
-                        if (CurrentUserStore.roleOrNull() == null) {
-                            runCatching { CurrentUserStore.refresh(authApi) }
-                        }
-                        val role = CurrentUserStore.roleOrNull()
-                            ?: UserRole.fromDb(SessionManager(context).getUserRole())
-                        when (role) {
-                            UserRole.COMPRADOR -> navController.navigate(AppRoutes.SUBSCRIPTION)
-                            else -> navController.navigate(AppRoutes.MY_LISTINGS)
-                        }
-                    }
-                },
+                onMyListingsClick = { navController.navigate(AppRoutes.MY_LISTINGS) },
                 onAccountClick = { navController.navigate(AppRoutes.ACCOUNT_ADMIN) },
                 onAdminPanelClick = {
                     navController.navigate(AppRoutes.ADMIN_PANEL)
@@ -660,7 +648,7 @@ fun NearHouseApp() {
             MyListingsScreen(
                 onBackClick = { navController.popBackStack() },
                 onEditProfileClick = { navController.navigate(AppRoutes.EDIT_PROFILE) },
-                onCreateListingClick = { navController.navigate(AppRoutes.CREATE_LISTING_GRAPH) },
+                onCreateListingClick = irACrearAnuncio,
                 onEditListingClick = { id -> navController.navigate("create_listing_edit/$id") },
                 onPropertyClick = { propertyId ->
                     navController.navigate("${AppRoutes.PUBLICACION_DETAIL}/$propertyId")
@@ -1229,25 +1217,53 @@ fun NearHouseApp() {
             )
         }
 
-        composable(AppRoutes.SUBSCRIPTION) {
+        // Planes: acepta ?motivo=crear cuando viene de "Crear anuncio"
+        composable(
+            route = "${AppRoutes.SUBSCRIPTION}?motivo={motivo}",
+            arguments = listOf(navArgument("motivo") { type = NavType.StringType; defaultValue = "" })
+        ) { entry ->
+            val motivoCrear = entry.arguments?.getString("motivo") == "crear"
             ChoosePlanScreen(
-                onBackClick = { navController.popBackStack() },
-                onPlanSelected = { plan -> navController.navigate("${AppRoutes.CHECKOUT}/${plan.id}") },
+                motivoCrear = motivoCrear,
+                onBackClick = {
+                    if (motivoCrear) navController.popBackStack(AppRoutes.PROFILE, inclusive = false)
+                    else navController.popBackStack()
+                },
+                onPlanSelected = { plan ->
+                    navController.navigate("${AppRoutes.CHECKOUT}/${plan.id}?motivo=${if (motivoCrear) "crear" else ""}")
+                },
                 onFreeTrialActivated = {
                     navController.popBackStack(AppRoutes.ACCOUNT_ADMIN, inclusive = false)
                 }
             )
         }
 
+        // Checkout: al pagar, refresca el usuario y decide a dónde regresar
         composable(
-            route = "${AppRoutes.CHECKOUT}/{planId}",
-            arguments = listOf(navArgument("planId") { type = NavType.IntType })
+            route = "${AppRoutes.CHECKOUT}/{planId}?motivo={motivo}",
+            arguments = listOf(
+                navArgument("planId") { type = NavType.IntType },
+                navArgument("motivo") { type = NavType.StringType; defaultValue = "" }
+            )
         ) { entry ->
+            val motivoCrear = entry.arguments?.getString("motivo") == "crear"
             CheckoutScreen(
                 planId = entry.arguments?.getInt("planId") ?: 0,
-                onBackClick = { navController.popBackStack() },
+                onBackClick = {
+                    if (motivoCrear) navController.popBackStack(AppRoutes.PROFILE, inclusive = false)
+                    else navController.popBackStack()
+                },
                 onSuccessFinished = {
-                    navController.popBackStack(AppRoutes.ACCOUNT_ADMIN, inclusive = false)
+                    scope.launch {
+                        runCatching { CurrentUserStore.refresh(authApi, sessionManager) }
+                        if (motivoCrear) {
+                            navController.navigate(AppRoutes.CREATE_LISTING_GRAPH) {
+                                popUpTo(AppRoutes.SUBSCRIPTION) { inclusive = true }
+                            }
+                        } else {
+                            navController.popBackStack(AppRoutes.ACCOUNT_ADMIN, inclusive = false)
+                        }
+                    }
                 }
             )
         }
