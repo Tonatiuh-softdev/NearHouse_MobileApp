@@ -1,5 +1,6 @@
 package com.equipo4.nearhome.ui.notifications
 
+import com.equipo4.nearhome.ui.common.ListRowsSkeleton
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -110,15 +111,13 @@ fun NotificationsScreen(
         ) {
             when (val state = uiState) {
                 is NotificationsUiState.Loading -> {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator()
-                    }
+                    ListRowsSkeleton(modifier = Modifier.fillMaxSize())
                 }
                 is NotificationsUiState.Empty -> {
                     NotificationsEmptyState()
                 }
                 is NotificationsUiState.Error -> {
-                    NoConnectionState(onRetry = { viewModel.loadNotifications() })
+                    NoConnectionState(onRetry = { viewModel.recargar() }, isRetrying = isRefreshing)
                 }
                 is NotificationsUiState.Success -> {
                     LazyColumn(

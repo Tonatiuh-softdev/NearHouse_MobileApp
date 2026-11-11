@@ -58,13 +58,15 @@ class MyListingsViewModel(application: Application) : AndroidViewModel(applicati
      */
     fun loadMyListings() {
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, loadError = false) }
+            // Si se reintenta desde "sin conexión", la pantalla se queda igual hasta tener resultado
+            val retrying = _uiState.value.loadError && _uiState.value.listings.isEmpty()
+            _uiState.update { it.copy(isLoading = !retrying, isRetrying = retrying, loadError = retrying) }
             repository.load()
                 .onSuccess { items ->
-                    _uiState.update { it.copy(listings = items, isLoading = false, loadError = false) }
+                    _uiState.update { it.copy(listings = items, isLoading = false, isRetrying = false, loadError = false) }
                 }
                 .onFailure {
-                    _uiState.update { it.copy(isLoading = false, loadError = true) }
+                    _uiState.update { it.copy(isLoading = false, isRetrying = false, loadError = true) }
                 }
         }
     }

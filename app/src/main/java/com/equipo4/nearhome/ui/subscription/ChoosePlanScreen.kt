@@ -1,5 +1,6 @@
 package com.equipo4.nearhome.ui.subscription
 
+import com.equipo4.nearhome.ui.common.PlanCardsSkeleton
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -132,12 +133,11 @@ fun ChoosePlanScreen(
         containerColor = SubscriptionColors.screenBg
     ) { padding ->
         when {
-            ui.cargando -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
-            }
+            ui.cargando -> PlanCardsSkeleton(modifier = Modifier.fillMaxSize().padding(padding))
 
             ui.errorCarga -> NoConnectionState(
                 onRetry = viewModel::cargarPlanes,
+                isRetrying = ui.reintentando,
                 modifier = Modifier.padding(padding)
             )
 

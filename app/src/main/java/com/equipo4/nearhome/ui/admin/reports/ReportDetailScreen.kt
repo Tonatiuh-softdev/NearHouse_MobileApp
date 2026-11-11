@@ -1,5 +1,6 @@
 package com.equipo4.nearhome.ui.admin.reports
 
+import com.equipo4.nearhome.ui.common.DetailBlocksSkeleton
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -169,14 +170,7 @@ fun ReportDetailScreen(
     ) { innerPadding ->
         val currentReport = report
         if (currentReport == null) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-            }
+            DetailBlocksSkeleton(modifier = Modifier.fillMaxSize().padding(innerPadding))
         } else {
             Column(
                 modifier = Modifier

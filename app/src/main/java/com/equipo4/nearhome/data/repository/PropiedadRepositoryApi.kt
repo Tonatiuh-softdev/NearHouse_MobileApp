@@ -113,10 +113,18 @@ class PropiedadRepositoryApi(context: Context) : PropiedadRepository {
             remote.value = list
 
             // Cargar también la lista completa de guardados desde el API si hay sesión iniciada
+            // Complementa los guardados; si este endpoint falla NO es un error de conexión:
+            // la lista de anuncios ya cargó y cada anuncio trae su propia marca "guardada".
             if (session.isLoggedIn()) {
-                val guardadosDtos = api.listarGuardados(1)
-                val newSavedIds = guardadosDtos.map { it.id.toString() }.toSet()
-                savedIds.update { it + newSavedIds }
+                try {
+                    val guardadosDtos = api.listarGuardados(1)
+                    val newSavedIds = guardadosDtos.map { it.id.toString() }.toSet()
+                    savedIds.update { it + newSavedIds }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    Log.w(TAG, "No se pudieron cargar los guardados: ${e.message}")
+                }
             }
 
             true

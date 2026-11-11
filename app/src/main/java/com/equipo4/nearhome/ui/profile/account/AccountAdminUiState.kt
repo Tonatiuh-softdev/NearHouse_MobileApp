@@ -31,6 +31,8 @@ enum class EmailFlowStep {
 
 data class AccountAdminUiState(
     val isLoading: Boolean = false,
+    /** true mientras se reintenta desde la pantalla "sin conexión". */
+    val isRetrying: Boolean = false,
     val loadError: Boolean = false,
     val userData: UserAccountData? = null,
 

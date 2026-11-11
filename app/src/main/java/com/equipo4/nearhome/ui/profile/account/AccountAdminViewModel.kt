@@ -63,14 +63,16 @@ class AccountAdminViewModel(application: Application) : AndroidViewModel(applica
 
     fun reload() {
         viewModelScope.launch {
+            // Si se reintenta desde "sin conexión", la pantalla se queda igual hasta tener resultado
+            val retrying = _uiState.value.loadError && _uiState.value.userData == null
             try {
-                _uiState.update { it.copy(isLoading = true, loadError = false) }
+                _uiState.update { it.copy(isLoading = !retrying, isRetrying = retrying, loadError = retrying) }
                 val response = CurrentUserStore.refresh(authApi)
                 _uiState.update { it.copy(loadError = !response.isSuccessful) }
             } catch (e: Exception) {
                 _uiState.update { it.copy(loadError = true) }
             } finally {
-                _uiState.update { it.copy(isLoading = false) }
+                _uiState.update { it.copy(isLoading = false, isRetrying = false) }
             }
         }
     }

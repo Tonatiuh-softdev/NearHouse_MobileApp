@@ -166,7 +166,7 @@ fun HomeScreen(
                             PropertyListSkeleton(count = 3)
                         }
                         uiState.loadError && uiState.properties.isEmpty() -> {
-                            NoConnectionState(onRetry = triggerReload)
+                            NoConnectionState(onRetry = triggerReload, isRetrying = uiState.isRefreshing)
                         }
                         uiState.properties.isEmpty() -> {
                             EmptyHomeState(onClearFilters = { viewModel.clearFilters() })

@@ -159,6 +159,7 @@ fun AccountAdminScreen(
             uiState.loadError && uiState.userData == null -> {
                 NoConnectionState(
                     onRetry = onRetry,
+                    isRetrying = uiState.isRetrying,
                     modifier = Modifier.padding(paddingValues)
                 )
             }
@@ -174,114 +175,14 @@ fun AccountAdminScreen(
 
                 Column(
                     modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .verticalScroll(rememberScrollState())
-            ) {
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // ==================== DATOS DE ACCESO ====================
-                SectionHeader(title = stringResource(id = R.string.section_access_data))
-
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.surface
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                        .verticalScroll(rememberScrollState())
                 ) {
-                    Column {
-                        OptionRowItem(
-                            icon = Icons.Outlined.Email,
-                            title = stringResource(id = R.string.label_email),
-                            subtitle = userData.email,
-                            useIconContainer = true,
-                            iconBackgroundColor = MaterialTheme.colorScheme.surfaceVariant,
-                            iconTintColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            onClick = { onEvent(AccountAdminUiEvent.OnEmailOptionClick) }
-                        )
-                        HorizontalDivider(
-                            modifier = Modifier.padding(start = 72.dp, end = 16.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
-                            thickness = 0.8.dp
-                        )
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                        OptionRowItem(
-                            icon = Icons.Outlined.Smartphone,
-                            title = stringResource(id = R.string.label_phone),
-                            subtitle = userData.phone,
-                            useIconContainer = true,
-                            iconBackgroundColor = MaterialTheme.colorScheme.surfaceVariant,
-                            iconTintColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            onClick = { onEvent(AccountAdminUiEvent.OnOptionClick) }
-                        )
-                        HorizontalDivider(
-                            modifier = Modifier.padding(start = 72.dp, end = 16.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
-                            thickness = 0.8.dp
-                        )
-
-                        OptionRowItem(
-                            icon = Icons.Outlined.Lock,
-                            title = stringResource(id = R.string.label_password),
-                            subtitle = if (userData.tieneContrasena) {
-                                stringResource(id = R.string.masked_password)
-                            } else {
-                                "Entras con Google. Crea una contraseña para entrar también con tu correo."
-                            },
-                            useIconContainer = true,
-                            iconBackgroundColor = MaterialTheme.colorScheme.surfaceVariant,
-                            iconTintColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            onClick = { onEvent(AccountAdminUiEvent.OnPasswordOptionClick) }
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // ==================== MEMBRESÍA Y PAGOS ====================
-                SectionHeader(title = stringResource(id = R.string.section_membership))
-
-                val planName = userData.planName
-
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.surface
-                ) {
-                    OptionRowItem(
-                        icon = Icons.Outlined.PublishedWithChanges,
-                        title = stringResource(id = R.string.label_current_plan),
-                        subtitle = if (planName != null) {
-                            val statusText = if (!userData.planStatus.isNullOrEmpty()) " (${userData.planStatus})" else ""
-                            "$planName$statusText"
-                        } else {
-                            stringResource(id = R.string.buyer_no_plan)
-                        },
-                        secondLine = when {
-                            planName == null -> stringResource(id = R.string.buyer_plan_subtitle)
-                            userData.planExpired -> stringResource(id = R.string.plan_expired_format, userData.renewalDate.orEmpty())
-                            else -> stringResource(id = R.string.plan_expires_format, userData.renewalDate.orEmpty())
-                        },
-                        secondLineColor = if (userData.planExpired) {
-                            MaterialTheme.colorScheme.error
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        },
-                        useIconContainer = true,
-                        iconBackgroundColor = MaterialTheme.colorScheme.surfaceVariant,
-                        iconTintColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        onClick = onNavigateToPlans
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // ==================== GESTIÓN DE LA CUENTA ====================
-                if (userData.role != UserRole.SUPER_ADMIN && userData.role != UserRole.ADMIN) {
-                    SectionHeader(title = stringResource(id = R.string.section_account_management))
+                    // ==================== DATOS DE ACCESO ====================
+                    SectionHeader(title = stringResource(id = R.string.section_access_data))
 
                     Surface(
                         modifier = Modifier
@@ -292,13 +193,13 @@ fun AccountAdminScreen(
                     ) {
                         Column {
                             OptionRowItem(
-                                icon = Icons.Outlined.PowerSettingsNew,
-                                title = stringResource(id = R.string.deactivate_account_title),
-                                subtitle = stringResource(id = R.string.deactivate_account_subtitle),
+                                icon = Icons.Outlined.Email,
+                                title = stringResource(id = R.string.label_email),
+                                subtitle = userData.email,
                                 useIconContainer = true,
                                 iconBackgroundColor = MaterialTheme.colorScheme.surfaceVariant,
                                 iconTintColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                onClick = { onEvent(AccountAdminUiEvent.OnDeactivateRequested) }
+                                onClick = { onEvent(AccountAdminUiEvent.OnEmailOptionClick) }
                             )
                             HorizontalDivider(
                                 modifier = Modifier.padding(start = 72.dp, end = 16.dp),
@@ -307,23 +208,123 @@ fun AccountAdminScreen(
                             )
 
                             OptionRowItem(
-                                icon = Icons.Outlined.Delete,
-                                title = stringResource(id = R.string.delete_account_title),
-                                subtitle = stringResource(id = R.string.delete_account_subtitle),
-                                titleColor = MaterialTheme.colorScheme.error,
+                                icon = Icons.Outlined.Smartphone,
+                                title = stringResource(id = R.string.label_phone),
+                                subtitle = userData.phone,
                                 useIconContainer = true,
                                 iconBackgroundColor = MaterialTheme.colorScheme.surfaceVariant,
-                                iconTintColor = MaterialTheme.colorScheme.error,
-                                onClick = { onEvent(AccountAdminUiEvent.OnDeleteRequested) }
+                                iconTintColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                onClick = { onEvent(AccountAdminUiEvent.OnOptionClick) }
+                            )
+                            HorizontalDivider(
+                                modifier = Modifier.padding(start = 72.dp, end = 16.dp),
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                                thickness = 0.8.dp
+                            )
+
+                            OptionRowItem(
+                                icon = Icons.Outlined.Lock,
+                                title = stringResource(id = R.string.label_password),
+                                subtitle = if (userData.tieneContrasena) {
+                                    stringResource(id = R.string.masked_password)
+                                } else {
+                                    "Entras con Google. Crea una contraseña para entrar también con tu correo."
+                                },
+                                useIconContainer = true,
+                                iconBackgroundColor = MaterialTheme.colorScheme.surfaceVariant,
+                                iconTintColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                onClick = { onEvent(AccountAdminUiEvent.OnPasswordOptionClick) }
                             )
                         }
                     }
-                }
 
-                Spacer(modifier = Modifier.height(32.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // ==================== MEMBRESÍA Y PAGOS ====================
+                    SectionHeader(title = stringResource(id = R.string.section_membership))
+
+                    val planName = userData.planName
+
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.surface
+                    ) {
+                        OptionRowItem(
+                            icon = Icons.Outlined.PublishedWithChanges,
+                            title = stringResource(id = R.string.label_current_plan),
+                            subtitle = if (planName != null) {
+                                val statusText = if (!userData.planStatus.isNullOrEmpty()) " (${userData.planStatus})" else ""
+                                "$planName$statusText"
+                            } else {
+                                stringResource(id = R.string.buyer_no_plan)
+                            },
+                            secondLine = when {
+                                planName == null -> stringResource(id = R.string.buyer_plan_subtitle)
+                                userData.planExpired -> stringResource(id = R.string.plan_expired_format, userData.renewalDate.orEmpty())
+                                else -> stringResource(id = R.string.plan_expires_format, userData.renewalDate.orEmpty())
+                            },
+                            secondLineColor = if (userData.planExpired) {
+                                MaterialTheme.colorScheme.error
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            },
+                            useIconContainer = true,
+                            iconBackgroundColor = MaterialTheme.colorScheme.surfaceVariant,
+                            iconTintColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            onClick = onNavigateToPlans
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // ==================== GESTIÓN DE LA CUENTA ====================
+                    if (userData.role != UserRole.SUPER_ADMIN && userData.role != UserRole.ADMIN) {
+                        SectionHeader(title = stringResource(id = R.string.section_account_management))
+
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.surface
+                        ) {
+                            Column {
+                                OptionRowItem(
+                                    icon = Icons.Outlined.PowerSettingsNew,
+                                    title = stringResource(id = R.string.deactivate_account_title),
+                                    subtitle = stringResource(id = R.string.deactivate_account_subtitle),
+                                    useIconContainer = true,
+                                    iconBackgroundColor = MaterialTheme.colorScheme.surfaceVariant,
+                                    iconTintColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    onClick = { onEvent(AccountAdminUiEvent.OnDeactivateRequested) }
+                                )
+                                HorizontalDivider(
+                                    modifier = Modifier.padding(start = 72.dp, end = 16.dp),
+                                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                                    thickness = 0.8.dp
+                                )
+
+                                OptionRowItem(
+                                    icon = Icons.Outlined.Delete,
+                                    title = stringResource(id = R.string.delete_account_title),
+                                    subtitle = stringResource(id = R.string.delete_account_subtitle),
+                                    titleColor = MaterialTheme.colorScheme.error,
+                                    useIconContainer = true,
+                                    iconBackgroundColor = MaterialTheme.colorScheme.surfaceVariant,
+                                    iconTintColor = MaterialTheme.colorScheme.error,
+                                    onClick = { onEvent(AccountAdminUiEvent.OnDeleteRequested) }
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(32.dp))
+                }
             }
         }
-      }
     }
 
     // ==================== FLUJO DE CAMBIO DE CORREO ====================

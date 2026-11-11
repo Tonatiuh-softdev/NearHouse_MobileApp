@@ -49,7 +49,9 @@ class SavedViewModel(
 
     fun recargar(onFinished: (Boolean) -> Unit = {}) {
         if (_uiState.value.isRefreshing) return
-        _uiState.update { it.copy(isRefreshing = true, loadError = false) }
+        // Al reintentar desde "sin conexión" la pantalla se queda igual (el botón muestra un indicador);
+        // el error solo cambia cuando hay resultado.
+        _uiState.update { it.copy(isRefreshing = true) }
         viewModelScope.launch {
             val success = repository.refresh()
             _uiState.update { it.copy(isRefreshing = false, loadError = !success) }

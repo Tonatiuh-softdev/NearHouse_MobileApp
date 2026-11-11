@@ -128,7 +128,7 @@ fun MyListingsScreen(
                 // Sección Lista, error o Estado Vacío
                 when {
                     uiState.loadError && uiState.listings.isEmpty() -> item {
-                        NoConnectionState(onRetry = viewModel::loadMyListings)
+                        NoConnectionState(onRetry = viewModel::loadMyListings, isRetrying = uiState.isRetrying)
                     }
 
                     uiState.listings.isEmpty() -> item { EmptyListingsMessage() }
