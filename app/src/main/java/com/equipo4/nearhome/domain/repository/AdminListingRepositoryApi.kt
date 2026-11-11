@@ -10,6 +10,7 @@ import com.equipo4.nearhome.data.remote.RechazarDto
 import com.equipo4.nearhome.data.repository.PublicacionException
 import com.equipo4.nearhome.data.repository.Repositories
 import com.equipo4.nearhome.data.repository.fotoPublicacionUrl
+import com.equipo4.nearhome.data.repository.fotoUsuarioUrl
 import com.equipo4.nearhome.di.NetworkModule
 import com.equipo4.nearhome.domain.model.AdminListing
 import com.equipo4.nearhome.domain.model.Advertiser
@@ -102,7 +103,7 @@ class AdminListingRepositoryApi(context: Context) : AdminListingRepository {
     }
 }
 
-/** El historial se arma con lo que guarda la base: cuándo se registró y, si ya se revisó, quién y por qué. */
+/** Convierte lo que regresa el API al modelo del administrador, incluida la foto del anunciante. */
 private fun PublicacionDto.toAdminListing(): AdminListing {
     val estadoApi = estado.uppercase()
     val status = when (estadoApi) {
@@ -131,6 +132,11 @@ private fun PublicacionDto.toAdminListing(): AdminListing {
             }
         }
     }
+    // Foto del anunciante: la misma URL que usa el resto de la app (se cachea por la versión)
+    val fotoAnunciante = if (vendedor.tieneFoto && vendedor.fotoVersion != null) {
+        fotoUsuarioUrl(vendedor.id, vendedor.fotoVersion)
+    } else null
+
     return AdminListing(
         id = id.toString(),
         title = titulo,
@@ -144,7 +150,13 @@ private fun PublicacionDto.toAdminListing(): AdminListing {
         garages = cochera,
         description = descripcion,
         images = fotos.map { fotoPublicacionUrl(it) },
-        advertiser = Advertiser(id = vendedor.id, name = vendedor.nombre, email = vendedor.correo, verified = false),
+        advertiser = Advertiser(
+            id = vendedor.id,
+            name = vendedor.nombre,
+            email = vendedor.correo,
+            verified = false,
+            photoUrl = fotoAnunciante
+        ),
         registeredAt = fechaRegistro,
         status = status,
         history = history

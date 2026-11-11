@@ -154,6 +154,7 @@
     <string name="profile_dark_mode_subtitle">Elige cómo quieres ver la aplicación.</string>
     <string name="logout_confirm_message">¿Estás seguro de que quieres cerrar sesión?</string>
     <string name="logout_cancel">No</string>
+    <string name="plan_required_to_publish">Para publicar necesitas un plan.</string>
     <!--  Panel de administración  -->
     <string name="admin_panel_title">Panel de administración</string>
     <!--  Anuncios (administración)  -->
@@ -309,61 +310,86 @@
     <string name="listing_msg_deactivated">Anuncio desactivado</string>
     <string name="listing_msg_reactivated">Anuncio reactivado</string>
     <string name="listing_msg_deleted">Se eliminó el anuncio %1$s</string>
-    <!--  Aprobar  -->
-    <string name="listing_approve_title">Aprobar anuncio</string>
-    <string name="listing_approve_question">¿Aprobar este anuncio?</string>
-    <string name="listing_approve_body">Al aprobarlo, el anuncio quedará activo y visible para los usuarios.</string>
-    <string name="listing_approve_checklist_title">Antes de aprobar</string>
-    <string name="listing_approve_check_1">Las fotos corresponden a la propiedad</string>
-    <string name="listing_approve_check_2">El título, el precio y la descripción son coherentes</string>
-    <string name="listing_approve_check_3">Los datos del anunciante están completos</string>
-    <string name="listing_approve_confirm">Aprobar y activar</string>
-    <!--  Rechazar  -->
-    <string name="listing_reject_title">Rechazar anuncio</string>
-    <string name="listing_reject_question">¿Rechazar este anuncio?</string>
-    <string name="listing_reject_body">El anuncio no se publicará. Escribe el motivo para dejar constancia.</string>
-    <string name="listing_reject_label">Motivo del rechazo</string>
-    <string name="listing_reject_hint">Mínimo %1$d caracteres</string>
-    <string name="listing_reject_error_required">Este campo es obligatorio para confirmar el rechazo</string>
-    <string name="listing_reject_error_min">Escribe al menos %1$d caracteres</string>
-    <string name="listing_reject_confirm">Confirmar rechazo</string>
-    <!--  Desactivar  -->
-    <string name="listing_deactivate_title">Desactivar anuncio</string>
-    <string name="listing_deactivate_question">¿Desactivar este anuncio?</string>
-    <string name="listing_deactivate_body">El anuncio dejará de ser visible para los usuarios.</string>
-    <string name="listing_deactivate_warning">La desactivación es temporal. Podrás reactivar el anuncio cuando lo necesites.</string>
-    <string name="listing_deactivate_label">Causa de desactivación</string>
-    <string name="listing_deactivate_error_required">Este campo es obligatorio para confirmar la desactivación</string>
-    <string name="listing_deactivate_confirm">Desactivar anuncio</string>
-    <!--  Reactivar  -->
-    <string name="listing_reactivate_title">Reactivar anuncio</string>
-    <string name="listing_reactivate_question">¿Reactivar este anuncio?</string>
-    <string name="listing_reactivate_body">El anuncio volverá a estar activo.</string>
-    <string name="listing_previous_deactivation">Motivo de desactivación previo</string>
-    <string name="listing_previous_date">Fecha</string>
-    <string name="listing_previous_cause">Causa</string>
-    <string name="listing_previous_by">Registrado por</string>
-    <string name="listing_reactivate_notice">La reactivación es inmediata. El anuncio volverá a ser visible para los usuarios.</string>
-    <string name="listing_reactivate_confirm">Reactivar anuncio</string>
-    <!--  Eliminar  -->
-    <string name="listing_delete_title">Eliminar anuncio</string>
-    <string name="listing_delete_question">¿Eliminar este anuncio?</string>
-    <string name="listing_delete_body">Revisa bien antes de continuar.</string>
-    <plurals name="listing_delete_warning">
-        <item quantity="one">La eliminación es permanente. Se borrará %d foto y no se podrá recuperar.</item>
-        <item quantity="other">La eliminación es permanente. Se borrarán %d fotos y no se podrá recuperar.</item>
-    </plurals>
-    <string name="listing_delete_label">Motivo de la eliminación</string>
-    <string name="listing_delete_error_required">Este campo es obligatorio para confirmar la eliminación</string>
+
+    <!-- Aprobar -->
+    <string name="listing_approve_subtitle">Confirmación administrativa</string>
+    <string name="listing_approve_header">¿Aprobar este anuncio?</string>
+    <string name="listing_approve_header_body">Quedará visible para las personas que buscan propiedades.</string>
+    <string name="listing_approve_check_1">Las fotografías corresponden a la propiedad</string>
+    <string name="listing_approve_check_2">El precio y la modalidad son claros</string>
+    <string name="listing_approve_check_3">La descripción no infringe las políticas</string>
+    <string name="listing_approve_history_note">La aprobación, fecha y administrador quedarán registrados en el historial.</string>
+
+    <!-- Rechazar -->
+    <string name="listing_reject_subtitle">Motivo obligatorio</string>
+    <string name="listing_reject_header">Indica por qué se rechaza</string>
+    <string name="listing_reject_header_body">El arrendador verá el motivo y podrá corregir su publicación.</string>
+    <string name="listing_reject_label_required">Motivo del rechazo *</string>
+    <string name="listing_reject_placeholder">Escribe un motivo claro y específico...</string>
+    <string name="listing_reject_saved_title">El motivo quedará guardado</string>
+    <string name="listing_reject_saved_body">Podrá consultarse después en el historial de cambios del anuncio.</string>
+    <string name="listing_reject_blocked">Confirmar rechazo permanecerá bloqueado hasta completar el motivo.</string>
+
+    <!-- Desactivar -->
+    <string name="listing_deactivate_subtitle">Acción temporal</string>
+    <string name="listing_deactivate_header">Pausar la publicación</string>
+    <string name="listing_deactivate_header_body">Dejará de mostrarse, pero podrá reactivarse más adelante.</string>
+    <string name="listing_deactivate_warning_title">Desactivación temporal y reversible</string>
+    <string name="listing_deactivate_warning_body">No elimina fotos ni datos. Un administrador podrá reactivar el anuncio desde su detalle.</string>
+    <string name="listing_deactivate_label_required">Causa de desactivación *</string>
+    <string name="listing_deactivate_placeholder">Explica la causa de la desactivación...</string>
+    <string name="listing_deactivate_note">La causa, fecha y administrador responsable quedarán en el historial.</string>
+
+    <!-- Reactivar -->
+    <string name="listing_reactivate_subtitle">Confirmación administrativa</string>
+    <string name="listing_reactivate_header">¿Reactivar este anuncio?</string>
+    <string name="listing_reactivate_header_body">Volverá a estar disponible en búsquedas y resultados.</string>
+    <string name="listing_reactivate_note">La reactivación será inmediata y quedará registrada en el historial.</string>
+
+    <!-- Eliminar -->
+    <string name="listing_delete_subtitle">Acción irreversible</string>
+    <string name="listing_delete_header">Eliminar definitivamente</string>
+    <string name="listing_delete_header_body">Esta acción no se puede deshacer.</string>
+    <string name="listing_delete_alert_title">El anuncio desaparecerá de forma permanente</string>
+    <string name="listing_delete_alert_body">Se eliminarán la publicación, sus fotografías, los contactos recibidos y el registro público. Solo quedará una huella mínima de auditoría.</string>
+    <string name="listing_delete_label_required">Motivo de la eliminación *</string>
+    <string name="listing_delete_placeholder">Escribe el motivo de la eliminación...</string>
     <string name="listing_delete_list_title">Se eliminará</string>
-    <string name="listing_delete_item_listing">El anuncio y su descripción</string>
-    <plurals name="listing_delete_item_photos">
-        <item quantity="one">%d foto</item>
-        <item quantity="other">%d fotos</item>
+    <string name="listing_delete_row_info">Ficha, precio y ubicación</string>
+    <plurals name="listing_delete_row_gallery">
+        <item quantity="one">Galería de %d fotografía</item>
+        <item quantity="other">Galería de %d fotografías</item>
     </plurals>
+    <string name="listing_delete_row_contacts">Visibilidad y contactos asociados</string>
+    <string name="listing_delete_footnote">La fecha, el administrador y el motivo se conservarán únicamente para auditoría.</string>
     <string name="listing_delete_item_history">El historial de cambios de estado</string>
     <string name="listing_delete_acknowledge">Confirmo que revisé el anuncio y entiendo que la eliminación es terminal</string>
     <string name="listing_delete_confirm">Eliminar definitivamente</string>
+
+    <!-- Títulos de la pantalla de confirmación -->
+    <string name="listing_approve_title">Aprobar anuncio</string>
+    <string name="listing_reject_title">Rechazar anuncio</string>
+    <string name="listing_deactivate_title">Desactivar anuncio</string>
+    <string name="listing_reactivate_title">Reactivar anuncio</string>
+    <string name="listing_delete_title">Eliminar anuncio</string>
+
+    <!-- Botones de confirmar -->
+    <string name="listing_approve_confirm">Aprobar y activar</string>
+    <string name="listing_reject_confirm">Confirmar rechazo</string>
+    <string name="listing_deactivate_confirm">Desactivar anuncio</string>
+    <string name="listing_reactivate_confirm">Reactivar anuncio</string>
+
+    <!-- Textos de apoyo -->
+    <string name="listing_approve_checklist_title">Antes de aprobar</string>
+    <string name="listing_previous_deactivation">Motivo de desactivación previo</string>
+    <string name="listing_previous_by">Registrado por</string>
+
+    <!-- Errores de campos obligatorios -->
+    <string name="listing_reject_error_required">Este campo es obligatorio para confirmar el rechazo</string>
+    <string name="listing_reject_error_min">Escribe al menos %1$d caracteres</string>
+    <string name="listing_deactivate_error_required">Este campo es obligatorio para confirmar la desactivación</string>
+    <string name="listing_delete_error_required">Este campo es obligatorio para confirmar la eliminación</string>
+
     <!--  Crear anuncio: general  -->
     <string name="create_listing_title">Crear anuncio</string>
     <string name="create_listing_step_format">Paso %1$d de %2$d</string>

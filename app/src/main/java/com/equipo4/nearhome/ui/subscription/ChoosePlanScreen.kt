@@ -29,6 +29,7 @@ import com.equipo4.nearhome.ui.common.NoConnectionState
 @Composable
 fun ChoosePlanScreen(
     viewModel: ChoosePlanViewModel = viewModel(),
+    motivoCrear: Boolean = false,
     onBackClick: () -> Unit = {},
     onPlanSelected: (SubscriptionPlan) -> Unit = {},
     onFreeTrialActivated: () -> Unit = {}
@@ -149,6 +150,20 @@ fun ChoosePlanScreen(
                     .padding(horizontal = 20.dp, vertical = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                if (motivoCrear) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = stringResource(R.string.plan_required_to_publish),
+                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.padding(12.dp)
+                        )
+                    }
+                }
                 Column(Modifier.fillMaxWidth().padding(bottom = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         stringResource(R.string.choose_plan_header_title),
