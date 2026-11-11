@@ -5,17 +5,22 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.data.local.SessionManager
+import com.equipo4.nearhome.data.remote.CODIGO_PLAN_REQUERIDO
 import com.equipo4.nearhome.data.remote.PublicacionDto
 import com.equipo4.nearhome.data.remote.PublicacionesApi
+import com.equipo4.nearhome.data.repository.PublicacionException
 import com.equipo4.nearhome.data.repository.PublicacionRepository
 import com.equipo4.nearhome.data.repository.fotoPublicacionUrl
 import com.equipo4.nearhome.di.NetworkModule
 import com.equipo4.nearhome.domain.model.ListingType
 import com.equipo4.nearhome.domain.model.PropertyType
 import com.equipo4.nearhome.util.AppStrings
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.io.File
@@ -25,6 +30,10 @@ class CreateListingViewModel : ViewModel() {
 
     private val _state = MutableStateFlow(CreateListingState())
     val state: StateFlow<CreateListingState> = _state.asStateFlow()
+
+    /** Se emite cuando el API dice que falta plan. La pantalla manda a planes conservando lo capturado. */
+    private val _planRequired = Channel<Unit>(Channel.BUFFERED)
+    val planRequired: Flow<Unit> = _planRequired.receiveAsFlow()
 
     // ---------------- Cargar para editar ----------------
 
@@ -237,12 +246,18 @@ class CreateListingViewModel : ViewModel() {
                     _state.update { it.copy(submitting = false, submitted = true) }
                 }
                 .onFailure { e ->
-                    _state.update {
-                        it.copy(
-                            submitting = false,
-                            submitError = e.message
-                                ?: AppStrings.get(R.string.create_listing_error_generic)
-                        )
+                    if (e is PublicacionException && e.codigo == CODIGO_PLAN_REQUERIDO) {
+                        // Falta plan: no es un error de la pantalla, se manda a planes y se conserva lo capturado
+                        _state.update { it.copy(submitting = false) }
+                        _planRequired.trySend(Unit)
+                    } else {
+                        _state.update {
+                            it.copy(
+                                submitting = false,
+                                submitError = e.message
+                                    ?: AppStrings.get(R.string.create_listing_error_generic)
+                            )
+                        }
                     }
                 }
         }

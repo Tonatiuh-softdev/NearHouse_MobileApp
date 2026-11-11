@@ -34,11 +34,19 @@ fun CreateListingPreviewScreen(
     viewModel: CreateListingViewModel,
     onBack: () -> Unit,
     onEdit: () -> Unit,
+    /** Sin plan vigente al enviar: se manda a la pantalla de planes conservando lo capturado. */
+    onPlanRequired: () -> Unit = {},
     onFinished: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
     val context = LocalContext.current
     val cs = MaterialTheme.colorScheme
+
+    // El ViewModel avisa cuando el API responde PLAN_REQUERIDO
+    LaunchedEffect(Unit) {
+        viewModel.planRequired.collect { onPlanRequired() }
+    }
+
     val opLabel = stringResource(
         if (state.isRent) R.string.create_listing_op_rent else R.string.create_listing_op_buy
     )

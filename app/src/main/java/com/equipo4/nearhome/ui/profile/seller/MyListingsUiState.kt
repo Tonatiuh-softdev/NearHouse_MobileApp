@@ -6,9 +6,9 @@ import com.equipo4.nearhome.domain.model.Property
 import com.equipo4.nearhome.ui.profile.UserRole
 
 enum class ListingStatus(@StringRes val labelRes: Int, val colorHex: Long) {
-    IN_REVIEW(R.string.status_in_review, 0xFFF97316), // Naranja
-    PUBLISHED(R.string.status_published, 0xFF22C55E),   // Verde
-    REJECTED(R.string.status_rejected, 0xFFEF4444)     // Rojo
+    IN_REVIEW(R.string.status_in_review, 0xFFF97316),
+    PUBLISHED(R.string.status_published, 0xFF22C55E),
+    REJECTED(R.string.status_rejected, 0xFFEF4444)
 }
 
 data class MyListingItem(
@@ -31,5 +31,10 @@ data class MyListingsUiState(
     /** true mientras se reintenta desde la pantalla "sin conexión". */
     val isRetrying: Boolean = false,
     /** True si no se pudieron cargar los anuncios. */
-    val loadError: Boolean = false
+    val loadError: Boolean = false,
+    /**
+     * Admin, o vendedor con plan vigente. Solo así puede crear, editar y reactivar.
+     * Si es false, los anuncios se ven pero no se pueden editar ni reactivar.
+     */
+    val puedePublicar: Boolean = false
 )

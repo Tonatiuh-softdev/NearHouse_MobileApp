@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Email
@@ -31,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.equipo4.nearhome.R
+import com.equipo4.nearhome.ui.admin.listings.NoticeBanner
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
 import com.equipo4.nearhome.ui.common.PropertyCard
 import com.equipo4.nearhome.ui.common.PropertyListSkeleton
@@ -39,6 +41,7 @@ import com.equipo4.nearhome.ui.common.NoConnectionState
 import androidx.compose.ui.draw.alpha
 import com.equipo4.nearhome.ui.common.DeleteListingDialog
 import com.equipo4.nearhome.ui.common.DangerSnackbarHost
+import com.equipo4.nearhome.ui.theme.NoticeTone
 
 @Composable
 fun MyListingsScreen(
@@ -48,6 +51,8 @@ fun MyListingsScreen(
     onCreateListingClick: () -> Unit = {},
     onEditListingClick: (String) -> Unit = {},
     onPropertyClick: (String) -> Unit = {},
+    /** Sin plan vigente: Editar o Reactivar mandan a la pantalla de planes. */
+    onPlanRequired: () -> Unit = {},
     onBottomTabSelected: (Int) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -71,6 +76,7 @@ fun MyListingsScreen(
     selected?.let { item ->
         ManageListingSheet(
             item = item,
+            puedePublicar = uiState.puedePublicar,
             onDismiss = { selected = null },
             onEdit = {
                 selected = null
@@ -79,6 +85,10 @@ fun MyListingsScreen(
             onToggleActive = {
                 selected = null
                 viewModel.setListingActive(item.property.id, activa = !item.isActive)
+            },
+            onPlanRequired = {
+                selected = null
+                onPlanRequired()
             },
             onDelete = {
                 selected = null
@@ -113,6 +123,18 @@ fun MyListingsScreen(
                         onEditProfileClick = onEditProfileClick,
                         onCreateListingClick = onCreateListingClick
                     )
+                }
+
+                // Comprador que antes fue vendedor: sus anuncios se ven, pero no están publicados
+                if (!uiState.puedePublicar && uiState.listings.isNotEmpty()) {
+                    item {
+                        NoticeBanner(
+                            tone = NoticeTone.WARNING,
+                            text = stringResource(R.string.my_listings_hidden_notice),
+                            icon = Icons.Filled.Info,
+                            modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp)
+                        )
+                    }
                 }
 
                 when {
@@ -387,9 +409,11 @@ private fun EmptyListingsMessage() {
 @Composable
 private fun ManageListingSheet(
     item: MyListingItem,
+    puedePublicar: Boolean,
     onDismiss: () -> Unit,
     onEdit: () -> Unit,
     onToggleActive: () -> Unit,
+    onPlanRequired: () -> Unit,
     onDelete: () -> Unit
 ) {
     var confirmDelete by remember { mutableStateOf(false) }
@@ -424,7 +448,7 @@ private fun ManageListingSheet(
                 badge = { StatusChip(status = item.status) }
             )
             Button(
-                onClick = onEdit,
+                onClick = { if (puedePublicar) onEdit() else onPlanRequired() },
                 shape = RoundedCornerShape(10.dp),
                 modifier = Modifier.fillMaxWidth().height(48.dp)
             ) {
@@ -432,7 +456,10 @@ private fun ManageListingSheet(
             }
 
             OutlinedButton(
-                onClick = onToggleActive,
+                onClick = {
+                    // Pausar siempre se puede; reactivar necesita plan vigente
+                    if (!item.isActive && !puedePublicar) onPlanRequired() else onToggleActive()
+                },
                 enabled = canToggleActive,
                 shape = RoundedCornerShape(10.dp),
                 modifier = Modifier.fillMaxWidth().height(48.dp)

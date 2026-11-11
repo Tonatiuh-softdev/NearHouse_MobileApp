@@ -1008,6 +1008,7 @@
     <string name="report_common_discard">Discard</string>
     <string name="report_common_cancel">Cancel</string>
     <!--  Profile & Navigation  -->
+    <string name="profile_title">My profile</string>
     <string name="cd_back">Back</string>
     <string name="cd_edit_profile">Edit profile</string>
     <!--  Listing Actions  -->
@@ -1207,4 +1208,6 @@
     <string name="card_year_label">Year</string>
     <string name="pay_amount_btn">Pay %1$s</string>
     <string name="check_internet_connection">Check your internet connection</string>
+
+    <string name="my_listings_hidden_notice">Your listings are not visible. Subscribe to a plan to show them again.</string>
 </resources>

@@ -3,7 +3,10 @@ package com.equipo4.nearhome.data.repository
 import android.content.Context
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.data.local.SessionManager
+import com.equipo4.nearhome.data.remote.ActivaDto
+import com.equipo4.nearhome.data.remote.CODIGO_PLAN_REQUERIDO
 import com.equipo4.nearhome.data.remote.PublicacionesApi
+import com.equipo4.nearhome.data.remote.codigoApi
 import com.equipo4.nearhome.di.NetworkModule
 import com.equipo4.nearhome.ui.profile.seller.ListingStatus
 import com.equipo4.nearhome.ui.profile.seller.MyListingItem
@@ -13,7 +16,6 @@ import kotlinx.coroutines.withContext
 import retrofit2.HttpException
 import java.io.IOException
 import kotlin.coroutines.cancellation.CancellationException
-import com.equipo4.nearhome.data.remote.ActivaDto
 
 /** Mis anuncios: todos los del vendedor con sesión, con su estado de revisión y, si fue rechazado, el motivo. */
 class MyListingsRepository(context: Context) {
@@ -52,7 +54,7 @@ class MyListingsRepository(context: Context) {
 
     /**
      * Pausa o reactiva un anuncio publicado.
-     * [activa] = false → pausar; true → reactivar.
+     * [activa] = false → pausar; true → reactivar (requiere plan vigente; el API responde PLAN_REQUERIDO si no).
      */
     suspend fun setActiva(id: String, activa: Boolean): Result<MyListingItem> =
         withContext(Dispatchers.IO) {
@@ -74,13 +76,14 @@ class MyListingsRepository(context: Context) {
             } catch (e: CancellationException) {
                 throw e
             } catch (e: HttpException) {
-                val mensaje = when (e.code()) {
-                    401 -> AppStrings.get(R.string.create_listing_error_session)
-                    409 -> AppStrings.get(R.string.manage_listing_pause_only_published)
-                    // o el mensaje del body si lo parseas
+                val codigo = codigoApi(e.response()?.errorBody()?.string())
+                val mensaje = when {
+                    codigo == CODIGO_PLAN_REQUERIDO -> AppStrings.get(R.string.plan_required_to_publish)
+                    e.code() == 401 -> AppStrings.get(R.string.create_listing_error_session)
+                    e.code() == 409 -> AppStrings.get(R.string.manage_listing_pause_only_published)
                     else -> AppStrings.get(R.string.create_listing_error_generic)
                 }
-                Result.failure(PublicacionException(mensaje))
+                Result.failure(PublicacionException(mensaje, codigo))
             } catch (e: IOException) {
                 Result.failure(PublicacionException(AppStrings.get(R.string.create_listing_error_network)))
             } catch (e: Exception) {

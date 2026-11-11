@@ -1015,6 +1015,7 @@
     <string name="report_common_cancel">Cancelar</string>
     <!--  Mis Publicaciones  -->
     <!--  Perfil y Navegación  -->
+    <string name="profile_title">Mi perfil</string>
     <string name="cd_back">Regresar</string>
     <string name="cd_edit_profile">Editar perfil</string>
     <!--  Acciones de Publicación  -->
@@ -1219,4 +1220,6 @@
     <string name="card_year_label">Año</string>
     <string name="pay_amount_btn">Pagar %1$s</string>
     <string name="check_internet_connection">Comprueba tu conexión a internet</string>
+
+    <string name="my_listings_hidden_notice">Tus anuncios no están visibles. Contrata un plan para volver a mostrarlos.</string>
 </resources>

@@ -3,13 +3,14 @@ package com.equipo4.nearhome.data.repository
 import android.content.Context
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.data.local.SessionManager
+import com.equipo4.nearhome.data.remote.CODIGO_PLAN_REQUERIDO
 import com.equipo4.nearhome.data.remote.CrearPublicacionDto
 import com.equipo4.nearhome.data.remote.ErrorDto
 import com.equipo4.nearhome.data.remote.PublicacionApi
 import com.equipo4.nearhome.data.remote.PublicacionCreadaDto
 import com.equipo4.nearhome.data.remote.PublicacionDto
+import com.equipo4.nearhome.data.remote.codigoApi
 import com.equipo4.nearhome.di.NetworkModule
-import com.equipo4.nearhome.domain.model.PropertyType
 import com.equipo4.nearhome.ui.createlisting.CreateListingState
 import com.equipo4.nearhome.util.AppStrings
 import com.equipo4.nearhome.util.PhotoCompressor
@@ -23,8 +24,11 @@ import java.io.IOException
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.cancellation.CancellationException
 
-/** Error con un mensaje listo para mostrarle al usuario. */
-class PublicacionException(message: String) : Exception(message)
+/**
+ * Error con un mensaje listo para mostrarse. [codigo] es el código del API (por ejemplo PLAN_REQUERIDO),
+ * para que quien llama decida qué hacer además de mostrar el mensaje.
+ */
+class PublicacionException(message: String, val codigo: String? = null) : Exception(message)
 
 /**
  * Envía el anuncio al API (datos + fotos). Usa el mismo cliente con sesión que el resto de la app,
@@ -62,7 +66,7 @@ class PublicacionRepository(context: Context) {
             if (respuesta.isSuccessful && cuerpo != null) {
                 Result.success(cuerpo)
             } else {
-                Result.failure(PublicacionException(mensajeDeError(respuesta.code(), respuesta.errorBody()?.string())))
+                Result.failure(errorDe(respuesta.code(), respuesta.errorBody()?.string()))
             }
         } catch (e: CancellationException) {
             throw e
@@ -96,7 +100,7 @@ class PublicacionRepository(context: Context) {
             if (respuesta.isSuccessful && cuerpo != null) {
                 Result.success(cuerpo)
             } else {
-                Result.failure(PublicacionException(mensajeDeError(respuesta.code(), respuesta.errorBody()?.string())))
+                Result.failure(errorDe(respuesta.code(), respuesta.errorBody()?.string()))
             }
         } catch (e: CancellationException) {
             throw e
@@ -107,17 +111,23 @@ class PublicacionRepository(context: Context) {
         }
     }
 
-    private fun mensajeDeError(codigo: Int, cuerpo: String?): String {
-        if (codigo == 401) return AppStrings.get(R.string.create_listing_error_session)
-        if (codigo == 403) return AppStrings.get(R.string.create_listing_error_forbidden)
+    /** Convierte la respuesta de error del API en una excepción con mensaje y código. */
+    private fun errorDe(codigoHttp: Int, cuerpo: String?): PublicacionException {
+        val codigoApi = codigoApi(cuerpo)
+        if (codigoApi == CODIGO_PLAN_REQUERIDO) {
+            return PublicacionException(AppStrings.get(R.string.plan_required_to_publish), codigoApi)
+        }
+        if (codigoHttp == 401) return PublicacionException(AppStrings.get(R.string.create_listing_error_session))
+        if (codigoHttp == 403) return PublicacionException(AppStrings.get(R.string.create_listing_error_forbidden))
         val error = try {
             gson.fromJson(cuerpo, ErrorDto::class.java)
         } catch (e: Exception) {
             null
         }
-        return error?.detalles?.takeIf { it.isNotEmpty() }?.joinToString("\n")
+        val mensaje = error?.detalles?.takeIf { it.isNotEmpty() }?.joinToString("\n")
             ?: error?.error
             ?: AppStrings.get(R.string.create_listing_error_generic)
+        return PublicacionException(mensaje, codigoApi)
     }
 
     private fun CreateListingState.toDto(): CrearPublicacionDto {

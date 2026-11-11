@@ -160,7 +160,7 @@ fun ProfileContent(
                 SectionHeader(stringResource(R.string.profile_section_profile))
                 if (uiState.showMyListings) {
                     ProfileRow(
-                        Icons.Outlined.Verified, stringResource(R.string.profile_my_listings),
+                        Icons.Outlined.Verified, stringResource(R.string.profile_title),
                         showDivider = uiState.showAccountAdmin || uiState.showAdminPanel,
                         onClick = onMyListingsClick
                     )
@@ -257,7 +257,6 @@ private fun ProfileHeader(uiState: ProfileUiState) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .statusBarsPadding()
             .padding(horizontal = 24.dp, vertical = 20.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
