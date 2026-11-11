@@ -5,14 +5,19 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.data.local.SessionManager
+import com.equipo4.nearhome.data.remote.CODIGO_PLAN_REQUERIDO
 import com.equipo4.nearhome.data.repository.MyListingsRepository
+import com.equipo4.nearhome.data.repository.PublicacionException
 import com.equipo4.nearhome.data.session.CurrentUserStore
 import com.equipo4.nearhome.di.NetworkModule
 import com.equipo4.nearhome.ui.profile.UserRole
 import com.equipo4.nearhome.util.AppStrings
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import com.equipo4.nearhome.data.repository.Repositories
@@ -33,9 +38,15 @@ class MyListingsViewModel(application: Application) : AndroidViewModel(applicati
     private val _message = MutableStateFlow<String?>(null)
     val message: StateFlow<String?> = _message.asStateFlow()
 
+    /** Se emite cuando el API dice que falta plan. La pantalla manda a planes. */
+    private val _planRequired = Channel<Unit>(Channel.BUFFERED)
+    val planRequired: Flow<Unit> = _planRequired.receiveAsFlow()
+
     init {
         viewModelScope.launch {
             CurrentUserStore.user.collect { user ->
+                val role = UserRole.fromDb(user?.rol ?: session.getUserRole())
+                val esAdmin = role == UserRole.ADMIN || role == UserRole.SUPER_ADMIN
                 _uiState.update {
                     it.copy(
                         userName = user?.let { u ->
@@ -45,7 +56,8 @@ class MyListingsViewModel(application: Application) : AndroidViewModel(applicati
                         userPhone = user?.telefono?.takeIf { it.isNotBlank() } ?: "",
                         userPhotoUrl = user?.takeIf { it.tieneFoto && it.fotoVersion != null }
                             ?.let { NetworkModule.fotoPerfilUrl(it.fotoVersion!!) },
-                        role = UserRole.fromDb(user?.rol ?: session.getUserRole())
+                        role = role,
+                        puedePublicar = esAdmin || user?.plan?.vigente == true
                     )
                 }
             }
@@ -89,9 +101,13 @@ class MyListingsViewModel(application: Application) : AndroidViewModel(applicati
                         else R.string.manage_listing_paused
                     )
                 }
-                .onFailure {
-                    _message.value = it.message
-                        ?: AppStrings.get(R.string.create_listing_error_generic)
+                .onFailure { e ->
+                    if (e is PublicacionException && e.codigo == CODIGO_PLAN_REQUERIDO) {
+                        _planRequired.trySend(Unit)
+                    } else {
+                        _message.value = e.message
+                            ?: AppStrings.get(R.string.create_listing_error_generic)
+                    }
                 }
         }
     }

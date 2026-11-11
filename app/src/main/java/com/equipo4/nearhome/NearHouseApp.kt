@@ -644,6 +644,9 @@ fun NearHouseApp() {
                 onPropertyClick = { propertyId ->
                     navController.navigate("${AppRoutes.PUBLICACION_DETAIL}/$propertyId")
                 },
+                onPlanRequired = {
+                    navController.navigate("${AppRoutes.SUBSCRIPTION}?motivo=perfil") { launchSingleTop = true }
+                },
                 onBottomTabSelected = onBottomTab
             )
         }
@@ -745,6 +748,9 @@ fun NearHouseApp() {
                     onBack = { navController.popBackStack() },
                     onEdit = {
                         navController.popBackStack(AppRoutes.CREATE_LISTING_STEP1, inclusive = false)
+                    },
+                    onPlanRequired = {
+                        navController.navigate("${AppRoutes.SUBSCRIPTION}?motivo=crear")
                     },
                     onFinished = {
                         vm.reset()
@@ -886,10 +892,13 @@ fun NearHouseApp() {
                     onEdit = {
                         navController.popBackStack(AppRoutes.CREATE_LISTING_STEP1, inclusive = false)
                     },
+                    onPlanRequired = {
+                        navController.navigate("${AppRoutes.SUBSCRIPTION}?motivo=crear")
+                    },
                     onFinished = {
                         vm.reset()
                         navController.navigate(AppRoutes.MY_LISTINGS) {
-                            popUpTo(AppRoutes.CREATE_LISTING_EDIT) { inclusive = true }
+                            popUpTo(AppRoutes.CREATE_LISTING_GRAPH) { inclusive = true }
                         }
                     }
                 )
