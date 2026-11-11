@@ -1,5 +1,6 @@
 package com.equipo4.nearhome.data.session
 
+import com.equipo4.nearhome.data.local.SessionManager
 import com.equipo4.nearhome.data.repository.PropiedadRepositoryApi
 import com.equipo4.nearhome.data.repository.Repositories
 import com.equipo4.nearhome.network.AuthApi
@@ -17,9 +18,19 @@ object CurrentUserStore {
     /** Null mientras no haya cargado /usuarios/me. */
     fun roleOrNull(): UserRole? = _user.value?.let { UserRole.fromDb(it.rol) }
 
-    suspend fun refresh(api: AuthApi): Response<UsuarioMeDto> {
+    /**
+     * Pide /usuarios/me y guarda el resultado en memoria.
+     * Si se pasa [session], también guarda el rol en SessionManager,
+     * para que getUserRole() no quede con un valor viejo.
+     */
+    suspend fun refresh(api: AuthApi, session: SessionManager? = null): Response<UsuarioMeDto> {
         val response = api.me()
-        if (response.isSuccessful) response.body()?.let { _user.value = it }
+        if (response.isSuccessful) {
+            response.body()?.let { usuario ->
+                _user.value = usuario
+                session?.saveUser(name = usuario.nombre, role = usuario.rol)
+            }
+        }
         return response
     }
 
