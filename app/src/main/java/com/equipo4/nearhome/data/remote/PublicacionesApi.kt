@@ -67,6 +67,9 @@ data class PublicacionDto(
 
 data class RechazarDto(val motivo: String)
 
+/** Motivo para desactivar un anuncio como administrador. */
+data class MotivoDto(val motivo: String)
+
 interface PublicacionesApi {
     /** Anuncios publicados y activos (el home y el mapa). */
     @GET("api/v1/publicaciones")
@@ -104,6 +107,21 @@ interface PublicacionesApi {
 
     @POST("api/v1/admin/publicaciones/{id}/rechazar")
     suspend fun rechazar(@Path("id") id: Int, @Body body: RechazarDto): PublicacionDto
+
+    /** Desactiva un anuncio publicado como administrador. El motivo es obligatorio. */
+    @POST("api/v1/admin/publicaciones/{id}/desactivar")
+    suspend fun desactivarAdmin(
+        @Path("id") id: Int,
+        @Body body: MotivoDto
+    ): Response<Unit>
+
+    /** Reactiva un anuncio desactivado por el administrador. */
+    @POST("api/v1/admin/publicaciones/{id}/reactivar")
+    suspend fun reactivarAdmin(@Path("id") id: Int): Response<Unit>
+
+    /** Elimina cualquier anuncio como administrador. Responde 204 sin cuerpo. */
+    @DELETE("api/v1/admin/publicaciones/{id}")
+    suspend fun eliminarAdmin(@Path("id") id: Int): Response<Unit>
 
     /** Pausa (false) o reactiva (true) un anuncio propio ya publicado. */
     @PATCH("api/v1/publicaciones/{id}/activa")
