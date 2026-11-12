@@ -106,6 +106,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.equipo4.nearhome.ui.notifications.NotificacionesHelper
@@ -553,7 +554,8 @@ fun NearHouseApp() {
                     navController.navigate(AppRoutes.MAP) { launchSingleTop = true }
                 },
                 onFilterClick = {
-                    navController.navigate(AppRoutes.SEARCH_FILTERS)
+                    // launchSingleTop: un doble toque no abre Filtros dos veces
+                    navController.navigate(AppRoutes.SEARCH_FILTERS) { launchSingleTop = true }
                 },
                 onBottomTabSelected = onBottomTab
             )
@@ -1140,7 +1142,8 @@ fun NearHouseApp() {
                     }
                 },
                 onFilterClick = {
-                    navController.navigate(AppRoutes.SEARCH_FILTERS)
+                    // launchSingleTop: un doble toque no abre Filtros dos veces
+                    navController.navigate(AppRoutes.SEARCH_FILTERS) { launchSingleTop = true }
                 },
                 onPropertyClick = { propertyId ->
                     navController.navigate("${AppRoutes.PUBLICACION_DETAIL}/$propertyId")
@@ -1150,10 +1153,17 @@ fun NearHouseApp() {
         }
 
         // Pantalla: Filtros de búsqueda
-        composable(AppRoutes.SEARCH_FILTERS) {
+        composable(AppRoutes.SEARCH_FILTERS) { entry ->
+            // Sale de Filtros una sola vez. Si se toca "Aplicar" o "Atrás" dos veces rápido,
+            // el segundo toque ya no saca también Inicio o el Mapa (eso dejaba la app en blanco).
+            val salirDeFiltros = {
+                if (entry.lifecycle.currentState == Lifecycle.State.RESUMED) {
+                    navController.popBackStack()
+                }
+            }
             SearchFiltersScreen(
-                onBackClick = { navController.popBackStack() },
-                onApplySuccess = { navController.popBackStack() }
+                onBackClick = { salirDeFiltros() },
+                onApplySuccess = { salirDeFiltros() }
             )
         }
 
