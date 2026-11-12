@@ -295,12 +295,13 @@ private fun MyListingCard(
     onMenuClick: () -> Unit
 ) {
     val paused = !item.isActive
+    val ocultoPorPlan = item.ocultaPorLimite && !paused
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp, vertical = 8.dp)
-            .then(if (paused) Modifier.alpha(0.55f) else Modifier)
+            .then(if (paused || ocultoPorPlan) Modifier.alpha(0.55f) else Modifier)
     ) {
         PropertyCard(
             property = item.property,
@@ -314,6 +315,7 @@ private fun MyListingCard(
                     when {
                         item.desactivadaPorAdmin -> AdminDeactivatedChip()
                         paused -> PausedChip()
+                        ocultoPorPlan -> HiddenByPlanChip()
                         else -> StatusChip(status = item.status)
                     }
                     Box(
@@ -334,6 +336,20 @@ private fun MyListingCard(
                 }
             }
         )
+
+        if (ocultoPorPlan) {
+            Spacer(Modifier.height(8.dp))
+            Text(
+                text = stringResource(R.string.listing_hidden_by_plan_notice),
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .padding(10.dp)
+            )
+        }
 
         if (item.status == ListingStatus.REJECTED && !item.rejectionReason.isNullOrBlank()) {
             Spacer(Modifier.height(8.dp))
@@ -360,6 +376,25 @@ private fun PausedChip(modifier: Modifier = Modifier) {
     ) {
         Text(
             text = stringResource(R.string.status_paused),
+            color = Color.White,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
+            maxLines = 1,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+        )
+    }
+}
+
+/** Publicado, pero no se muestra en Inicio porque excede el límite del plan. */
+@Composable
+private fun HiddenByPlanChip(modifier: Modifier = Modifier) {
+    Surface(
+        color = Color(0xFFB45309),
+        shape = RoundedCornerShape(6.dp),
+        modifier = modifier
+    ) {
+        Text(
+            text = stringResource(R.string.status_hidden_by_plan),
             color = Color.White,
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,

@@ -4,10 +4,13 @@ import android.content.Context
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.data.local.SessionManager
 import com.equipo4.nearhome.data.remote.ActivaDto
+import com.equipo4.nearhome.data.remote.CODIGO_LIMITE_ANUNCIOS
 import com.equipo4.nearhome.data.remote.CODIGO_PLAN_REQUERIDO
+import com.equipo4.nearhome.data.remote.CupoDto
 import com.equipo4.nearhome.data.remote.PublicacionDto
 import com.equipo4.nearhome.data.remote.PublicacionesApi
 import com.equipo4.nearhome.data.remote.codigoApi
+import com.equipo4.nearhome.data.remote.mensajeApi
 import com.equipo4.nearhome.di.NetworkModule
 import com.equipo4.nearhome.ui.profile.seller.ListingStatus
 import com.equipo4.nearhome.ui.profile.seller.MyListingItem
@@ -26,6 +29,17 @@ class MyListingsRepository(context: Context) {
     private val api: PublicacionesApi by lazy {
         NetworkModule.provideRetrofit(NetworkModule.provideOkHttpClient(session))
             .create(PublicacionesApi::class.java)
+    }
+
+    /** Anuncios activos y límite del plan: para saber si puede crear otro antes de abrir el formulario. */
+    suspend fun cupo(): Result<CupoDto> = withContext(Dispatchers.IO) {
+        try {
+            Result.success(api.cupo())
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     suspend fun load(): Result<List<MyListingItem>> = withContext(Dispatchers.IO) {
@@ -54,9 +68,12 @@ class MyListingsRepository(context: Context) {
             } catch (e: CancellationException) {
                 throw e
             } catch (e: HttpException) {
-                val codigo = codigoApi(e.response()?.errorBody()?.string())
+                val cuerpo = e.response()?.errorBody()?.string()
+                val codigo = codigoApi(cuerpo)
                 val mensaje = when {
                     codigo == CODIGO_PLAN_REQUERIDO -> AppStrings.get(R.string.plan_required_to_publish)
+                    // Reactivar con el plan lleno: el API dice cuántos permite el plan
+                    codigo == CODIGO_LIMITE_ANUNCIOS -> mensajeApi(cuerpo) ?: AppStrings.get(R.string.plan_limit_reached)
                     e.code() == 401 -> AppStrings.get(R.string.create_listing_error_session)
                     e.code() == 403 -> AppStrings.get(R.string.listing_reactivate_blocked_by_admin)
                     e.code() == 409 -> AppStrings.get(R.string.manage_listing_pause_only_published)
@@ -118,7 +135,8 @@ class MyListingsRepository(context: Context) {
             isActive = activa,
             // Lo desactivó un administrador: el vendedor no puede reactivarlo
             desactivadaPorAdmin = desactivadaPorAdmin,
-            motivoDesactivacion = motivoDesactivacion
+            motivoDesactivacion = motivoDesactivacion,
+            ocultaPorLimite = ocultaPorLimite
         )
     }
 }

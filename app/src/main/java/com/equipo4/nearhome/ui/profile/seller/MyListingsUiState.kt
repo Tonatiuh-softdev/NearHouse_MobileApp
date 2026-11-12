@@ -21,7 +21,9 @@ data class MyListingItem(
     /** True si un administrador lo desactivó: el vendedor no puede reactivarlo. */
     val desactivadaPorAdmin: Boolean = false,
     /** Motivo que escribió el administrador al desactivar. */
-    val motivoDesactivacion: String? = null
+    val motivoDesactivacion: String? = null,
+    /** Publicado, pero oculto en Inicio porque excede el límite del plan (por ejemplo, al bajar de plan). */
+    val ocultaPorLimite: Boolean = false
 )
 
 data class MyListingsUiState(

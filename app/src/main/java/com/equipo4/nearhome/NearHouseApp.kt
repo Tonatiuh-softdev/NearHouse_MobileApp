@@ -11,6 +11,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import com.equipo4.nearhome.data.repository.Repositories
+import com.equipo4.nearhome.data.repository.MyListingsRepository
+import com.equipo4.nearhome.data.remote.CODIGO_LIMITE_ANUNCIOS
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -319,11 +321,29 @@ fun NearHouseApp() {
      * Único punto de entrada para "Crear anuncio". Todas las pantallas lo usan.
      * Decide según el usuario cargado: directo a crear, o a planes.
      */
+    var revisandoCupo by remember { mutableStateOf(false) }
     val irACrearAnuncio: () -> Unit = {
         when (destinoCrearAnuncio(CurrentUserStore.user.value)) {
-            DestinoCrearAnuncio.CREAR -> navController.navigate(AppRoutes.CREATE_LISTING_GRAPH)
+            DestinoCrearAnuncio.CREAR -> if (!revisandoCupo) {
+                revisandoCupo = true
+                scope.launch {
+                    try {
+                        // Si el plan ya llegó a su límite de anuncios activos, va a planes para elegir uno mayor.
+                        // Si no se puede revisar (sin internet), abre el formulario: el API vuelve a revisar al publicar.
+                        val cupo = MyListingsRepository(context).cupo().getOrNull()
+                        if (cupo?.codigo == CODIGO_LIMITE_ANUNCIOS) {
+                            navController.navigate("${AppRoutes.SUBSCRIPTION}?motivo=limite")
+                        } else {
+                            navController.navigate(AppRoutes.CREATE_LISTING_GRAPH)
+                        }
+                    } finally {
+                        revisandoCupo = false
+                    }
+                }
+            }
             DestinoCrearAnuncio.PLANES -> navController.navigate("${AppRoutes.SUBSCRIPTION}?motivo=crear")
         }
+        Unit
     }
 
     var homeReselectTrigger by remember { mutableStateOf(0L) }
@@ -1232,9 +1252,13 @@ fun NearHouseApp() {
             route = "${AppRoutes.SUBSCRIPTION}?motivo={motivo}",
             arguments = listOf(navArgument("motivo") { type = NavType.StringType; defaultValue = "" })
         ) { entry ->
-            val motivoCrear = entry.arguments?.getString("motivo") == "crear"
+            val motivo = entry.arguments?.getString("motivo")
+            // "limite": su plan ya no tiene lugar para otro anuncio; al contratar uno mayor sigue a crear
+            val motivoLimite = motivo == "limite"
+            val motivoCrear = motivo == "crear" || motivoLimite
             ChoosePlanScreen(
                 motivoCrear = motivoCrear,
+                motivoLimite = motivoLimite,
                 onBackClick = {
                     if (motivoCrear) navController.popBackStack(AppRoutes.PROFILE, inclusive = false)
                     else navController.popBackStack()

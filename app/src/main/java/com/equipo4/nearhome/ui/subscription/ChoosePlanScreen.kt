@@ -30,6 +30,8 @@ import com.equipo4.nearhome.ui.common.NoConnectionState
 fun ChoosePlanScreen(
     viewModel: ChoosePlanViewModel = viewModel(),
     motivoCrear: Boolean = false,
+    // Llegó desde "Crear anuncio" con el plan lleno: se le pide uno con más anuncios
+    motivoLimite: Boolean = false,
     onBackClick: () -> Unit = {},
     onPlanSelected: (SubscriptionPlan) -> Unit = {},
     onFreeTrialActivated: () -> Unit = {}
@@ -150,14 +152,16 @@ fun ChoosePlanScreen(
                     .padding(horizontal = 20.dp, vertical = 20.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                if (motivoCrear) {
+                if (motivoCrear || motivoLimite) {
                     Surface(
                         color = MaterialTheme.colorScheme.primaryContainer,
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(
-                            text = stringResource(R.string.plan_required_to_publish),
+                            text = stringResource(
+                                if (motivoLimite) R.string.plan_limit_banner else R.string.plan_required_to_publish
+                            ),
                             fontSize = 13.sp,
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
                             modifier = Modifier.padding(12.dp)

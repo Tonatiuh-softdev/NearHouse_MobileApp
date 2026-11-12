@@ -67,7 +67,18 @@ data class PublicacionDto(
     val vendedor: VendedorDto,
     val fechaRegistro: Long,
     val revision: RevisionDto?,
-    val guardada: Boolean = false
+    val guardada: Boolean = false,
+    /** Solo en "Mis anuncios": publicado, pero oculto en Inicio por exceder el límite del plan. */
+    val ocultaPorLimite: Boolean = false
+)
+
+/** Anuncios activos y límite del plan (para el botón "Crear anuncio"). */
+data class CupoDto(
+    val plan: String? = null,
+    val limite: Int? = null,       // null = sin límite
+    val activas: Int = 0,
+    val puedePublicar: Boolean = true,
+    val codigo: String? = null     // PLAN_REQUERIDO, LIMITE_ANUNCIOS o CUENTA_INACTIVA
 )
 
 data class RechazarDto(val motivo: String)
@@ -83,6 +94,10 @@ interface PublicacionesApi {
     /** Los anuncios del usuario con sesión, en cualquier estado (Mis anuncios). */
     @GET("api/v1/publicaciones/mias")
     suspend fun misAnuncios(): List<PublicacionDto>
+
+    /** Cuántos anuncios activos lleva el usuario y si su plan le permite crear otro. */
+    @GET("api/v1/publicaciones/cupo")
+    suspend fun cupo(): CupoDto
 
     @GET("api/v1/publicaciones/{id}")
     suspend fun obtener(@Path("id") id: Int): PublicacionDto
