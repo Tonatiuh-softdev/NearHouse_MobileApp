@@ -214,12 +214,29 @@ fun ReportReasonScreen(
 
                     Spacer(modifier = Modifier.height(6.dp))
 
-                    Text(
-                        text = "${uiState.description.length}/200",
-                        fontSize = 11.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.align(Alignment.End)
-                    )
+                    // Mensaje de lo que falta para poder enviar
+                    val palabras = uiState.palabrasDescripcion
+                    val faltan = MIN_PALABRAS_DESCRIPCION - palabras
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = when {
+                                faltan > 0 -> "Escribe al menos $faltan caracteres para poder enviar"
+                                else -> "Listo para enviar"
+                            },
+                            fontSize = 11.sp,
+                            color = if (faltan > 0) MaterialTheme.colorScheme.error
+                            else MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = "${uiState.description.length}/200",
+                            fontSize = 11.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
 

@@ -855,8 +855,10 @@ fun NearHouseApp() {
                     }
 
                     val state by vm.state.collectAsState()
+                    // Mientras el anuncio no esté cargado, no se muestra el formulario vacío
+                    val esperandoCarga = state.loadingEdit || (listingId != null && state.editingId != listingId)
                     when {
-                        state.loadingEdit -> {
+                        esperandoCarga -> {
                             Box(
                                 Modifier.fillMaxSize(),
                                 contentAlignment = Alignment.Center

@@ -33,7 +33,7 @@
     <string name="report_error_limit">Llegaste al límite de reportes por hoy. Intenta mañana.</string>
     <string name="report_error_not_available">Esta publicación ya no está disponible.</string>
     <string name="report_error_own">No puedes reportar tu propia publicación.</string>
-    <string name="report_evidence_title">Sube hasta 5 imágenes como evidencia (opcional)</string>
+    <string name="report_evidence_title">Sube hasta 5 imágenes como evidencia</string>
     <plurals name="pending_reports_subtitle">
         <item quantity="one">1 pendiente por revisar</item>
         <item quantity="other">%d pendientes por revisar</item>

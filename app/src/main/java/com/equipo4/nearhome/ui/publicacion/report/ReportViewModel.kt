@@ -13,6 +13,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+/** Mínimo de palabras en la descripción del reporte. */
+const val MIN_PALABRAS_DESCRIPCION = 15
+
 data class ReportUiState(
     val publicacionId: String = "",
     val selectedCategory: ReportCategory? = null,
@@ -26,8 +29,12 @@ data class ReportUiState(
     val publicacionNoDisponible: Boolean = false,
     val isSubmitted: Boolean = false
 ) {
+    /** Cuenta palabras reales (separadas por espacios), no caracteres. */
+    val palabrasDescripcion: Int
+        get() = description.trim().split(Regex("\\s+")).count { it.isNotBlank() }
+
     val isSendEnabled: Boolean
-        get() = selectedReason != null && description.trim().length >= 10
+        get() = selectedReason != null && palabrasDescripcion >= MIN_PALABRAS_DESCRIPCION
 
     val hasUnsavedChanges: Boolean
         get() = description.isNotEmpty() || evidenceFiles.isNotEmpty()
