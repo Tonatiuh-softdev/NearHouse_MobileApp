@@ -1222,4 +1222,8 @@
     <string name="check_internet_connection">Comprueba tu conexión a internet</string>
 
     <string name="my_listings_hidden_notice">Tus anuncios no están visibles. Contrata un plan para volver a mostrarlos.</string>
+
+    <string name="listing_deactivated_by_admin_notice">Desactivado por un administrador. Motivo: %1$s</string>
+    <string name="status_deactivated_by_admin">Desactivado por administrador</string>
+    <string name="listing_reactivate_blocked_by_admin">Este anuncio fue desactivado por un administrador. Solo un administrador puede reactivarlo.</string>
 </resources>

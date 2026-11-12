@@ -5,6 +5,7 @@ import com.equipo4.nearhome.R
 import com.equipo4.nearhome.data.local.SessionManager
 import com.equipo4.nearhome.data.remote.ActivaDto
 import com.equipo4.nearhome.data.remote.CODIGO_PLAN_REQUERIDO
+import com.equipo4.nearhome.data.remote.PublicacionDto
 import com.equipo4.nearhome.data.remote.PublicacionesApi
 import com.equipo4.nearhome.data.remote.codigoApi
 import com.equipo4.nearhome.di.NetworkModule
@@ -30,20 +31,7 @@ class MyListingsRepository(context: Context) {
     suspend fun load(): Result<List<MyListingItem>> = withContext(Dispatchers.IO) {
         try {
             val userId = session.getUserId()
-            val items = api.misAnuncios().map { dto ->
-                val status = when (dto.estado.uppercase()) {
-                    "PUBLICADA" -> ListingStatus.PUBLISHED
-                    "RECHAZADA" -> ListingStatus.REJECTED
-                    else -> ListingStatus.IN_REVIEW
-                }
-                MyListingItem(
-                    // Son anuncios del propio usuario, aunque no se haya guardado su id en la sesión
-                    property = dto.toProperty(userId).copy(isOwner = true),
-                    status = status,
-                    rejectionReason = if (status == ListingStatus.REJECTED) dto.revision?.motivo else null,
-                    isActive = dto.activa
-                )
-            }
+            val items = api.misAnuncios().map { dto -> dto.toItem(userId) }
             Result.success(items)
         } catch (e: CancellationException) {
             throw e
@@ -54,25 +42,15 @@ class MyListingsRepository(context: Context) {
 
     /**
      * Pausa o reactiva un anuncio publicado.
-     * [activa] = false → pausar; true → reactivar (requiere plan vigente; el API responde PLAN_REQUERIDO si no).
+     * [activa] = false → pausar; true → reactivar (requiere plan vigente; el API responde PLAN_REQUERIDO si no,
+     * y 403 si lo desactivó un administrador).
      */
     suspend fun setActiva(id: String, activa: Boolean): Result<MyListingItem> =
         withContext(Dispatchers.IO) {
             try {
                 val userId = session.getUserId()
                 val dto = api.cambiarActiva(id.toInt(), ActivaDto(activa))
-                val status = when (dto.estado.uppercase()) {
-                    "PUBLICADA" -> ListingStatus.PUBLISHED
-                    "RECHAZADA" -> ListingStatus.REJECTED
-                    else -> ListingStatus.IN_REVIEW
-                }
-                val item = MyListingItem(
-                    property = dto.toProperty(userId).copy(isOwner = true),
-                    status = status,
-                    rejectionReason = if (status == ListingStatus.REJECTED) dto.revision?.motivo else null,
-                    isActive = dto.activa
-                )
-                Result.success(item)
+                Result.success(dto.toItem(userId))
             } catch (e: CancellationException) {
                 throw e
             } catch (e: HttpException) {
@@ -80,6 +58,7 @@ class MyListingsRepository(context: Context) {
                 val mensaje = when {
                     codigo == CODIGO_PLAN_REQUERIDO -> AppStrings.get(R.string.plan_required_to_publish)
                     e.code() == 401 -> AppStrings.get(R.string.create_listing_error_session)
+                    e.code() == 403 -> AppStrings.get(R.string.listing_reactivate_blocked_by_admin)
                     e.code() == 409 -> AppStrings.get(R.string.manage_listing_pause_only_published)
                     else -> AppStrings.get(R.string.create_listing_error_generic)
                 }
@@ -122,5 +101,24 @@ class MyListingsRepository(context: Context) {
         } catch (e: Exception) {
             Result.failure(PublicacionException(AppStrings.get(R.string.create_listing_error_generic)))
         }
+    }
+
+    /** Convierte un anuncio del API en un ítem de Mis anuncios. */
+    private fun PublicacionDto.toItem(userId: Int?): MyListingItem {
+        val status = when (estado.uppercase()) {
+            "PUBLICADA" -> ListingStatus.PUBLISHED
+            "RECHAZADA" -> ListingStatus.REJECTED
+            else -> ListingStatus.IN_REVIEW
+        }
+        return MyListingItem(
+            // Son anuncios del propio usuario, aunque no se haya guardado su id en la sesión
+            property = toProperty(userId).copy(isOwner = true),
+            status = status,
+            rejectionReason = if (status == ListingStatus.REJECTED) revision?.motivo else null,
+            isActive = activa,
+            // Lo desactivó un administrador: el vendedor no puede reactivarlo
+            desactivadaPorAdmin = desactivadaPorAdmin,
+            motivoDesactivacion = motivoDesactivacion
+        )
     }
 }
