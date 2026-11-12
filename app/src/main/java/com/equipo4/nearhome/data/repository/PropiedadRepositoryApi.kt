@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.io.IOException
 import java.util.Collections
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -112,14 +113,17 @@ class PropiedadRepositoryApi(context: Context) : PropiedadRepository {
             }
             remote.value = list
 
-            // Cargar también la lista completa de guardados desde el API si hay sesión iniciada
-            // Complementa los guardados; si este endpoint falla NO es un error de conexión:
-            // la lista de anuncios ya cargó y cada anuncio trae su propia marca "guardada".
+            // Cargar también la lista completa de guardados desde el API si hay sesión iniciada.
+            // Si el servidor responde con error (p. ej. sin guardados o 401), no es un problema de
+            // conexión: los anuncios ya cargaron, así que no marcamos la recarga como fallida.
+            // Solo un error de red (IOException) cuenta como "sin conexión".
             if (session.isLoggedIn()) {
                 try {
                     val guardadosDtos = api.listarGuardados(1)
                     val newSavedIds = guardadosDtos.map { it.id.toString() }.toSet()
                     savedIds.update { it + newSavedIds }
+                } catch (e: IOException) {
+                    throw e
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {

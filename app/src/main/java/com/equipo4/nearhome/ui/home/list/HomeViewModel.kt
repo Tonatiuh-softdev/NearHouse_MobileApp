@@ -136,13 +136,22 @@ class HomeViewModel(
     }
 
     fun recargar(onFinished: (Boolean) -> Unit = {}) {
-        if (_uiState.value.isRefreshing) return
-        // Al reintentar desde "sin conexión" la pantalla se queda igual (el botón muestra un indicador);
-        // el error solo cambia cuando hay resultado.
-        _uiState.update { it.copy(isRefreshing = true) }
+        val current = _uiState.value
+        if (current.isRefreshing || current.isLoading) return
+        // Sin datos (p. ej. tras "Reintentar" en la pantalla sin conexión) mostramos
+        // los skeletons en lugar del estado vacío + indicador de pull-to-refresh.
+        val showSkeleton = allProperties.isEmpty()
+        _uiState.update {
+            if (showSkeleton) it.copy(isLoading = true, loadError = false)
+            else it.copy(isRefreshing = true, loadError = false)
+        }
         viewModelScope.launch {
-            val success = repository.refresh()
-            _uiState.update { it.copy(isRefreshing = false, loadError = !success) }
+            val success = try {
+                repository.refresh()
+            } catch (e: Exception) {
+                false
+            }
+            _uiState.update { it.copy(isLoading = false, isRefreshing = false, loadError = !success) }
             onFinished(success)
         }
     }
