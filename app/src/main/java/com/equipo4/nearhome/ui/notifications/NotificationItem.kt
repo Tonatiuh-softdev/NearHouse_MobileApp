@@ -1,5 +1,6 @@
 package com.equipo4.nearhome.ui.notifications
 
+import android.text.format.DateUtils
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -11,16 +12,16 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Celebration
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Report
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
@@ -28,29 +29,7 @@ import com.equipo4.nearhome.R
 import com.equipo4.nearhome.data.repository.formatearFechaPlan
 import com.equipo4.nearhome.domain.model.Notificacion
 import com.equipo4.nearhome.domain.model.TipoNotificacion
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-
-private val FORMATO_FECHA_NOTIFICACION = DateTimeFormatter.ofPattern("d/M/yy")
-
-/**
- * Cuándo llegó el aviso: "Ahora mismo", "Hace 5 min", "Hace 3 h"
- * o la fecha (D/M/AA) si ya pasó un día.
- */
-@Composable
-private fun tiempoNotificacion(timestampMs: Long): String {
-    val minutos = (System.currentTimeMillis() - timestampMs).coerceAtLeast(0L) / 60_000L
-    val horas = minutos / 60L
-    return when {
-        minutos < 1L -> stringResource(R.string.notif_time_now)
-        horas < 1L -> stringResource(R.string.notif_time_minutes, minutos.toInt())
-        horas < 24L -> stringResource(R.string.notif_time_hours, horas.toInt())
-        else -> Instant.ofEpochMilli(timestampMs)
-            .atZone(ZoneId.systemDefault())
-            .format(FORMATO_FECHA_NOTIFICACION)
-    }
-}
+import androidx.compose.ui.unit.sp
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -59,13 +38,14 @@ fun NotificationItem(
     onClick: () -> Unit,
     onLongClick: () -> Unit
 ) {
-    val backgroundColor = if (notificacion.leida) {
-        MaterialTheme.colorScheme.surface
-    } else {
-        MaterialTheme.colorScheme.surfaceVariant
-    }
+    val backgroundColor = MaterialTheme.colorScheme.surface
 
-    val relativeTime = tiempoNotificacion(notificacion.timestampMs)
+    val relativeTime = DateUtils.getRelativeTimeSpanString(
+        notificacion.timestampMs,
+        System.currentTimeMillis(),
+        DateUtils.MINUTE_IN_MILLIS,
+        DateUtils.FORMAT_ABBREV_RELATIVE
+    ).toString()
 
     val (titulo, texto) = getNotificationText(notificacion)
 
@@ -77,14 +57,14 @@ fun NotificationItem(
                 onClick = onClick,
                 onLongClick = onLongClick
             )
-            .padding(16.dp),
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.Top
     ) {
-        // Ícono o Imagen a la izquierda (64 dp)
+        // Imagen o Ícono a la izquierda
         Box(
             modifier = Modifier
-                .size(64.dp)
-                .clip(RoundedCornerShape(12.dp))
+                .size(56.dp)
+                .clip(RoundedCornerShape(16.dp))
                 .background(MaterialTheme.colorScheme.surfaceVariant),
             contentAlignment = Alignment.Center
         ) {
@@ -96,7 +76,6 @@ fun NotificationItem(
                     modifier = Modifier.fillMaxSize()
                 )
             } else {
-                // Íconos según tipo si no hay imagen
                 val icon = when (notificacion.tipo) {
                     TipoNotificacion.BIENVENIDA -> Icons.Default.Celebration
                     TipoNotificacion.PLAN_CONTRATADO -> Icons.Default.CheckCircle
@@ -117,13 +96,13 @@ fun NotificationItem(
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    modifier = Modifier.size(32.dp),
+                    modifier = Modifier.size(28.dp),
                     tint = tint
                 )
             }
         }
 
-        Spacer(modifier = Modifier.width(12.dp))
+        Spacer(modifier = Modifier.width(16.dp))
 
         // Contenido
         Column(modifier = Modifier.weight(1f)) {
@@ -134,7 +113,8 @@ fun NotificationItem(
             ) {
                 Text(
                     text = titulo,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                    color = if (notificacion.leida) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f)
@@ -154,7 +134,19 @@ fun NotificationItem(
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 3,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
+                lineHeight = 18.sp
+            )
+        }
+
+        // Puntito azul indicador de NO LEÍDA
+        if (!notificacion.leida) {
+            Box(
+                modifier = Modifier
+                    .padding(start = 8.dp, top = 6.dp)
+                    .size(8.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primary)
             )
         }
     }

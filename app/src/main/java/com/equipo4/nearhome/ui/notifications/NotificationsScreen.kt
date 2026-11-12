@@ -1,9 +1,10 @@
 package com.equipo4.nearhome.ui.notifications
 
-import com.equipo4.nearhome.ui.common.ListRowsSkeleton
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
@@ -15,52 +16,28 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
-import com.equipo4.nearhome.ui.common.NoConnectionState
-
-import android.widget.Toast
-import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.ui.platform.LocalContext
-import kotlinx.coroutines.launch
+import com.equipo4.nearhome.ui.common.NearHomeDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationsScreen(
-    reselectTrigger: Long = 0L,
+    reselectTrigger: Long = 0L, // <-- AGREGADO
     viewModel: NotificationsViewModel,
     onNavigate: (String) -> Unit,
     onBottomTabSelected: (Int) -> Unit
 ) {
-    val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
-    val listState = rememberLazyListState()
-    val coroutineScope = rememberCoroutineScope()
+    val unreadCount by viewModel.unreadCount.collectAsState()
 
     var showMenu by remember { mutableStateOf(false) }
     var showDeleteAllDialog by remember { mutableStateOf(false) }
     var notifAEliminar by remember { mutableStateOf<String?>(null) }
 
-    BackHandler {
-        onBottomTabSelected(0)
-    }
-
-    val errorMessage = stringResource(R.string.refresh_error_connection)
-
-    val triggerReload = {
-        viewModel.recargar { success ->
-            if (!success) {
-                Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
+    // Recargar si tocan la campana estando ya en la pantalla
     LaunchedEffect(reselectTrigger) {
         if (reselectTrigger > 0) {
-            coroutineScope.launch {
-                listState.animateScrollToItem(0)
-            }
-            triggerReload()
+            viewModel.refresh()
         }
     }
 
@@ -69,27 +46,31 @@ fun NotificationsScreen(
             TopAppBar(
                 title = { Text(stringResource(R.string.notifications_title)) },
                 actions = {
-                    IconButton(onClick = { showMenu = true }) {
-                        Icon(Icons.Default.MoreVert, contentDescription = "Opciones")
-                    }
-                    DropdownMenu(
-                        expanded = showMenu,
-                        onDismissRequest = { showMenu = false }
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.notif_menu_mark_all)) },
-                            onClick = {
-                                showMenu = false
-                                viewModel.marcarTodasLeidas()
-                            }
-                        )
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.notif_menu_delete_all)) },
-                            onClick = {
-                                showMenu = false
-                                showDeleteAllDialog = true
-                            }
-                        )
+                    Box {
+                        IconButton(onClick = { showMenu = true }) {
+                            Icon(Icons.Default.MoreVert, contentDescription = "Opciones")
+                        }
+                        DropdownMenu(
+                            expanded = showMenu,
+                            onDismissRequest = { showMenu = false },
+                            modifier = Modifier.background(MaterialTheme.colorScheme.surface),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.notif_menu_mark_all)) },
+                                onClick = {
+                                    showMenu = false
+                                    viewModel.marcarTodasLeidas()
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.notif_menu_delete_all), color = MaterialTheme.colorScheme.error) },
+                                onClick = {
+                                    showMenu = false
+                                    showDeleteAllDialog = true
+                                }
+                            )
+                        }
                     }
                 }
             )
@@ -98,32 +79,41 @@ fun NotificationsScreen(
             NearHomeBottomBar(
                 selectedTab = 2,
                 onTabSelected = onBottomTabSelected,
-                unreadCount = viewModel.unreadCount.collectAsState().value
+                unreadCount = unreadCount
             )
         }
     ) { innerPadding ->
         PullToRefreshBox(
             isRefreshing = isRefreshing,
-            onRefresh = triggerReload,
+            onRefresh = { viewModel.refresh() },
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
             when (val state = uiState) {
                 is NotificationsUiState.Loading -> {
-                    ListRowsSkeleton(modifier = Modifier.fillMaxSize())
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
                 }
                 is NotificationsUiState.Empty -> {
                     NotificationsEmptyState()
                 }
                 is NotificationsUiState.Error -> {
-                    NoConnectionState(onRetry = { viewModel.recargar() }, isRetrying = isRefreshing)
+                    Column(
+                        Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(stringResource(R.string.notifications_error))
+                        Spacer(Modifier.height(16.dp))
+                        Button(onClick = { viewModel.loadNotifications() }) {
+                            Text(stringResource(R.string.notifications_retry))
+                        }
+                    }
                 }
                 is NotificationsUiState.Success -> {
-                    LazyColumn(
-                        state = listState,
-                        modifier = Modifier.fillMaxSize()
-                    ) {
+                    LazyColumn(modifier = Modifier.fillMaxSize()) {
                         items(state.list, key = { it.id }) { notif ->
                             NotificationItem(
                                 notificacion = notif,
@@ -143,41 +133,33 @@ fun NotificationsScreen(
 
     // Diálogo confirmación: Borrar todas
     if (showDeleteAllDialog) {
-        AlertDialog(
-            onDismissRequest = { showDeleteAllDialog = false },
-            title = { Text(stringResource(R.string.notif_menu_delete_confirm_title)) },
-            text = { Text(stringResource(R.string.notif_menu_delete_confirm_body)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    viewModel.borrarTodas()
-                    showDeleteAllDialog = false
-                }) { Text(stringResource(R.string.confirm_delete)) }
+        NearHomeDialog(
+            title = stringResource(R.string.notif_menu_delete_confirm_title),
+            message = stringResource(R.string.notif_menu_delete_confirm_body),
+            confirmText = stringResource(R.string.confirm_delete),
+            onConfirm = {
+                viewModel.borrarTodas()
+                showDeleteAllDialog = false
             },
-            dismissButton = {
-                TextButton(onClick = { showDeleteAllDialog = false }) {
-                    Text(stringResource(R.string.cancel))
-                }
-            }
+            dismissText = stringResource(R.string.cancel),
+            onDismiss = { showDeleteAllDialog = false },
+            destructive = true
         )
     }
 
-    // Diálogo confirmación: Borrar una (por mantener presionado)
+    // Diálogo confirmación: Borrar una
     notifAEliminar?.let { id ->
-        AlertDialog(
-            onDismissRequest = { notifAEliminar = null },
-            title = { Text(stringResource(R.string.notif_menu_delete_confirm_title)) },
-            text = { Text(stringResource(R.string.notif_menu_delete_confirm_body)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    viewModel.borrarUna(id)
-                    notifAEliminar = null
-                }) { Text(stringResource(R.string.confirm_delete)) }
+        NearHomeDialog(
+            title = stringResource(R.string.notif_menu_delete_confirm_title),
+            message = stringResource(R.string.notif_menu_delete_confirm_body),
+            confirmText = stringResource(R.string.confirm_delete),
+            onConfirm = {
+                viewModel.borrarUna(id)
+                notifAEliminar = null
             },
-            dismissButton = {
-                TextButton(onClick = { notifAEliminar = null }) {
-                    Text(stringResource(R.string.cancel))
-                }
-            }
+            dismissText = stringResource(R.string.cancel),
+            onDismiss = { notifAEliminar = null },
+            destructive = true
         )
     }
 }
