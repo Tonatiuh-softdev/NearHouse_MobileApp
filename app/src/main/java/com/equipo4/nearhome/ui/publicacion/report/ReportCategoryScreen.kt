@@ -22,6 +22,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.equipo4.nearhome.R
+import com.equipo4.nearhome.ui.common.NearHomeDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -209,19 +210,13 @@ fun DiscardReportDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(text = stringResource(R.string.report_discard_title)) },
-        text = { Text(text = stringResource(R.string.report_discard_message)) },
-        confirmButton = {
-            TextButton(onClick = onConfirm) {
-                Text(text = stringResource(R.string.report_common_discard))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(text = stringResource(R.string.report_common_cancel))
-            }
-        }
+    NearHomeDialog(
+        title = stringResource(R.string.report_discard_title),
+        message = stringResource(R.string.report_discard_message),
+        confirmText = stringResource(R.string.report_common_discard),
+        onConfirm = onConfirm,
+        dismissText = stringResource(R.string.report_common_cancel),
+        onDismiss = onDismiss,
+        destructive = true
     )
 }

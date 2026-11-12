@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /** Mínimo de palabras en la descripción del reporte. */
-const val MIN_PALABRAS_DESCRIPCION = 15
+const val MIN_PALABRAS_DESCRIPCION = 10
 
 data class ReportUiState(
     val publicacionId: String = "",
