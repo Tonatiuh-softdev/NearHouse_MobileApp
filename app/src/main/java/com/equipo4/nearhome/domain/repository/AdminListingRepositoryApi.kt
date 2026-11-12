@@ -31,8 +31,8 @@ import java.io.IOException
 import kotlin.coroutines.cancellation.CancellationException
 
 /**
- * Anuncios del administrador con datos reales. Solo se puede aprobar o rechazar un anuncio en revisión;
- * el API valida que quien llama sea Administrador o Super Administrador.
+ * Anuncios del administrador con datos reales. Aprobar, rechazar y eliminar pasan por el API,
+ * que valida que quien llama sea Administrador o Super Administrador.
  */
 class AdminListingRepositoryApi(context: Context) : AdminListingRepository {
 
@@ -67,6 +67,27 @@ class AdminListingRepositoryApi(context: Context) : AdminListingRepository {
         revisar { api.rechazar(id.toInt(), RechazarDto(reason.trim())) }
 
     /**
+     * Elimina el anuncio de forma permanente. Si sale bien, lo quita de la lista y avisa al Home.
+     * El API responde 204 sin cuerpo, por eso no se intenta leer una respuesta.
+     */
+    override suspend fun eliminar(id: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val respuesta = api.eliminarAdmin(id.toInt())
+            if (respuesta.isSuccessful || respuesta.code() == 204) {
+                _listings.update { lista -> lista.filterNot { it.id == id } }
+                Repositories.propiedades.refresh()
+                Result.success(Unit)
+            } else {
+                Result.failure(PublicacionException(mensajeHttp(respuesta.code())))
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Result.failure(PublicacionException(mensajeDe(e)))
+        }
+    }
+
+    /**
      * Llama al API y, si sale bien, reemplaza el anuncio en la lista con el que regresó (ya con el estado nuevo)
      * y avisa al Home que vuelva a pedir los anuncios publicados.
      */
@@ -84,12 +105,21 @@ class AdminListingRepositoryApi(context: Context) : AdminListingRepository {
     }
 
     private fun mensajeDe(e: Exception): String = when (e) {
-        is HttpException -> mensajeHttp(e)
+        is HttpException -> mensajeHttpCuerpo(e)
         is IOException -> AppStrings.get(R.string.create_listing_error_network)
         else -> AppStrings.get(R.string.create_listing_error_generic)
     }
 
-    private fun mensajeHttp(e: HttpException): String {
+    /** Mensaje según el código HTTP, cuando no hay cuerpo de error que mostrar. */
+    private fun mensajeHttp(codigo: Int): String = when (codigo) {
+        401 -> AppStrings.get(R.string.create_listing_error_session)
+        403 -> AppStrings.get(R.string.create_listing_error_forbidden)
+        404 -> AppStrings.get(R.string.detail_error_not_found)
+        else -> AppStrings.get(R.string.create_listing_error_generic)
+    }
+
+    /** Mensaje del cuerpo del error si el API lo explica; si no, el mensaje por código. */
+    private fun mensajeHttpCuerpo(e: HttpException): String {
         if (e.code() == 401) return AppStrings.get(R.string.create_listing_error_session)
         val cuerpo = try {
             gson.fromJson(e.response()?.errorBody()?.string(), ErrorDto::class.java)
@@ -99,7 +129,7 @@ class AdminListingRepositoryApi(context: Context) : AdminListingRepository {
         // El API ya explica el problema (por ejemplo "Este anuncio ya fue revisado")
         return cuerpo?.detalles?.takeIf { it.isNotEmpty() }?.joinToString("\n")
             ?: cuerpo?.error
-            ?: AppStrings.get(R.string.create_listing_error_generic)
+            ?: mensajeHttp(e.code())
     }
 }
 
