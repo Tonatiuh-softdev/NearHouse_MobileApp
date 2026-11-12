@@ -20,4 +20,6 @@ interface AdminListingRepository {
 
     /** EN_REVISION -> RECHAZADA con el motivo que verá el vendedor. */
     suspend fun reject(id: String, reason: String, actor: String): Result<Unit>
+
+    suspend fun eliminar(id: String): Result<Unit>
 }

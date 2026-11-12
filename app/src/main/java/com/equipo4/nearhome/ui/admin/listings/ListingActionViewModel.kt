@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-/** Mínimo de caracteres para motivo de rechazo. Lo usa la pantalla para validar y mostrar el error. */
+/** Mínimo de caracteres para motivo de rechazo. */
 const val MIN_REJECT_CHARS = 10
 
 /**
@@ -55,8 +55,8 @@ class ListingActionViewModel(val listingId: String, val action: ListingAction) :
 
     /**
      * Aplica el cambio en el API. [onSuccess] se llama una sola vez, cuando el API ya lo confirmó.
-     * Aprobar y rechazar ya tienen ruta en el API. Desactivar, reactivar y eliminar como
-     * administrador todavía no; hasta que existan, responden con error y no cambian nada.
+     * Aprobar, rechazar y eliminar ya tienen ruta en el API. Desactivar y reactivar todavía no
+     * están conectados: responden con error y no cambian nada.
      */
     fun confirm(actor: String, onSuccess: () -> Unit) {
         val l = listing ?: return
@@ -69,9 +69,9 @@ class ListingActionViewModel(val listingId: String, val action: ListingAction) :
             val resultado = when (action) {
                 ListingAction.APROBAR -> repo.approve(l.id, actor)
                 ListingAction.RECHAZAR -> repo.reject(l.id, form.text, actor)
+                ListingAction.ELIMINAR -> repo.eliminar(l.id)
                 ListingAction.DESACTIVAR,
-                ListingAction.REACTIVAR,
-                ListingAction.ELIMINAR -> Result.failure(
+                ListingAction.REACTIVAR -> Result.failure(
                     IllegalStateException(AppStrings.get(R.string.create_listing_error_generic))
                 )
             }
