@@ -116,6 +116,8 @@ import com.equipo4.nearhome.ui.notifications.NotificacionesHelper
 import com.equipo4.nearhome.ui.notifications.PedirPermisoNotificaciones
 import com.equipo4.nearhome.ui.notifications.TokenManager
 import com.equipo4.nearhome.ui.notifications.ContadorNotificaciones
+import androidx.compose.foundation.background
+import androidx.compose.material3.MaterialTheme
 
 object AppRoutes {
     const val SPLASH = "splash"
@@ -854,58 +856,73 @@ fun NearHouseApp() {
                     val listingId = parent.arguments?.getString("listingId")?.toIntOrNull()
                     val ctx = LocalContext.current
 
+                    // Variable de control para evitar que se muestre el formulario vacío
+                    var haIntentadoCargar by remember(listingId) { mutableStateOf(false) }
+
                     LaunchedEffect(listingId) {
-                        if (listingId != null) vm.loadForEdit(ctx, listingId)
+                        if (listingId != null) {
+                            vm.loadForEdit(ctx, listingId)
+                            haIntentadoCargar = true
+                        } else {
+                            haIntentadoCargar = true
+                        }
                     }
 
                     val state by vm.state.collectAsState()
-                    // Mientras el anuncio no esté cargado, no se muestra el formulario vacío
-                    val esperandoCarga = state.loadingEdit || (listingId != null && state.editingId != listingId)
-                    when {
-                        esperandoCarga -> {
-                            Box(
-                                Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                CircularProgressIndicator()
+                    val esperandoCarga = !haIntentadoCargar || state.loadingEdit
+
+                    // Envolvemos TODO en un Box con el color de fondo de la app.
+                    // Así no hay "flash" negro al entrar.
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(MaterialTheme.colorScheme.surface)
+                    ) {
+                        when {
+                            esperandoCarga -> {
+                                Box(
+                                    Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator()
+                                }
                             }
-                        }
-                        state.loadEditError != null -> {
-                            Column(
-                                Modifier
-                                    .fillMaxSize()
-                                    .padding(24.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                Text(state.loadEditError!!)
-                                Spacer(Modifier.height(12.dp))
-                                OutlinedButton(
-                                    onClick = {
+                            state.loadEditError != null -> {
+                                Column(
+                                    Modifier.fillMaxSize().padding(24.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    Text(state.loadEditError!!)
+                                    Spacer(Modifier.height(12.dp))
+                                    OutlinedButton(
+                                        onClick = {
+                                            navController.popBackStack(
+                                                AppRoutes.CREATE_LISTING_EDIT,
+                                                inclusive = true
+                                            )
+                                        }
+                                    ) {
+                                        Text(stringResource(R.string.common_back))
+                                    }
+                                }
+                            }
+                            else -> {
+                                // El formulario real, que ya tiene su propio Scaffold
+                                CreateListingStep1Screen(
+                                    viewModel = vm,
+                                    onExit = {
                                         navController.popBackStack(
                                             AppRoutes.CREATE_LISTING_EDIT,
                                             inclusive = true
                                         )
-                                    }
-                                ) {
-                                    Text(stringResource(R.string.common_back))
-                                }
+                                    },
+                                    onContinue = {
+                                        navController.navigate(AppRoutes.CREATE_LISTING_STEP2)
+                                    },
+                                    onBottomTabSelected = onBottomTab
+                                )
                             }
-                        }
-                        else -> {
-                            CreateListingStep1Screen(
-                                viewModel = vm,
-                                onExit = {
-                                    navController.popBackStack(
-                                        AppRoutes.CREATE_LISTING_EDIT,
-                                        inclusive = true
-                                    )
-                                },
-                                onContinue = {
-                                    navController.navigate(AppRoutes.CREATE_LISTING_STEP2)
-                                },
-                                onBottomTabSelected = onBottomTab
-                            )
                         }
                     }
                 }

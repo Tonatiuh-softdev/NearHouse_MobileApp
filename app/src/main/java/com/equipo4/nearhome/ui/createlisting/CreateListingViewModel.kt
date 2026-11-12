@@ -43,15 +43,22 @@ class CreateListingViewModel : ViewModel() {
             (actual.title.isNotBlank() || actual.existingPhotos.isNotEmpty())
         ) return
 
+        // 1. Ponemos el estado en "cargando" INMEDIATAMENTE (fuera de la corrutina)
+        //    para que la UI muestre el spinner en el primer frame.
+        _state.update {
+            it.copy(loadingEdit = true, loadEditError = null, editingId = id)
+        }
+
         viewModelScope.launch {
-            _state.update {
-                it.copy(loadingEdit = true, loadEditError = null, editingId = id)
-            }
             try {
                 val session = SessionManager(context.applicationContext)
                 val api = NetworkModule.provideRetrofit(NetworkModule.provideOkHttpClient(session))
                     .create(PublicacionesApi::class.java)
                 val dto = api.obtener(id)
+
+                // 2. Cuando termine, actualizamos todo el estado.
+                //    Como toCreateListingState() ya pone loadingEdit = false y los datos,
+                //    el formulario aparecerá lleno de golpe.
                 _state.value = dto.toCreateListingState()
             } catch (e: CancellationException) {
                 throw e

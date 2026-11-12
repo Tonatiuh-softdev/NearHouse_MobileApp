@@ -22,6 +22,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -36,8 +38,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import android.content.Context
-import com.equipo4.nearhome.ui.publicacion.detail.FullScreenPhotoViewer
 import com.equipo4.nearhome.R
+import com.equipo4.nearhome.ui.common.NearHomeDialog
+import com.equipo4.nearhome.ui.publicacion.detail.FullScreenPhotoViewer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -224,7 +227,7 @@ fun ReportReasonScreen(
                     ) {
                         Text(
                             text = when {
-                                faltan > 0 -> "Escribe al menos $faltan caracteres para poder enviar"
+                                faltan > 0 -> "Escribe al menos $faltan palabras para poder enviar"
                                 else -> "Listo para enviar"
                             },
                             fontSize = 11.sp,
@@ -352,50 +355,52 @@ fun ReportReasonScreen(
         }
     }
 
+    // MODAL DE ERROR
     uiState.errorMessage?.let { msg ->
-        AlertDialog(
-            onDismissRequest = { viewModel.clearErrorMessage() },
-            title = { Text(text = stringResource(R.string.report_error_title)) },
-            text = { Text(text = msg) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        val salir = uiState.publicacionNoDisponible
-                        viewModel.clearErrorMessage()
-                        if (salir) onBackClick()
-                    }
-                ) {
-                    Text(text = stringResource(R.string.report_common_ok))
-                }
-            }
+        NearHomeDialog(
+            title = stringResource(R.string.report_error_title),
+            message = msg,
+            confirmText = stringResource(R.string.report_common_ok),
+            onConfirm = {
+                val salir = uiState.publicacionNoDisponible
+                viewModel.clearErrorMessage()
+                if (salir) onBackClick()
+            },
+            dismissText = null,
+            onDismiss = { viewModel.clearErrorMessage() },
+            destructive = true
         )
     }
 
+    // MODAL DE ÉXITO (¡Gracias por tu reporte!)
     if (uiState.isSubmitted) {
-        AlertDialog(
-            onDismissRequest = { },
-            title = { Text(text = stringResource(R.string.report_success_title)) },
-            text = { Text(text = stringResource(R.string.report_success_message)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        viewModel.dismissSuccessDialog()
-                        onReportSubmitted()
-                    }
-                ) {
-                    Text(text = stringResource(R.string.report_success_button))
-                }
-            }
+        NearHomeDialog(
+            title = stringResource(R.string.report_success_title),
+            message = stringResource(R.string.report_success_message),
+            confirmText = stringResource(R.string.report_success_button),
+            onConfirm = {
+                viewModel.dismissSuccessDialog()
+                onReportSubmitted()
+            },
+            dismissText = null,
+            onDismiss = { }, // No permitimos cerrar tocando afuera para que lean el mensaje
+            destructive = false
         )
     }
 
+    // MODAL DE DESCARTAR
     if (showDiscardDialog) {
-        DiscardReportDialog(
+        NearHomeDialog(
+            title = stringResource(R.string.report_discard_title),
+            message = stringResource(R.string.report_discard_message),
+            confirmText = stringResource(R.string.report_common_discard),
             onConfirm = {
                 showDiscardDialog = false
                 onBackClick()
             },
-            onDismiss = { showDiscardDialog = false }
+            dismissText = stringResource(R.string.report_common_cancel),
+            onDismiss = { showDiscardDialog = false },
+            destructive = true
         )
     }
 }
@@ -459,4 +464,3 @@ private fun EvidenceThumbnail(
         }
     }
 }
-
