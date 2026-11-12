@@ -27,27 +27,28 @@ class NotificationsViewModel(
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing: StateFlow<Boolean> = _isRefreshing.asStateFlow()
 
-    // Contador para la campana (barra inferior). Es el mismo para toda la app.
+    // Contador para la campana
     val unreadCount: StateFlow<Int> = ContadorNotificaciones.noLeidas
 
+    // Se llama cuando el ViewModel se crea (al entrar a la pantalla)
     init {
-        loadNotifications()
+        cargarNotificacionesInicial()
         refreshUnreadCount()
     }
 
-    fun loadNotifications() {
+    private fun cargarNotificacionesInicial() {
         viewModelScope.launch {
-            _uiState.value = NotificationsUiState.Loading
+            _uiState.value = NotificationsUiState.Loading // Siempre muestra el spinner para forzar la carga
             repository.listar().onSuccess { list ->
-                _uiState.value = if (list.isEmpty()) {
-                    NotificationsUiState.Empty
-                } else {
-                    NotificationsUiState.Success(list)
-                }
+                _uiState.value = if (list.isEmpty()) NotificationsUiState.Empty else NotificationsUiState.Success(list)
             }.onFailure { e ->
                 _uiState.value = NotificationsUiState.Error(e.message)
             }
         }
+    }
+
+    fun loadNotifications() {
+        cargarNotificacionesInicial()
     }
 
     fun refreshUnreadCount() {
@@ -64,11 +65,7 @@ class NotificationsViewModel(
             _isRefreshing.value = true
             var success = true
             repository.listar().onSuccess { list ->
-                _uiState.value = if (list.isEmpty()) {
-                    NotificationsUiState.Empty
-                } else {
-                    NotificationsUiState.Success(list)
-                }
+                _uiState.value = if (list.isEmpty()) NotificationsUiState.Empty else NotificationsUiState.Success(list)
             }.onFailure {
                 success = false
             }
@@ -88,7 +85,7 @@ class NotificationsViewModel(
         viewModelScope.launch {
             repository.marcarTodasLeidas().onSuccess {
                 ContadorNotificaciones.actualizar(0)
-                loadNotifications()
+                cargarNotificacionesInicial()
             }
         }
     }
@@ -97,7 +94,7 @@ class NotificationsViewModel(
         viewModelScope.launch {
             repository.borrarTodas().onSuccess {
                 ContadorNotificaciones.actualizar(0)
-                loadNotifications()
+                cargarNotificacionesInicial()
             }
         }
     }
@@ -105,37 +102,35 @@ class NotificationsViewModel(
     fun borrarUna(id: String) {
         viewModelScope.launch {
             repository.borrar(id).onSuccess {
-                loadNotifications()
+                cargarNotificacionesInicial()
                 refreshUnreadCount()
             }
         }
     }
 
     fun onNotificationClicked(notificacion: Notificacion, onNavigate: (String) -> Unit) {
-        viewModelScope.launch {
-            // 1. Marcar como leída si no lo está
-            if (!notificacion.leida) {
+        // 1. Navegar INMEDIATAMENTE (para que no se sienta lento)
+        val route = when (notificacion.tipo) {
+            TipoNotificacion.BIENVENIDA -> "home"
+            TipoNotificacion.PLAN_CONTRATADO -> "account_admin"
+            TipoNotificacion.PUBLICACION_EN_REVISION,
+            TipoNotificacion.PUBLICACION_RECHAZADA,
+            TipoNotificacion.PUBLICACION_RETIRADA -> "my_listings"
+            TipoNotificacion.PUBLICACION_APROBADA,
+            TipoNotificacion.REPORTE_ENVIADO,
+            TipoNotificacion.REPORTE_ATENDIDO,
+            TipoNotificacion.REPORTE_DESCARTADO ->
+                if (notificacion.publicacionId != null) "publication_detail/${notificacion.publicacionId}" else "home"
+        }
+        onNavigate(route)
+
+        // 2. Mandar al servidor en segundo plano (sin bloquear la UI)
+        if (!notificacion.leida) {
+            viewModelScope.launch {
                 repository.marcarLeida(notificacion.id).onSuccess {
                     refreshUnreadCount()
                 }
             }
-
-            // 2. Navegar según el tipo
-            val route = when (notificacion.tipo) {
-                TipoNotificacion.BIENVENIDA -> "home"
-                TipoNotificacion.PLAN_CONTRATADO -> "account_admin"
-
-                TipoNotificacion.PUBLICACION_EN_REVISION,
-                TipoNotificacion.PUBLICACION_RECHAZADA,
-                TipoNotificacion.PUBLICACION_RETIRADA -> "my_listings"
-
-                TipoNotificacion.PUBLICACION_APROBADA,
-                TipoNotificacion.REPORTE_ENVIADO,
-                TipoNotificacion.REPORTE_ATENDIDO,
-                TipoNotificacion.REPORTE_DESCARTADO ->
-                    if (notificacion.publicacionId != null) "publication_detail/${notificacion.publicacionId}" else "home"
-            }
-            onNavigate(route)
         }
     }
 }

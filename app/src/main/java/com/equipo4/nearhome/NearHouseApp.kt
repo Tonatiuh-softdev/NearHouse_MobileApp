@@ -644,6 +644,10 @@ fun NearHouseApp() {
                     }
                 }
             )
+            LaunchedEffect(Unit) {
+                viewModel.loadNotifications()
+                viewModel.refreshUnreadCount()
+            }
             NotificationsScreen(
                 reselectTrigger = notificationsReselectTrigger,
                 viewModel = viewModel,
