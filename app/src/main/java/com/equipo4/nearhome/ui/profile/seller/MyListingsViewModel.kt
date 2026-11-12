@@ -10,6 +10,7 @@ import com.equipo4.nearhome.data.repository.MyListingsRepository
 import com.equipo4.nearhome.data.repository.PublicacionException
 import com.equipo4.nearhome.data.session.CurrentUserStore
 import com.equipo4.nearhome.di.NetworkModule
+import com.equipo4.nearhome.network.AuthApi
 import com.equipo4.nearhome.ui.profile.UserRole
 import com.equipo4.nearhome.util.AppStrings
 import kotlinx.coroutines.channels.Channel
@@ -26,6 +27,9 @@ class MyListingsViewModel(application: Application) : AndroidViewModel(applicati
 
     private val repository = MyListingsRepository(application)
     private val session = SessionManager(application)
+    private val authApi: AuthApi = NetworkModule.provideRetrofit(
+        NetworkModule.provideOkHttpClient(session)
+    ).create(AuthApi::class.java)
 
     private val _uiState = MutableStateFlow(
         MyListingsUiState(
@@ -43,6 +47,11 @@ class MyListingsViewModel(application: Application) : AndroidViewModel(applicati
     val planRequired: Flow<Unit> = _planRequired.receiveAsFlow()
 
     init {
+        // Si se llegó directo (por ejemplo, desde una notificación) sin pasar por Perfil, los datos del
+        // usuario todavía no están cargados: sin esto sale "Usuario", sin plan, y "Crear anuncio" manda a planes.
+        if (CurrentUserStore.user.value == null) {
+            viewModelScope.launch { runCatching { CurrentUserStore.refresh(authApi, session) } }
+        }
         viewModelScope.launch {
             CurrentUserStore.user.collect { user ->
                 val role = UserRole.fromDb(user?.rol ?: session.getUserRole())

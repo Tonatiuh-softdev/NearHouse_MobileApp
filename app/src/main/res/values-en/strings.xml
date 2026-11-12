@@ -154,6 +154,9 @@
     <string name="logout_confirm_message">Are you sure you want to log out?</string>
     <string name="logout_cancel">No</string>
     <string name="plan_required_to_publish">You need a plan to publish.</string>
+    <string name="plan_limit_reached">You reached the active listing limit of your plan. Pause or delete one, or switch to a plan with more listings.</string>
+    <string name="plan_limit_banner">You reached the active listing limit of your plan. Choose a plan with more listings to publish another one, or pause one of your listings.</string>
+    <string name="listing_hidden_by_plan_notice">It is not shown on Home because your plan allows fewer active listings. Pause another listing or switch to a plan with more listings.</string>
     <!--  Panel de administración  -->
     <string name="admin_panel_title">Admin panel</string>
     <!--  Anuncios (administración)  -->
@@ -1044,6 +1047,7 @@
     <string name="manage_listing_paused">Listing paused</string>
     <string name="manage_listing_resumed">Listing reactivated</string>
     <string name="status_paused">Paused</string>
+    <string name="status_hidden_by_plan">Hidden by your plan</string>
     <string name="manage_listing_deleted">Listing successfully deleted</string>
     <!--  Phone verification by SMS (Firebase)  -->
     <string name="phone_sms_wait_for_sms">Wait for the SMS or request a new one</string>

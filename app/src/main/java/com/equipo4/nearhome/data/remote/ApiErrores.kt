@@ -27,3 +27,6 @@ fun codigoApi(raw: String?): String? = try {
 
 /** Código que usa la app para "necesita plan". Lo compara el ViewModel de crear, editar y reactivar. */
 const val CODIGO_PLAN_REQUERIDO = "PLAN_REQUERIDO"
+
+/** El plan ya no tiene lugar para otro anuncio activo (Básico: 1, Profesional: 3). */
+const val CODIGO_LIMITE_ANUNCIOS = "LIMITE_ANUNCIOS"

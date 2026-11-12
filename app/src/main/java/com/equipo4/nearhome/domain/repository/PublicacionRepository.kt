@@ -3,6 +3,7 @@ package com.equipo4.nearhome.data.repository
 import android.content.Context
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.data.local.SessionManager
+import com.equipo4.nearhome.data.remote.CODIGO_LIMITE_ANUNCIOS
 import com.equipo4.nearhome.data.remote.CODIGO_PLAN_REQUERIDO
 import com.equipo4.nearhome.data.remote.CrearPublicacionDto
 import com.equipo4.nearhome.data.remote.ErrorDto
@@ -116,6 +117,15 @@ class PublicacionRepository(context: Context) {
         val codigoApi = codigoApi(cuerpo)
         if (codigoApi == CODIGO_PLAN_REQUERIDO) {
             return PublicacionException(AppStrings.get(R.string.plan_required_to_publish), codigoApi)
+        }
+        if (codigoApi == CODIGO_LIMITE_ANUNCIOS) {
+            // El API dice cuántos anuncios activos permite el plan
+            val mensaje = try {
+                gson.fromJson(cuerpo, ErrorDto::class.java)?.error
+            } catch (e: Exception) {
+                null
+            }
+            return PublicacionException(mensaje ?: AppStrings.get(R.string.plan_limit_reached), codigoApi)
         }
         if (codigoHttp == 401) return PublicacionException(AppStrings.get(R.string.create_listing_error_session))
         if (codigoHttp == 403) return PublicacionException(AppStrings.get(R.string.create_listing_error_forbidden))

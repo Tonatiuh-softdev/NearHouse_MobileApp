@@ -38,7 +38,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -61,15 +64,12 @@ import android.content.ContextWrapper
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.ui.platform.LocalContext
 
-private val PrimaryNavy = Color(0xFF0B2C4D)
-private val ErrorRed = Color(0xFFE53935)
-private val GrayInputBg = Color(0xFFF2F3F5)
-private val GrayBorderDefault = Color(0xFFCCCCCC)
-private val GrayDivider = Color(0xFFE0E0E0)
-private val GraySubtext = Color(0xFF757575)
-private val ResendLinkColor = Color(0xFF1E88E5)
-private val SuccessBg = Color(0xFFEFF7EB)
+// Los demás colores salen del tema (MaterialTheme.colorScheme) para que funcione el modo oscuro.
+// Verde de la palomita: se ve bien en claro y en oscuro
 private val SuccessGreenCircle = Color(0xFF52C41A)
+// Fondo de la pantalla de éxito: verde suave en claro, verde muy oscuro en oscuro
+private val SuccessBgLight = Color(0xFFEFF7EB)
+private val SuccessBgDark = Color(0xFF14261A)
 
 @Composable
 fun PhoneVerificationScreen(
@@ -127,9 +127,10 @@ private fun VerificationInputContent(
     onVerifyClicked: () -> Unit,
     onResendSmsClicked: () -> Unit
 ) {
+    val cs = MaterialTheme.colorScheme
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = Color.White
+        color = cs.background
     ) {
         Box(
             modifier = Modifier
@@ -152,7 +153,7 @@ private fun VerificationInputContent(
                     text = stringResource(R.string.phone_verify_title),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.Black,
+                    color = cs.onSurface,
                     textAlign = TextAlign.Center
                 )
 
@@ -165,7 +166,7 @@ private fun VerificationInputContent(
                 Text(
                     text = stringResource(R.string.phone_verify_sent, uiState.phoneNumber),
                     fontSize = 13.sp,
-                    color = Color.Black,
+                    color = cs.onSurface,
                     textAlign = TextAlign.Center,
                     lineHeight = 18.sp
                 )
@@ -175,7 +176,7 @@ private fun VerificationInputContent(
                 Text(
                     text = stringResource(R.string.phone_verify_enter_code),
                     fontSize = 13.sp,
-                    color = Color.Black,
+                    color = cs.onSurface,
                     textAlign = TextAlign.Center
                 )
 
@@ -191,7 +192,7 @@ private fun VerificationInputContent(
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = uiState.errorMessage,
-                        color = ErrorRed,
+                        color = cs.error,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center
@@ -208,16 +209,16 @@ private fun VerificationInputContent(
                         .height(46.dp),
                     shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = PrimaryNavy,
-                        contentColor = Color.White,
-                        disabledContainerColor = PrimaryNavy.copy(alpha = 0.6f),
-                        disabledContentColor = Color.White
+                        containerColor = cs.primary,
+                        contentColor = cs.onPrimary,
+                        disabledContainerColor = cs.primary.copy(alpha = 0.6f),
+                        disabledContentColor = cs.onPrimary
                     )
                 ) {
                     if (uiState.isLoading) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(20.dp),
-                            color = Color.White,
+                            color = cs.onPrimary,
                             strokeWidth = 2.dp
                         )
                     } else {
@@ -235,11 +236,11 @@ private fun VerificationInputContent(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
-                    .background(Color.White)
+                    .background(cs.background)
                     .padding(horizontal = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                HorizontalDivider(color = GrayDivider, thickness = 0.8.dp)
+                HorizontalDivider(color = cs.outlineVariant, thickness = 0.8.dp)
 
                 Spacer(modifier = Modifier.height(12.dp))
 
@@ -249,11 +250,11 @@ private fun VerificationInputContent(
                 val annotatedFooter = buildAnnotatedString {
                     append(footerNoCode)
                     if (uiState.canResend) {
-                        withStyle(style = SpanStyle(color = ResendLinkColor, fontWeight = FontWeight.SemiBold)) {
+                        withStyle(style = SpanStyle(color = cs.primary, fontWeight = FontWeight.SemiBold)) {
                             append(footerResend)
                         }
                     } else {
-                        withStyle(style = SpanStyle(color = GraySubtext)) {
+                        withStyle(style = SpanStyle(color = cs.onSurfaceVariant)) {
                             append(footerWait)
                         }
                     }
@@ -262,7 +263,7 @@ private fun VerificationInputContent(
                 Text(
                     text = annotatedFooter,
                     fontSize = 12.sp,
-                    color = GraySubtext,
+                    color = cs.onSurfaceVariant,
                     textAlign = TextAlign.Center,
                     modifier = Modifier
                         .padding(bottom = 16.dp)
@@ -286,7 +287,10 @@ private fun VerificationHeaderIcon() {
         Image(
             painter = painterResource(id = R.drawable.ic_celular_globo),
             contentDescription = null,
-            modifier = Modifier.requiredSize(210.dp)
+            modifier = Modifier.requiredSize(210.dp),
+            // El dibujo es negro con fondo transparente: se pinta del color del texto
+            // para que no desaparezca en modo oscuro
+            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onSurface)
         )
     }
 }
@@ -297,6 +301,7 @@ private fun OtpInputField(
     onOtpCodeChange: (String) -> Unit,
     isError: Boolean
 ) {
+    val cs = MaterialTheme.colorScheme
     BasicTextField(
         value = otpCode,
         onValueChange = onOtpCodeChange,
@@ -317,9 +322,9 @@ private fun OtpInputField(
                     val isActive = index == activeIndex
 
                     val borderColor = when {
-                        isError -> ErrorRed
-                        isActive -> PrimaryNavy
-                        else -> GrayBorderDefault
+                        isError -> cs.error
+                        isActive -> cs.primary
+                        else -> cs.outline
                     }
 
                     val borderWidth = if (isActive || isError) 2.dp else 1.dp
@@ -329,7 +334,7 @@ private fun OtpInputField(
                             .weight(1f)
                             .height(54.dp)
                             .background(
-                                color = GrayInputBg,
+                                color = if (isError) cs.errorContainer else cs.surfaceVariant,
                                 shape = RoundedCornerShape(10.dp)
                             )
                             .border(
@@ -343,7 +348,7 @@ private fun OtpInputField(
                             text = char,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color.Black
+                            color = cs.onSurface
                         )
                     }
                 }
@@ -355,9 +360,12 @@ private fun OtpInputField(
 @Composable
 private fun VerifiedSuccessScreen() {
     LogroSonidoEffect()
+    val cs = MaterialTheme.colorScheme
+    // El tema se puede cambiar dentro de la app, por eso se revisa el fondo y no el sistema
+    val esOscuro = cs.background.luminance() < 0.5f
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = SuccessBg
+        color = if (esOscuro) SuccessBgDark else SuccessBgLight
     ) {
         Column(
             modifier = Modifier
@@ -370,7 +378,7 @@ private fun VerifiedSuccessScreen() {
                 text = stringResource(R.string.phone_verified_title),
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black,
+                color = cs.onSurface,
                 textAlign = TextAlign.Center
             )
 

@@ -155,6 +155,9 @@
     <string name="logout_confirm_message">¿Estás seguro de que quieres cerrar sesión?</string>
     <string name="logout_cancel">No</string>
     <string name="plan_required_to_publish">Para publicar necesitas un plan.</string>
+    <string name="plan_limit_reached">Llegaste al límite de anuncios activos de tu plan. Pausa o elimina uno, o cambia a un plan con más anuncios.</string>
+    <string name="plan_limit_banner">Llegaste al límite de anuncios activos de tu plan. Elige un plan con más anuncios para publicar otro, o pausa uno de tus anuncios.</string>
+    <string name="listing_hidden_by_plan_notice">No aparece en Inicio porque tu plan permite menos anuncios activos. Pausa otro anuncio o cambia a un plan con más anuncios.</string>
     <!--  Panel de administración  -->
     <string name="admin_panel_title">Panel de administración</string>
     <!--  Anuncios (administración)  -->
@@ -1051,6 +1054,7 @@
     <string name="manage_listing_paused">Anuncio pausado</string>
     <string name="manage_listing_resumed">Anuncio reactivado</string>
     <string name="status_paused">Pausado</string>
+    <string name="status_hidden_by_plan">Oculto por tu plan</string>
     <string name="manage_listing_deleted">Eliminación de publicación exitosa</string>
     <!--  Verificación del teléfono por SMS (Firebase)  -->
     <string name="phone_sms_wait_for_sms">Espera a que llegue el SMS o pide uno nuevo</string>

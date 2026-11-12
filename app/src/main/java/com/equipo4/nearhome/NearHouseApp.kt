@@ -11,6 +11,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import com.equipo4.nearhome.data.repository.Repositories
+import com.equipo4.nearhome.data.repository.MyListingsRepository
+import com.equipo4.nearhome.data.remote.CODIGO_LIMITE_ANUNCIOS
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -22,6 +24,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavType
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.compose.animation.EnterTransition
@@ -106,6 +109,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.equipo4.nearhome.ui.notifications.NotificacionesHelper
@@ -211,6 +215,19 @@ fun NearHouseApp() {
             .create(AuthApi::class.java)
     }
 
+    /**
+     * Abre "Mi perfil" (tus anuncios) dentro de la pestaña Perfil, como si se tocara esa pestaña.
+     * Así la campana sigue mostrando Notificaciones y "Atrás" regresa al menú de Perfil.
+     * Lo usan las notificaciones de tus anuncios y el final de crear o editar un anuncio.
+     */
+    val abrirMiPerfil: () -> Unit = {
+        navController.navigate(AppRoutes.PROFILE) {
+            popUpTo(AppRoutes.HOME) { saveState = true }
+            launchSingleTop = true
+        }
+        navController.navigate(AppRoutes.MY_LISTINGS) { launchSingleTop = true }
+    }
+
     val googleAuthViewModel: GoogleAuthViewModel = viewModel(
         factory = GoogleAuthViewModelFactory(context)
     )
@@ -222,8 +239,12 @@ fun NearHouseApp() {
             val ruta = intentData.toString().removePrefix("nearhouse://")
             if (ruta.isNotEmpty()) {
                 if (sessionManager.isLoggedIn()) {
-                    navController.navigate(ruta) {
-                        popUpTo(AppRoutes.HOME) { inclusive = false }
+                    if (ruta == AppRoutes.MY_LISTINGS) {
+                        abrirMiPerfil()
+                    } else {
+                        navController.navigate(ruta) {
+                            popUpTo(AppRoutes.HOME) { inclusive = false }
+                        }
                     }
                 }
             }
@@ -318,10 +339,34 @@ fun NearHouseApp() {
      * Único punto de entrada para "Crear anuncio". Todas las pantallas lo usan.
      * Decide según el usuario cargado: directo a crear, o a planes.
      */
+    var revisandoCupo by remember { mutableStateOf(false) }
     val irACrearAnuncio: () -> Unit = {
-        when (destinoCrearAnuncio(CurrentUserStore.user.value)) {
-            DestinoCrearAnuncio.CREAR -> navController.navigate(AppRoutes.CREATE_LISTING_GRAPH)
-            DestinoCrearAnuncio.PLANES -> navController.navigate("${AppRoutes.SUBSCRIPTION}?motivo=crear")
+        if (!revisandoCupo) {
+            revisandoCupo = true
+            scope.launch {
+                try {
+                    // Si los datos del usuario no se han cargado (por ejemplo, llegó desde una notificación
+                    // sin pasar por Perfil), se piden primero; sin ellos parece comprador y lo mandaría a planes.
+                    if (CurrentUserStore.user.value == null) {
+                        runCatching { CurrentUserStore.refresh(authApi, sessionManager) }
+                    }
+                    when (destinoCrearAnuncio(CurrentUserStore.user.value)) {
+                        DestinoCrearAnuncio.CREAR -> {
+                            // Si el plan ya llegó a su límite de anuncios activos, va a planes para elegir uno mayor.
+                            // Si no se puede revisar (sin internet), abre el formulario: el API vuelve a revisar al publicar.
+                            val cupo = MyListingsRepository(context).cupo().getOrNull()
+                            if (cupo?.codigo == CODIGO_LIMITE_ANUNCIOS) {
+                                navController.navigate("${AppRoutes.SUBSCRIPTION}?motivo=limite")
+                            } else {
+                                navController.navigate(AppRoutes.CREATE_LISTING_GRAPH)
+                            }
+                        }
+                        DestinoCrearAnuncio.PLANES -> navController.navigate("${AppRoutes.SUBSCRIPTION}?motivo=crear")
+                    }
+                } finally {
+                    revisandoCupo = false
+                }
+            }
         }
     }
 
@@ -408,13 +453,19 @@ fun NearHouseApp() {
             )
         }
 
-        composable(AppRoutes.LOGIN) {
+        composable(AppRoutes.LOGIN) { entry ->
             LoginScreen(
                 onNavigateToRegister = {
-                    navController.navigate(AppRoutes.SIGN_UP)
+                    entry.siEstaAlFrente {
+                        navController.navigate(AppRoutes.SIGN_UP) { launchSingleTop = true }
+                    }
                 },
                 onNavigateToForgotPassword = { prefilledEmail ->
-                    navController.navigate("${AppRoutes.FORGOT_PASSWORD}?email=${prefilledEmail.trim()}")
+                    entry.siEstaAlFrente {
+                        navController.navigate("${AppRoutes.FORGOT_PASSWORD}?email=${prefilledEmail.trim()}") {
+                            launchSingleTop = true
+                        }
+                    }
                 },
                 onLoginSuccess = {
                     sessionManager.setLoggedIn(true)
@@ -428,21 +479,33 @@ fun NearHouseApp() {
             )
         }
 
-        composable(AppRoutes.SIGN_UP) {
+        composable(AppRoutes.SIGN_UP) { entry ->
             SignUpScreen(
                 onNavigateToLogin = {
-                    navController.popBackStack()
+                    entry.siEstaAlFrente {
+                        // Regresa al login que ya estaba abajo; si no hay, lo abre en lugar del registro
+                        if (!navController.popBackStack(AppRoutes.LOGIN, inclusive = false)) {
+                            navController.navigate(AppRoutes.LOGIN) {
+                                popUpTo(AppRoutes.SIGN_UP) { inclusive = true }
+                            }
+                        }
+                    }
                 },
                 onSignUpSuccess = {
+                    RegistroTemporal.googleProofToken = null // registro normal, no el de Google
                     navController.navigate(AppRoutes.COMPLETE_PROFILE) {
                         popUpTo(AppRoutes.SIGN_UP) { inclusive = true }
                     }
                 },
                 onNavigateToTerms = {
-                    navController.navigate(AppRoutes.TERMS_AND_CONDITIONS)
+                    entry.siEstaAlFrente {
+                        navController.navigate(AppRoutes.TERMS_AND_CONDITIONS) { launchSingleTop = true }
+                    }
                 },
                 onNavigateToPrivacy = {
-                    navController.navigate(AppRoutes.PRIVACY_POLICY)
+                    entry.siEstaAlFrente {
+                        navController.navigate(AppRoutes.PRIVACY_POLICY) { launchSingleTop = true }
+                    }
                 },
                 onGoogleAuthTokenReceived = { token ->
                     googleAuthViewModel.procesarTokenGoogle(token)
@@ -451,19 +514,19 @@ fun NearHouseApp() {
         }
 
         // Pantalla Términos y Condiciones
-        composable(AppRoutes.TERMS_AND_CONDITIONS) {
+        composable(AppRoutes.TERMS_AND_CONDITIONS) { entry ->
             TerminosCondicionesScreen(
                 onBackClick = {
-                    navController.popBackStack()
+                    entry.siEstaAlFrente { navController.popBackStack() }
                 }
             )
         }
 
         // Pantalla Política de Privacidad
-        composable(AppRoutes.PRIVACY_POLICY) {
+        composable(AppRoutes.PRIVACY_POLICY) { entry ->
             PoliticaPrivacidadScreen(
                 onBackClick = {
-                    navController.popBackStack()
+                    entry.siEstaAlFrente { navController.popBackStack() }
                 }
             )
         }
@@ -520,7 +583,7 @@ fun NearHouseApp() {
                 viewModel = recoverViewModel,
                 prefilledEmail = prefilledEmail,
                 onNavigateBack = {
-                    navController.popBackStack()
+                    entry.siEstaAlFrente { navController.popBackStack() }
                 },
                 onSuccessFinished = { msg ->
                     Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
@@ -553,7 +616,8 @@ fun NearHouseApp() {
                     navController.navigate(AppRoutes.MAP) { launchSingleTop = true }
                 },
                 onFilterClick = {
-                    navController.navigate(AppRoutes.SEARCH_FILTERS)
+                    // launchSingleTop: un doble toque no abre Filtros dos veces
+                    navController.navigate(AppRoutes.SEARCH_FILTERS) { launchSingleTop = true }
                 },
                 onBottomTabSelected = onBottomTab
             )
@@ -594,6 +658,8 @@ fun NearHouseApp() {
                                 navController.navigate("${AppRoutes.PUBLICACION_DETAIL}/$id")
                             }
                         }
+                        // Tus anuncios (en revisión, rechazado, retirado): "Mi perfil" en la pestaña Perfil
+                        route == AppRoutes.MY_LISTINGS -> abrirMiPerfil()
                         else -> {
                             navController.navigate(route)
                         }
@@ -754,8 +820,11 @@ fun NearHouseApp() {
                     },
                     onFinished = {
                         vm.reset()
-                        navController.navigate(AppRoutes.MY_LISTINGS) {
-                            popUpTo(AppRoutes.CREATE_LISTING_GRAPH) { inclusive = true }
+                        // Regresa a "Mi perfil" de la pestaña Perfil sin abrir otra copia encima.
+                        // Si se llegó desde otro lado (por ejemplo, el detalle), se cierra el flujo y se abre ahí.
+                        if (!navController.popBackStack(AppRoutes.MY_LISTINGS, inclusive = false)) {
+                            navController.popBackStack(AppRoutes.CREATE_LISTING_GRAPH, inclusive = true)
+                            abrirMiPerfil()
                         }
                     }
                 )
@@ -899,8 +968,11 @@ fun NearHouseApp() {
                     },
                     onFinished = {
                         vm.reset()
-                        navController.navigate(AppRoutes.MY_LISTINGS) {
-                            popUpTo(AppRoutes.CREATE_LISTING_GRAPH) { inclusive = true }
+                        // Regresa a "Mi perfil" de la pestaña Perfil sin abrir otra copia encima.
+                        // Si se llegó desde otro lado (por ejemplo, el detalle), se cierra el flujo y se abre ahí.
+                        if (!navController.popBackStack(AppRoutes.MY_LISTINGS, inclusive = false)) {
+                            navController.popBackStack(AppRoutes.CREATE_LISTING_EDIT, inclusive = true)
+                            abrirMiPerfil()
                         }
                     }
                 )
@@ -1142,7 +1214,8 @@ fun NearHouseApp() {
                     }
                 },
                 onFilterClick = {
-                    navController.navigate(AppRoutes.SEARCH_FILTERS)
+                    // launchSingleTop: un doble toque no abre Filtros dos veces
+                    navController.navigate(AppRoutes.SEARCH_FILTERS) { launchSingleTop = true }
                 },
                 onPropertyClick = { propertyId ->
                     navController.navigate("${AppRoutes.PUBLICACION_DETAIL}/$propertyId")
@@ -1152,10 +1225,17 @@ fun NearHouseApp() {
         }
 
         // Pantalla: Filtros de búsqueda
-        composable(AppRoutes.SEARCH_FILTERS) {
+        composable(AppRoutes.SEARCH_FILTERS) { entry ->
+            // Sale de Filtros una sola vez. Si se toca "Aplicar" o "Atrás" dos veces rápido,
+            // el segundo toque ya no saca también Inicio o el Mapa (eso dejaba la app en blanco).
+            val salirDeFiltros = {
+                if (entry.lifecycle.currentState == Lifecycle.State.RESUMED) {
+                    navController.popBackStack()
+                }
+            }
             SearchFiltersScreen(
-                onBackClick = { navController.popBackStack() },
-                onApplySuccess = { navController.popBackStack() }
+                onBackClick = { salirDeFiltros() },
+                onApplySuccess = { salirDeFiltros() }
             )
         }
 
@@ -1224,9 +1304,13 @@ fun NearHouseApp() {
             route = "${AppRoutes.SUBSCRIPTION}?motivo={motivo}",
             arguments = listOf(navArgument("motivo") { type = NavType.StringType; defaultValue = "" })
         ) { entry ->
-            val motivoCrear = entry.arguments?.getString("motivo") == "crear"
+            val motivo = entry.arguments?.getString("motivo")
+            // "limite": su plan ya no tiene lugar para otro anuncio; al contratar uno mayor sigue a crear
+            val motivoLimite = motivo == "limite"
+            val motivoCrear = motivo == "crear" || motivoLimite
             ChoosePlanScreen(
                 motivoCrear = motivoCrear,
+                motivoLimite = motivoLimite,
                 onBackClick = {
                     if (motivoCrear) navController.popBackStack(AppRoutes.PROFILE, inclusive = false)
                     else navController.popBackStack()
@@ -1270,4 +1354,12 @@ fun NearHouseApp() {
             )
         }
     }
+}
+
+/**
+ * Solo navega si esta pantalla es la que está al frente. Si se toca un botón dos veces rápido,
+ * el segundo toque ya no abre otra pantalla ni cierra una de más (eso dejaba la app en blanco).
+ */
+private fun NavBackStackEntry.siEstaAlFrente(accion: () -> Unit) {
+    if (lifecycle.currentState == Lifecycle.State.RESUMED) accion()
 }
