@@ -1210,4 +1210,8 @@
     <string name="check_internet_connection">Check your internet connection</string>
 
     <string name="my_listings_hidden_notice">Your listings are not visible. Subscribe to a plan to show them again.</string>
+
+    <string name="listing_deactivated_by_admin_notice">Deactivated by an administrator. Reason: %1$s</string>
+    <string name="status_deactivated_by_admin">Deactivated by administrator</string>
+    <string name="listing_reactivate_blocked_by_admin">This listing was deactivated by an administrator. Only an administrator can reactivate it.</string>
 </resources>

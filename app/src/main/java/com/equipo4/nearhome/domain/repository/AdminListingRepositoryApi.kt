@@ -4,6 +4,7 @@ import android.content.Context
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.data.local.SessionManager
 import com.equipo4.nearhome.data.remote.ErrorDto
+import com.equipo4.nearhome.data.remote.MotivoDto
 import com.equipo4.nearhome.data.remote.PublicacionDto
 import com.equipo4.nearhome.data.remote.PublicacionesApi
 import com.equipo4.nearhome.data.remote.RechazarDto
@@ -29,10 +30,11 @@ import kotlinx.coroutines.withContext
 import retrofit2.HttpException
 import java.io.IOException
 import kotlin.coroutines.cancellation.CancellationException
+import com.equipo4.nearhome.domain.model.DeactivationInfo
 
 /**
- * Anuncios del administrador con datos reales. Aprobar, rechazar y eliminar pasan por el API,
- * que valida que quien llama sea Administrador o Super Administrador.
+ * Anuncios del administrador con datos reales. Aprobar, rechazar, desactivar, reactivar y eliminar
+ * pasan por el API, que valida que quien llama sea Administrador o Super Administrador.
  */
 class AdminListingRepositoryApi(context: Context) : AdminListingRepository {
 
@@ -67,9 +69,41 @@ class AdminListingRepositoryApi(context: Context) : AdminListingRepository {
         revisar { api.rechazar(id.toInt(), RechazarDto(reason.trim())) }
 
     /**
-     * Elimina el anuncio de forma permanente. Si sale bien, lo quita de la lista y avisa al Home.
-     * El API responde 204 sin cuerpo, por eso no se intenta leer una respuesta.
+     * Desactiva el anuncio con motivo. El API responde 204 sin cuerpo,
+     * así que se vuelve a pedir la lista para tener el estado y el historial actualizados.
      */
+    override suspend fun desactivar(id: String, motivo: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val respuesta = api.desactivarAdmin(id.toInt(), MotivoDto(motivo.trim()))
+            if (respuesta.isSuccessful || respuesta.code() == 204) {
+                refrescarLista()
+            } else {
+                Result.failure(PublicacionException(mensajeHttp(respuesta.code())))
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Result.failure(PublicacionException(mensajeDe(e)))
+        }
+    }
+
+    /** Reactiva el anuncio desactivado por el administrador. */
+    override suspend fun reactivar(id: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val respuesta = api.reactivarAdmin(id.toInt())
+            if (respuesta.isSuccessful || respuesta.code() == 204) {
+                refrescarLista()
+            } else {
+                Result.failure(PublicacionException(mensajeHttp(respuesta.code())))
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Result.failure(PublicacionException(mensajeDe(e)))
+        }
+    }
+
+    /** Elimina el anuncio de forma permanente y lo quita de la lista. */
     override suspend fun eliminar(id: String): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             val respuesta = api.eliminarAdmin(id.toInt())
@@ -104,6 +138,13 @@ class AdminListingRepositoryApi(context: Context) : AdminListingRepository {
         }
     }
 
+    /** Vuelve a pedir la lista completa (después de desactivar o reactivar) y avisa al Home. */
+    private suspend fun refrescarLista(): Result<Unit> {
+        _listings.value = api.listarAdmin().map { it.toAdminListing() }
+        Repositories.propiedades.refresh()
+        return Result.success(Unit)
+    }
+
     private fun mensajeDe(e: Exception): String = when (e) {
         is HttpException -> mensajeHttpCuerpo(e)
         is IOException -> AppStrings.get(R.string.create_listing_error_network)
@@ -133,12 +174,17 @@ class AdminListingRepositoryApi(context: Context) : AdminListingRepository {
     }
 }
 
-/** Convierte lo que regresa el API al modelo del administrador, incluida la foto del anunciante. */
+/**
+ * Convierte lo que regresa el API al modelo del administrador.
+ * El estado DESACTIVADO sale de desactivadaPorAdmin (no de activa, que es la pausa del vendedor).
+ * El historial incluye la desactivación con su motivo cuando existe.
+ */
 private fun PublicacionDto.toAdminListing(): AdminListing {
     val estadoApi = estado.uppercase()
-    val status = when (estadoApi) {
-        "PUBLICADA" -> if (activa) ListingStatus.ACTIVO else ListingStatus.DESACTIVADO
-        "RECHAZADA" -> ListingStatus.RECHAZADO
+    val status = when {
+        estadoApi == "PUBLICADA" && desactivadaPorAdmin -> ListingStatus.DESACTIVADO
+        estadoApi == "PUBLICADA" -> ListingStatus.ACTIVO
+        estadoApi == "RECHAZADA" -> ListingStatus.RECHAZADO
         else -> ListingStatus.PENDIENTE
     }
     val history = buildList {
@@ -189,6 +235,9 @@ private fun PublicacionDto.toAdminListing(): AdminListing {
         ),
         registeredAt = fechaRegistro,
         status = status,
-        history = history
+        history = history,
+        deactivation = if (desactivadaPorAdmin) {
+            DeactivationInfo(cause = motivoDesactivacion.orEmpty(), timestamp = fechaRegistro, actor = "")
+        } else null
     )
 }

@@ -21,6 +21,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -33,14 +34,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.ui.admin.listings.NoticeBanner
+import com.equipo4.nearhome.ui.common.DangerSnackbarHost
+import com.equipo4.nearhome.ui.common.DeleteListingDialog
+import com.equipo4.nearhome.ui.common.MyListingsHeaderSkeleton
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
+import com.equipo4.nearhome.ui.common.NoConnectionState
 import com.equipo4.nearhome.ui.common.PropertyCard
 import com.equipo4.nearhome.ui.common.PropertyListSkeleton
-import com.equipo4.nearhome.ui.common.MyListingsHeaderSkeleton
-import com.equipo4.nearhome.ui.common.NoConnectionState
-import androidx.compose.ui.draw.alpha
-import com.equipo4.nearhome.ui.common.DeleteListingDialog
-import com.equipo4.nearhome.ui.common.DangerSnackbarHost
 import com.equipo4.nearhome.ui.theme.NoticeTone
 
 @Composable
@@ -311,10 +311,10 @@ private fun MyListingCard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    if (paused) {
-                        PausedChip()
-                    } else {
-                        StatusChip(status = item.status)
+                    when {
+                        item.desactivadaPorAdmin -> AdminDeactivatedChip()
+                        paused -> PausedChip()
+                        else -> StatusChip(status = item.status)
                     }
                     Box(
                         modifier = Modifier
@@ -360,6 +360,24 @@ private fun PausedChip(modifier: Modifier = Modifier) {
     ) {
         Text(
             text = stringResource(R.string.status_paused),
+            color = Color.White,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
+            maxLines = 1,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+        )
+    }
+}
+
+@Composable
+private fun AdminDeactivatedChip(modifier: Modifier = Modifier) {
+    Surface(
+        color = Color(0xFFDC2626),
+        shape = RoundedCornerShape(6.dp),
+        modifier = modifier
+    ) {
+        Text(
+            text = stringResource(R.string.status_deactivated_by_admin),
             color = Color.White,
             fontSize = 11.sp,
             fontWeight = FontWeight.Bold,
@@ -455,21 +473,35 @@ private fun ManageListingSheet(
                 Text(stringResource(R.string.manage_listing_edit))
             }
 
-            OutlinedButton(
-                onClick = {
-                    // Pausar siempre se puede; reactivar necesita plan vigente
-                    if (!item.isActive && !puedePublicar) onPlanRequired() else onToggleActive()
-                },
-                enabled = canToggleActive,
-                shape = RoundedCornerShape(10.dp),
-                modifier = Modifier.fillMaxWidth().height(48.dp)
-            ) {
+            if (item.desactivadaPorAdmin) {
+                // Lo desactivó un administrador: el vendedor solo puede ver el motivo
                 Text(
-                    stringResource(
-                        if (item.isActive) R.string.manage_listing_pause
-                        else R.string.manage_listing_resume
-                    )
+                    text = stringResource(R.string.listing_deactivated_by_admin_notice, item.motivoDesactivacion.orEmpty()),
+                    fontSize = 12.sp,
+                    color = MaterialTheme.colorScheme.onErrorContainer,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.errorContainer)
+                        .padding(10.dp)
                 )
+            } else {
+                OutlinedButton(
+                    onClick = {
+                        // Pausar siempre se puede; reactivar necesita plan vigente
+                        if (!item.isActive && !puedePublicar) onPlanRequired() else onToggleActive()
+                    },
+                    enabled = canToggleActive,
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.fillMaxWidth().height(48.dp)
+                ) {
+                    Text(
+                        stringResource(
+                            if (item.isActive) R.string.manage_listing_pause
+                            else R.string.manage_listing_resume
+                        )
+                    )
+                }
             }
 
             Button(

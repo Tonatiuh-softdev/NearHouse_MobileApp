@@ -55,8 +55,6 @@ class ListingActionViewModel(val listingId: String, val action: ListingAction) :
 
     /**
      * Aplica el cambio en el API. [onSuccess] se llama una sola vez, cuando el API ya lo confirmó.
-     * Aprobar, rechazar y eliminar ya tienen ruta en el API. Desactivar y reactivar todavía no
-     * están conectados: responden con error y no cambian nada.
      */
     fun confirm(actor: String, onSuccess: () -> Unit) {
         val l = listing ?: return
@@ -69,11 +67,9 @@ class ListingActionViewModel(val listingId: String, val action: ListingAction) :
             val resultado = when (action) {
                 ListingAction.APROBAR -> repo.approve(l.id, actor)
                 ListingAction.RECHAZAR -> repo.reject(l.id, form.text, actor)
+                ListingAction.DESACTIVAR -> repo.desactivar(l.id, form.text)
+                ListingAction.REACTIVAR -> repo.reactivar(l.id)
                 ListingAction.ELIMINAR -> repo.eliminar(l.id)
-                ListingAction.DESACTIVAR,
-                ListingAction.REACTIVAR -> Result.failure(
-                    IllegalStateException(AppStrings.get(R.string.create_listing_error_generic))
-                )
             }
             _submitting.value = false
             resultado

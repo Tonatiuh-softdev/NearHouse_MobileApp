@@ -30,7 +30,10 @@ data class RevisionDto(
     val motivo: String?
 )
 
-/** Anuncio completo tal como lo regresa el API. Las fotos son ids: la imagen está en GET /api/v1/fotos/{id}. */
+/**
+ * Anuncio completo tal como lo regresa el API. Las fotos son ids: la imagen está en GET /api/v1/fotos/{id}.
+ * [desactivadaPorAdmin] y [motivoDesactivacion] vienen solo si un administrador lo desactivó.
+ */
 data class PublicacionDto(
     val id: Int,
     val titulo: String,
@@ -41,6 +44,8 @@ data class PublicacionDto(
     val tipo: String,
     val estado: String,
     val activa: Boolean,
+    val desactivadaPorAdmin: Boolean = false,
+    val motivoDesactivacion: String? = null,
     val calle: String,
     val numero: String,
     val colonia: String,
