@@ -32,7 +32,7 @@
     <string name="report_error_limit">You reached today\'s report limit. Try again tomorrow.</string>
     <string name="report_error_not_available">This listing is no longer available.</string>
     <string name="report_error_own">You can\'t report your own listing.</string>
-    <string name="report_evidence_title">Upload up to 5 images as evidence (optional)</string>
+    <string name="report_evidence_title">Upload up to 5 images as evidence</string>
     <plurals name="pending_reports_subtitle">
         <item quantity="one">1 pending to review</item>
         <item quantity="other">%d pending to review</item>

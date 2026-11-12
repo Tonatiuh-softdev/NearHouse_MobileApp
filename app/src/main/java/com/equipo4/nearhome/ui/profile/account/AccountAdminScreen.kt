@@ -242,7 +242,7 @@ fun AccountAdminScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 6.dp),
                     shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    color = MaterialTheme.colorScheme.surface
                 ) {
                     OptionRowItem(
                         icon = Icons.Outlined.PublishedWithChanges,
@@ -276,31 +276,40 @@ fun AccountAdminScreen(
                 if (userData.role != UserRole.SUPER_ADMIN) {
                     SectionHeader(title = stringResource(id = R.string.section_account_management))
 
-                    OptionRowItem(
-                        icon = Icons.Outlined.PowerSettingsNew,
-                        title = stringResource(id = R.string.deactivate_account_title),
-                        subtitle = stringResource(id = R.string.deactivate_account_subtitle),
-                        useIconContainer = true,
-                        iconBackgroundColor = MaterialTheme.colorScheme.surfaceVariant,
-                        iconTintColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        onClick = { onEvent(AccountAdminUiEvent.OnDeactivateRequested) }
-                    )
-                    HorizontalDivider(
-                        modifier = Modifier.padding(start = 72.dp, end = 16.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
-                        thickness = 0.8.dp
-                    )
-
-                    OptionRowItem(
-                        icon = Icons.Outlined.Delete,
-                        title = stringResource(id = R.string.delete_account_title),
-                        subtitle = stringResource(id = R.string.delete_account_subtitle),
-                        titleColor = MaterialTheme.colorScheme.error,
-                        useIconContainer = true,
-                        iconBackgroundColor = MaterialTheme.colorScheme.surfaceVariant,
-                        iconTintColor = MaterialTheme.colorScheme.error,
-                        onClick = { onEvent(AccountAdminUiEvent.OnDeleteRequested) }
-                    )
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.surface
+                    ) {
+                        Column {
+                            OptionRowItem(
+                                icon = Icons.Outlined.PowerSettingsNew,
+                                title = stringResource(id = R.string.deactivate_account_title),
+                                subtitle = stringResource(id = R.string.deactivate_account_subtitle),
+                                useIconContainer = true,
+                                iconBackgroundColor = MaterialTheme.colorScheme.surfaceVariant,
+                                iconTintColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                onClick = { onEvent(AccountAdminUiEvent.OnDeactivateRequested) }
+                            )
+                            HorizontalDivider(
+                                modifier = Modifier.padding(start = 72.dp, end = 16.dp),
+                                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
+                                thickness = 0.8.dp
+                            )
+                            OptionRowItem(
+                                icon = Icons.Outlined.Delete,
+                                title = stringResource(id = R.string.delete_account_title),
+                                subtitle = stringResource(id = R.string.delete_account_subtitle),
+                                titleColor = MaterialTheme.colorScheme.error,
+                                useIconContainer = true,
+                                iconBackgroundColor = MaterialTheme.colorScheme.surfaceVariant,
+                                iconTintColor = MaterialTheme.colorScheme.error,
+                                onClick = { onEvent(AccountAdminUiEvent.OnDeleteRequested) }
+                            )
+                        }
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(32.dp))
