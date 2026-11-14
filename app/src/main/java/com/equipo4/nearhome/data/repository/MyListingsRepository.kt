@@ -136,7 +136,10 @@ class MyListingsRepository(context: Context) {
             // Lo desactivó un administrador: el vendedor no puede reactivarlo
             desactivadaPorAdmin = desactivadaPorAdmin,
             motivoDesactivacion = motivoDesactivacion,
-            ocultaPorLimite = ocultaPorLimite
+            ocultaPorLimite = ocultaPorLimite,
+            retiradaPorReporte = retiradaPorReporte,
+            apelacionEstado = apelacionEstado,
+            apelacionNota = apelacionNota
         )
     }
 }

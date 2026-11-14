@@ -51,6 +51,11 @@ class NearHouseMessagingService : FirebaseMessagingService() {
             "REPORTE_DESCARTADO" ->
                 if (idPub.isNotEmpty()) "publication_detail/$idPub" else "home"
 
+            // Apelación de una publicación: "Mis anuncios"; de la cuenta (sin publicación): Inicio
+            "APELACION_ENVIADA",
+            "APELACION_ACEPTADA",
+            "APELACION_RECHAZADA" -> if (idPub.isNotEmpty()) "my_listings" else "home"
+
             else -> "home"
         }
 

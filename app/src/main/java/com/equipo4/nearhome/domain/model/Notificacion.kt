@@ -1,7 +1,7 @@
 package com.equipo4.nearhome.domain.model
 
 /**
- * Los 9 tipos de notificación definidos en el backend.
+ * Los tipos de notificación definidos en el backend.
  * `apiName` es el valor que manda/recibe el servidor en el campo `tipo`.
  */
 enum class TipoNotificacion(val apiName: String) {
@@ -13,7 +13,10 @@ enum class TipoNotificacion(val apiName: String) {
     REPORTE_ENVIADO("REPORTE_ENVIADO"),
     REPORTE_ATENDIDO("REPORTE_ATENDIDO"),
     REPORTE_DESCARTADO("REPORTE_DESCARTADO"),
-    PUBLICACION_RETIRADA("PUBLICACION_RETIRADA");
+    PUBLICACION_RETIRADA("PUBLICACION_RETIRADA"),
+    APELACION_ENVIADA("APELACION_ENVIADA"),
+    APELACION_ACEPTADA("APELACION_ACEPTADA"),
+    APELACION_RECHAZADA("APELACION_RECHAZADA");
 
     companion object {
         fun fromApi(valor: String?): TipoNotificacion? =
@@ -35,5 +38,9 @@ data class Notificacion(
     val nombreUsuario: String? = null,     // {nombre}
     val plan: String? = null,              // {plan}
     val fechaPlanIso: String? = null,      // {fecha} en ISO, se formatea en la app
-    val usuarioReportadoId: String? = null // {usuarioReportado}: reportes a usuarios, para abrir su perfil
-)
+    val usuarioReportadoId: String? = null, // {usuarioReportado}: reportes a usuarios, para abrir su perfil
+    val apelacion: String? = null           // {apelacion}: PUBLICACION o SUSPENSION
+) {
+    /** La apelación es de una suspensión de cuenta (no de una publicación). */
+    val esApelacionDeCuenta: Boolean get() = apelacion == "SUSPENSION"
+}

@@ -38,6 +38,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.equipo4.nearhome.R
+import com.equipo4.nearhome.ui.appeal.CuentaSuspendida
+import com.equipo4.nearhome.ui.appeal.CuentaSuspendidaDialog
 
 @Composable
 fun LoginScreen(
@@ -45,7 +47,9 @@ fun LoginScreen(
     onNavigateToRegister: () -> Unit = {},
     onNavigateToForgotPassword: (String) -> Unit = {},
     onLoginSuccess: () -> Unit = {},
-    onGoogleAuthTokenReceived: (String) -> Unit = {}
+    onGoogleAuthTokenReceived: (String) -> Unit = {},
+    /** Cuenta suspendida: abre "Apelar decisión" con el comprobante que dio el inicio de sesión. */
+    onAppealSuspension: (CuentaSuspendida) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
@@ -66,6 +70,17 @@ fun LoginScreen(
         if (uiState.isSuccess) {
             onLoginSuccess()
         }
+    }
+
+    uiState.cuentaSuspendida?.let { info ->
+        CuentaSuspendidaDialog(
+            info = info,
+            onAppeal = {
+                viewModel.onDismissSuspension()
+                onAppealSuspension(info)
+            },
+            onDismiss = { viewModel.onDismissSuspension() }
+        )
     }
 
     if (uiState.showReactivateDialog) {

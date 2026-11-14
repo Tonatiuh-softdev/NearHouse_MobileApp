@@ -175,7 +175,8 @@ private fun NotificacionDto.toDominio(): Notificacion {
         nombreUsuario = datos?.get("nombre"),
         plan = datos?.get("plan"),
         fechaPlanIso = datos?.get("fecha"),
-        usuarioReportadoId = datos?.get("usuarioReportado")
+        usuarioReportadoId = datos?.get("usuarioReportado"),
+        apelacion = datos?.get("apelacion")
     )
 }
 

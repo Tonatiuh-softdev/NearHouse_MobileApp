@@ -23,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -32,7 +33,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.equipo4.nearhome.R
+import com.equipo4.nearhome.data.local.SessionManager
 import com.equipo4.nearhome.domain.model.AdminListing
+import com.equipo4.nearhome.ui.admin.AvisoAccionBloqueada
 import com.equipo4.nearhome.domain.model.ListingAction
 import com.equipo4.nearhome.domain.model.StatusChange
 import com.equipo4.nearhome.ui.publicacion.detail.PhotoGallery
@@ -62,6 +65,8 @@ fun AdminListingDetailScreen(
     )
     val listing by viewModel.listing.collectAsState()
     val snackbar = remember { SnackbarHostState() }
+    val context = LocalContext.current
+    val miId = remember { SessionManager(context).getUserId() }
 
     LaunchedEffect(message) {
         if (message != null) {
@@ -99,7 +104,12 @@ fun AdminListingDetailScreen(
         },
         bottomBar = {
             listing?.let { l ->
-                FixedActionBar { ActionButtons(l, onActionClick) }
+                // Un anuncio propio lo revisa otro administrador (la API también lo bloquea)
+                if (miId != null && l.advertiser.id == miId) {
+                    AvisoAccionBloqueada(stringResource(R.string.admin_conflict_listing))
+                } else {
+                    FixedActionBar { ActionButtons(l, onActionClick) }
+                }
             }
         },
         snackbarHost = { ListingSnackbarHost(snackbar) },

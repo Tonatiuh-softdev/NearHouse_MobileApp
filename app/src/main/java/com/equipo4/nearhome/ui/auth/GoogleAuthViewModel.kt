@@ -9,6 +9,7 @@ import com.equipo4.nearhome.data.remote.dto.GoogleAuthRequest
 import com.equipo4.nearhome.data.remote.dto.GoogleProofResponse
 import com.equipo4.nearhome.network.AuthApi
 import com.equipo4.nearhome.network.NetworkClient
+import com.equipo4.nearhome.ui.appeal.CuentaSuspendida
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,6 +30,8 @@ sealed class GoogleAuthState {
         val esEliminacion: Boolean = false
     ) : GoogleAuthState()
     data class Error(val mensaje: String) : GoogleAuthState()
+    /** La cuenta está suspendida: motivo, hasta cuándo y si puede apelar. */
+    data class Suspendida(val info: CuentaSuspendida) : GoogleAuthState()
 }
 
 class GoogleAuthViewModel(
@@ -69,7 +72,13 @@ class GoogleAuthViewModel(
                         esEliminacion = codigo == "CUENTA_EN_ELIMINACION"
                     )
                 } else {
-                    val mensajeError = extraerMensajeError(response.errorBody()?.string())
+                    val cuerpoError = response.errorBody()?.string()
+                    // 403 CUENTA_SUSPENDIDA: aviso con el motivo y el botón "Apelar"
+                    CuentaSuspendida.desdeError(cuerpoError)?.let { info ->
+                        _uiState.value = GoogleAuthState.Suspendida(info)
+                        return@launch
+                    }
+                    val mensajeError = extraerMensajeError(cuerpoError)
                     if (mensajeError.contains("CUENTA_DESACTIVADA", ignoreCase = true) || mensajeError.contains("desactivada", ignoreCase = true)) {
                         _uiState.value = GoogleAuthState.RequiresReactivation(idToken)
                     } else {

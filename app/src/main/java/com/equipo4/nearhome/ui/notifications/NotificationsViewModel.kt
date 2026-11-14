@@ -125,6 +125,11 @@ class NotificationsViewModel(
                 notificacion.usuarioReportadoId != null -> "user_profile/${notificacion.usuarioReportadoId}"
                 else -> "home"
             }
+            // Apelación de una publicación: "Mis anuncios"; de la cuenta: Inicio
+            TipoNotificacion.APELACION_ENVIADA,
+            TipoNotificacion.APELACION_ACEPTADA,
+            TipoNotificacion.APELACION_RECHAZADA ->
+                if (notificacion.esApelacionDeCuenta) "home" else "my_listings"
         }
         onNavigate(route)
 

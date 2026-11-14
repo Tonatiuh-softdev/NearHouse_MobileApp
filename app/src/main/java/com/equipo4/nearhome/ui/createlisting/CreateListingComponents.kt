@@ -157,8 +157,19 @@ fun DropdownHeader(
     }
 }
 
-/** Opción numérica: [value] se guarda, [label] se muestra en la cabecera y [chip] en el botón. */
-data class NumOption(val value: Int, val label: String, val chip: String = label)
+/**
+ * Opción numérica: [value] se guarda, [label] se muestra en la cabecera y [chip] en el botón.
+ * [orMore] = "o más" (el botón "5+"): queda marcada con ese valor o uno mayor, por ejemplo
+ * al editar un anuncio viejo que tenía 6 recámaras.
+ */
+data class NumOption(val value: Int, val label: String, val chip: String = label, val orMore: Boolean = false) {
+    fun matches(selected: Int?): Boolean =
+        if (orMore) selected != null && selected >= value else selected == value
+}
+
+/** Opciones iguales para recámaras, baños, estacionamientos y niveles: [desde]..4 y "5+". */
+fun conteoOptions(desde: Int = 1): List<NumOption> =
+    (desde..4).map { NumOption(it, "$it") } + NumOption(5, "5+", orMore = true)
 
 /** Panel con botones numéricos (1, 2, 3...), como en la pantalla de Filtros. */
 @OptIn(ExperimentalLayoutApi::class)
@@ -177,7 +188,7 @@ fun NumberOptionsPanel(options: List<NumOption>, selected: Int?, onSelect: (Int)
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             options.forEach { o ->
-                val isSelected = o.value == selected
+                val isSelected = o.matches(selected)
                 Box(
                     Modifier.size(width = 46.dp, height = 38.dp)
                         .clip(RoundedCornerShape(8.dp))

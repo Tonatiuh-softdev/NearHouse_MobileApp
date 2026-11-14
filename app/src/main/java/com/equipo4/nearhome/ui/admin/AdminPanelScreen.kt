@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.outlined.Assignment
+import androidx.compose.material.icons.outlined.Gavel
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.People
 import androidx.compose.material3.*
@@ -35,10 +36,12 @@ fun AdminPanelScreen(
     onNavigateToReports: () -> Unit = {},
     onNavigateToUsers: () -> Unit = {},
     onNavigateToAds: () -> Unit = {},
+    onNavigateToAppeals: () -> Unit = {},
     onBottomTabSelected: (Int) -> Unit = {}
 ) {
     val pendingCount by viewModel.pendingCount.collectAsState()
     val pendingListingsCount by viewModel.pendingListingsCount.collectAsState()
+    val pendingAppealsCount by viewModel.pendingAppealsCount.collectAsState()
 
     // Al volver al panel (por ejemplo, después de atender un reporte) se actualiza el número rojo
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.refresh() }
@@ -108,6 +111,14 @@ fun AdminPanelScreen(
                         badgeCount = pendingCount,
                         showDivider = true,
                         onClick = onNavigateToReports
+                    )
+                    AdminOptionRow(
+                        icon = Icons.Outlined.Gavel,
+                        title = stringResource(R.string.appeals_title),
+                        subtitle = stringResource(R.string.admin_appeals_subtitle),
+                        badgeCount = pendingAppealsCount,
+                        showDivider = true,
+                        onClick = onNavigateToAppeals
                     )
                     AdminOptionRow(
                         icon = Icons.Outlined.People,

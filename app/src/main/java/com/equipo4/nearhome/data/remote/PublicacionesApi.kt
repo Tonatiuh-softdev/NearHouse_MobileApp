@@ -69,7 +69,13 @@ data class PublicacionDto(
     val revision: RevisionDto?,
     val guardada: Boolean = false,
     /** Solo en "Mis anuncios": publicado, pero oculto en Inicio por exceder el límite del plan. */
-    val ocultaPorLimite: Boolean = false
+    val ocultaPorLimite: Boolean = false,
+    /** Solo en "Mis anuncios": un administrador lo retiró por un reporte (se puede apelar una vez). */
+    val retiradaPorReporte: Boolean = false,
+    /** Apelación de ese retiro: null (todavía no apela), PENDIENTE o RECHAZADA. */
+    val apelacionEstado: String? = null,
+    /** Respuesta del administrador si la apelación se rechazó. */
+    val apelacionNota: String? = null
 )
 
 /** Anuncios activos y límite del plan (para el botón "Crear anuncio"). */

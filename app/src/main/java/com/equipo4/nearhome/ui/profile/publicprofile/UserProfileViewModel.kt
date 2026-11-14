@@ -10,6 +10,7 @@ import com.equipo4.nearhome.data.repository.Repositories
 import com.equipo4.nearhome.data.repository.fotoUsuarioAdminUrl
 import com.equipo4.nearhome.domain.model.Property
 import com.equipo4.nearhome.domain.model.UserAccountRole
+import com.equipo4.nearhome.domain.model.rolesAdministrables
 import com.equipo4.nearhome.domain.model.UserDetail
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -50,10 +51,8 @@ class UserProfileViewModel(
     private val _uiState = MutableStateFlow(
         UserProfileUiState(
             isOwnProfile = session.getUserId() == userId,
-            viewerIsAdmin = session.getUserRole() in setOf(
-                UserAccountRole.ADMINISTRADOR.apiName,
-                UserAccountRole.SUPER_ADMIN.apiName
-            )
+            // La sesión guarda el rol como en la base ("Administrador"), no como el filtro del API
+            viewerIsAdmin = rolesAdministrables(session.getUserRole()).isNotEmpty()
         )
     )
     val uiState: StateFlow<UserProfileUiState> = _uiState.asStateFlow()

@@ -26,8 +26,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.equipo4.nearhome.R
-import com.equipo4.nearhome.domain.model.UserAccountRole
+import androidx.compose.ui.platform.LocalContext
+import com.equipo4.nearhome.data.local.SessionManager
 import com.equipo4.nearhome.domain.model.UserAccountStatus
+import com.equipo4.nearhome.domain.model.rolesAdministrables
 import com.equipo4.nearhome.ui.common.NearHomeBottomBar
 import com.equipo4.nearhome.ui.theme.nearHouseColors
 import androidx.lifecycle.Lifecycle
@@ -46,6 +48,9 @@ fun UsersListScreen(
 ) {
     val query by viewModel.searchQuery.collectAsState()
     val role by viewModel.selectedRole.collectAsState()
+    // Solo los roles que puede ver: administrador → comprador y vendedor; superadministrador → además administrador
+    val context = LocalContext.current
+    val rolesDisponibles = remember { rolesAdministrables(SessionManager(context).getUserRole()) }
     val status by viewModel.selectedStatus.collectAsState()
     val state by viewModel.uiState.collectAsState()
     // Cada vez que la pantalla vuelve a mostrarse (por ejemplo, después de suspender o eliminar),
@@ -176,7 +181,7 @@ fun UsersListScreen(
                                     showRoleMenu = false
                                 }
                             )
-                            UserAccountRole.entries.forEach { r ->
+                            rolesDisponibles.forEach { r ->
                                 DropdownMenuItem(
                                     text = { Text(r.label, color = MaterialTheme.colorScheme.onSurface) },
                                     onClick = {

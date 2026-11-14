@@ -417,8 +417,9 @@ private fun cargarBitmap(context: Context, uri: Uri, reduccion: Int): Bitmap? =
         MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
     }
 
+/** Miniatura de una imagen elegida. También la usa la pantalla "Apelar decisión". */
 @Composable
-private fun EvidenceThumbnail(
+internal fun EvidenceThumbnail(
     file: EvidenceFile,
     onClick: () -> Unit,
     onRemove: () -> Unit

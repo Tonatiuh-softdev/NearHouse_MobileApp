@@ -23,8 +23,17 @@ data class MyListingItem(
     /** Motivo que escribió el administrador al desactivar. */
     val motivoDesactivacion: String? = null,
     /** Publicado, pero oculto en Inicio porque excede el límite del plan (por ejemplo, al bajar de plan). */
-    val ocultaPorLimite: Boolean = false
-)
+    val ocultaPorLimite: Boolean = false,
+    /** Un administrador lo retiró por un reporte: se puede apelar una vez. */
+    val retiradaPorReporte: Boolean = false,
+    /** Apelación de ese retiro: null (todavía no apela), "PENDIENTE" o "RECHAZADA". */
+    val apelacionEstado: String? = null,
+    /** Respuesta del administrador si rechazó la apelación. */
+    val apelacionNota: String? = null
+) {
+    /** Retirado por un reporte y todavía sin apelar. */
+    val puedeApelar: Boolean get() = retiradaPorReporte && apelacionEstado == null
+}
 
 data class MyListingsUiState(
     val userName: String = "",

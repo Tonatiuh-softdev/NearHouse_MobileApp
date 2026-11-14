@@ -34,6 +34,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.equipo4.nearhome.ui.admin.AdminPanelScreen
+import com.equipo4.nearhome.ui.admin.appeals.AppealConfirmationScreen
+import com.equipo4.nearhome.ui.admin.appeals.AppealDetailScreen
+import com.equipo4.nearhome.ui.admin.appeals.AppealsScreen
+import com.equipo4.nearhome.ui.appeal.ApelacionEnCurso
+import com.equipo4.nearhome.ui.appeal.AppealScreen
+import com.equipo4.nearhome.ui.appeal.CuentaSuspendida
+import com.equipo4.nearhome.ui.appeal.CuentaSuspendidaDialog
+import com.equipo4.nearhome.ui.appeal.ObjetivoApelacion
 import com.equipo4.nearhome.domain.model.ListingAction
 import com.equipo4.nearhome.domain.model.ReportType
 import com.equipo4.nearhome.ui.admin.listings.AdminListingDetailScreen
@@ -149,6 +157,11 @@ object AppRoutes {
     const val ADMIN_REPORTS = "admin_reports"
     const val ADMIN_REPORT_DETAIL = "admin_report_detail"
     const val ADMIN_REPORT_CONFIRMATION = "admin_report_confirmation"
+    const val ADMIN_APPEALS = "admin_appeals"
+    const val ADMIN_APPEAL_DETAIL = "admin_appeal_detail"
+    const val ADMIN_APPEAL_CONFIRMATION = "admin_appeal_confirmation"
+    /** "Apelar decisión": la decisión se guarda antes en ApelacionEnCurso. */
+    const val APPEAL = "appeal"
     const val ADMIN_USERS = "admin_users"
     const val ADMIN_USERS_FILTER = "admin_users_filter"
     const val ADMIN_USER_DETAIL = "admin_user_detail"
@@ -290,6 +303,26 @@ fun NearHouseApp() {
             }
             else -> {}
         }
+    }
+
+    /** Cuenta suspendida: guarda el comprobante en memoria y abre "Apelar decisión". */
+    val abrirApelacionDeSuspension: (CuentaSuspendida) -> Unit = { info ->
+        info.token?.let { token ->
+            ApelacionEnCurso.iniciar(ObjetivoApelacion.Suspension(token, info.motivo, info.hasta))
+            navController.navigate(AppRoutes.APPEAL) { launchSingleTop = true }
+        }
+    }
+
+    // Cuenta suspendida (al entrar con Google): motivo, hasta cuándo y el botón "Apelar"
+    (googleAuthState as? GoogleAuthState.Suspendida)?.let { estado ->
+        CuentaSuspendidaDialog(
+            info = estado.info,
+            onAppeal = {
+                googleAuthViewModel.reiniciarEstado()
+                abrirApelacionDeSuspension(estado.info)
+            },
+            onDismiss = { googleAuthViewModel.reiniciarEstado() }
+        )
     }
 
     (googleAuthState as? GoogleAuthState.RequiresReactivation)?.let { estado ->
@@ -478,7 +511,22 @@ fun NearHouseApp() {
                 },
                 onGoogleAuthTokenReceived = { token ->
                     googleAuthViewModel.procesarTokenGoogle(token)
+                },
+                onAppealSuspension = { info ->
+                    entry.siEstaAlFrente { abrirApelacionDeSuspension(info) }
                 }
+            )
+        }
+
+        // Pantalla: Apelar decisión (anuncio retirado por un reporte o cuenta suspendida)
+        composable(AppRoutes.APPEAL) {
+            AppealScreen(
+                onBackClick = {
+                    ApelacionEnCurso.limpiar()
+                    navController.popBackStack()
+                },
+                // Regresa a donde se abrió: Mi perfil (se recarga sola) o el inicio de sesión
+                onAppealSubmitted = { navController.popBackStack() }
             )
         }
 
@@ -723,6 +771,14 @@ fun NearHouseApp() {
                 },
                 onPlanRequired = {
                     navController.navigate("${AppRoutes.SUBSCRIPTION}?motivo=perfil") { launchSingleTop = true }
+                },
+                onAppealClick = { item ->
+                    item.property.id.toIntOrNull()?.let { id ->
+                        ApelacionEnCurso.iniciar(
+                            ObjetivoApelacion.Publicacion(id, item.property.title, item.rejectionReason)
+                        )
+                        navController.navigate(AppRoutes.APPEAL) { launchSingleTop = true }
+                    }
                 },
                 onBottomTabSelected = onBottomTab
             )
@@ -1082,7 +1138,58 @@ fun NearHouseApp() {
                 onNavigateToAds = {
                     navController.navigate(AppRoutes.ADMIN_LISTINGS)
                 },
+                onNavigateToAppeals = {
+                    navController.navigate(AppRoutes.ADMIN_APPEALS) { launchSingleTop = true }
+                },
                 onBottomTabSelected = onBottomTab
+            )
+        }
+
+        // Pantalla: Apelaciones (igual que Reportes)
+        composable(AppRoutes.ADMIN_APPEALS) {
+            AppealsScreen(
+                onBackClick = { navController.popBackStack() },
+                onAppealClick = { appealId ->
+                    navController.navigate("${AppRoutes.ADMIN_APPEAL_DETAIL}/$appealId") { launchSingleTop = true }
+                },
+                onBottomTabSelected = onBottomTab
+            )
+        }
+
+        // Pantalla: Detalle de la apelación
+        composable(
+            route = "${AppRoutes.ADMIN_APPEAL_DETAIL}/{appealId}",
+            arguments = listOf(navArgument("appealId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val appealId = backStackEntry.arguments?.getString("appealId") ?: ""
+            AppealDetailScreen(
+                appealId = appealId,
+                onBackClick = { navController.popBackStack() },
+                onNavigateToConfirmation = { id ->
+                    navController.navigate("${AppRoutes.ADMIN_APPEAL_CONFIRMATION}/$id") {
+                        popUpTo("${AppRoutes.ADMIN_APPEAL_DETAIL}/$appealId") { inclusive = true }
+                    }
+                },
+                onPropertyClick = { propertyId ->
+                    navController.navigate("${AppRoutes.PUBLICACION_DETAIL}/$propertyId")
+                },
+                onUserClick = { userId -> openUserProfile(userId) }
+            )
+        }
+
+        // Pantalla: Apelación resuelta
+        composable(
+            route = "${AppRoutes.ADMIN_APPEAL_CONFIRMATION}/{appealId}",
+            arguments = listOf(navArgument("appealId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val appealId = backStackEntry.arguments?.getString("appealId") ?: ""
+            AppealConfirmationScreen(
+                appealId = appealId,
+                onReturnToList = {
+                    navController.navigate(AppRoutes.ADMIN_APPEALS) {
+                        popUpTo(AppRoutes.ADMIN_APPEALS) { inclusive = true }
+                    }
+                }
             )
         }
 

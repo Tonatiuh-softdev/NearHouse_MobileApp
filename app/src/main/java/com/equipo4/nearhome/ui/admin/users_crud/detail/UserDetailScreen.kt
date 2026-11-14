@@ -20,7 +20,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.equipo4.nearhome.R
+import androidx.compose.ui.platform.LocalContext
+import com.equipo4.nearhome.data.local.SessionManager
 import com.equipo4.nearhome.data.repository.fotoUsuarioAdminUrl
+import com.equipo4.nearhome.domain.model.rolesAdministrables
 import com.equipo4.nearhome.domain.model.UserDetail
 import com.equipo4.nearhome.ui.admin.users_crud.UserAvatar
 import com.equipo4.nearhome.ui.admin.users_crud.UserRoleTag
@@ -46,6 +49,10 @@ fun UserDetailScreen(
     var pantalla by remember { mutableStateOf(AccionUsuario.NINGUNA) }
     val snackbarHostState = remember { SnackbarHostState() }
     val usuario = (state as? UserDetailUiState.Success)?.user
+    // Solo se administran cuentas de un nivel menor: el administrador a compradores y vendedores,
+    // el superadministrador además a administradores (el API también lo valida)
+    val context = LocalContext.current
+    val rolesSesion = remember { rolesAdministrables(SessionManager(context).getUserRole()) }
 
     // El botón atrás del sistema cierra la confirmación abierta, no sale del detalle
     BackHandler(enabled = pantalla != AccionUsuario.NINGUNA) {
@@ -124,7 +131,7 @@ fun UserDetailScreen(
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         bottomBar = {
-            if (usuario != null && !usuario.role.esAdministrador()) {
+            if (usuario != null && usuario.role in rolesSesion) {
                 UserActionsBar(
                     status = usuario.status,
                     onBlock = { pantalla = AccionUsuario.SUSPENDER },
@@ -168,9 +175,6 @@ fun UserDetailScreen(
         }
     }
 }
-
-private fun UserAccountRole.esAdministrador(): Boolean =
-    this == UserAccountRole.ADMINISTRADOR || this == UserAccountRole.SUPER_ADMIN
 
 @Composable
 private fun DetalleContenido(

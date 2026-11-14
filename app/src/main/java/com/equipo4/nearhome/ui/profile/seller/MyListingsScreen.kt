@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.Gavel
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Phone
 import androidx.compose.material3.*
@@ -53,6 +54,8 @@ fun MyListingsScreen(
     onPropertyClick: (String) -> Unit = {},
     /** Sin plan vigente: Editar o Reactivar mandan a la pantalla de planes. */
     onPlanRequired: () -> Unit = {},
+    /** Anuncio retirado por un reporte: abre "Apelar decisión". */
+    onAppealClick: (MyListingItem) -> Unit = {},
     onBottomTabSelected: (Int) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -151,7 +154,8 @@ fun MyListingsScreen(
                         MyListingCard(
                             item = item,
                             onClick = { onPropertyClick(item.property.id) },
-                            onMenuClick = { selected = item }
+                            onMenuClick = { selected = item },
+                            onAppealClick = { onAppealClick(item) }
                         )
                     }
                 }
@@ -292,7 +296,8 @@ private fun HeaderSection(
 private fun MyListingCard(
     item: MyListingItem,
     onClick: () -> Unit,
-    onMenuClick: () -> Unit
+    onMenuClick: () -> Unit,
+    onAppealClick: () -> Unit
 ) {
     val paused = !item.isActive
     val ocultoPorPlan = item.ocultaPorLimite && !paused
@@ -363,6 +368,40 @@ private fun MyListingCard(
                     .background(MaterialTheme.colorScheme.errorContainer)
                     .padding(10.dp)
             )
+        }
+
+        // Retirado por un reporte: se puede apelar una vez (o se ve cómo va la apelación)
+        if (item.status == ListingStatus.REJECTED && item.retiradaPorReporte) {
+            Spacer(Modifier.height(8.dp))
+            when {
+                item.puedeApelar -> OutlinedButton(
+                    onClick = onAppealClick,
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.fillMaxWidth().height(44.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Gavel,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(R.string.appeal_listing_button))
+                }
+
+                item.apelacionEstado == "PENDIENTE" -> NoticeBanner(
+                    tone = NoticeTone.INFO,
+                    text = stringResource(R.string.appeal_listing_pending),
+                    icon = Icons.Outlined.Gavel
+                )
+
+                item.apelacionEstado == "RECHAZADA" -> NoticeBanner(
+                    tone = NoticeTone.NEUTRAL,
+                    text = item.apelacionNota?.takeIf { it.isNotBlank() }
+                        ?.let { stringResource(R.string.appeal_listing_rejected_note, it) }
+                        ?: stringResource(R.string.appeal_listing_rejected),
+                    icon = Icons.Outlined.Gavel
+                )
+            }
         }
     }
 }

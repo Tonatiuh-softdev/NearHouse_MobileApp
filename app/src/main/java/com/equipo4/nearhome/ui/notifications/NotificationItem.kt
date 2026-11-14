@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Celebration
 import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.Gavel
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Report
 import androidx.compose.material3.*
@@ -85,10 +86,14 @@ fun NotificationItem(
                     TipoNotificacion.REPORTE_ENVIADO,
                     TipoNotificacion.REPORTE_ATENDIDO,
                     TipoNotificacion.REPORTE_DESCARTADO -> Icons.Default.Report
+                    TipoNotificacion.APELACION_ENVIADA,
+                    TipoNotificacion.APELACION_ACEPTADA,
+                    TipoNotificacion.APELACION_RECHAZADA -> Icons.Default.Gavel
                     else -> Icons.Default.Home
                 }
                 val tint = when (notificacion.tipo) {
-                    TipoNotificacion.PUBLICACION_APROBADA -> MaterialTheme.colorScheme.primary
+                    TipoNotificacion.PUBLICACION_APROBADA,
+                    TipoNotificacion.APELACION_ACEPTADA -> MaterialTheme.colorScheme.primary
                     TipoNotificacion.PUBLICACION_RECHAZADA,
                     TipoNotificacion.PUBLICACION_RETIRADA -> MaterialTheme.colorScheme.error
                     else -> MaterialTheme.colorScheme.onSurfaceVariant
@@ -190,6 +195,21 @@ private fun getNotificationText(notif: Notificacion): Pair<String, String> {
         TipoNotificacion.PUBLICACION_RETIRADA -> Pair(
             stringResource(R.string.notif_title_removed),
             stringResource(R.string.notif_body_removed, notif.tituloPropiedad ?: "", notif.motivo ?: "")
+        )
+        TipoNotificacion.APELACION_ENVIADA -> Pair(
+            stringResource(R.string.notif_title_appeal_sent),
+            if (notif.esApelacionDeCuenta) stringResource(R.string.notif_body_appeal_sent_account)
+            else stringResource(R.string.notif_body_appeal_sent, notif.tituloPropiedad ?: "")
+        )
+        TipoNotificacion.APELACION_ACEPTADA -> Pair(
+            stringResource(R.string.notif_title_appeal_accepted),
+            if (notif.esApelacionDeCuenta) stringResource(R.string.notif_body_appeal_accepted_account)
+            else stringResource(R.string.notif_body_appeal_accepted, notif.tituloPropiedad ?: "")
+        )
+        TipoNotificacion.APELACION_RECHAZADA -> Pair(
+            stringResource(R.string.notif_title_appeal_rejected),
+            if (notif.esApelacionDeCuenta) stringResource(R.string.notif_body_appeal_rejected_account, notif.motivo ?: "")
+            else stringResource(R.string.notif_body_appeal_rejected, notif.tituloPropiedad ?: "", notif.motivo ?: "")
         )
     }
 }

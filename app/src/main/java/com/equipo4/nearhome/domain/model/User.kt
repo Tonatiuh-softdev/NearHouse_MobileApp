@@ -19,6 +19,20 @@ enum class UserAccountRole(@StringRes val labelRes: Int, val apiName: String) {
     }
 }
 
+/**
+ * Roles que puede ver y administrar en el panel quien tiene la sesión. Igual que el API:
+ * nadie ve a los de su mismo nivel; el superadministrador no aparece para nadie.
+ * [rolSesion] es el rol guardado en la sesión ("Administrador", "Super Administrador"...).
+ * Si no es administrador, la lista va vacía.
+ */
+fun rolesAdministrables(rolSesion: String?): List<UserAccountRole> =
+    when (rolSesion?.trim()?.replace('_', ' ')?.lowercase()) {
+        "super administrador" ->
+            listOf(UserAccountRole.COMPRADOR, UserAccountRole.VENDEDOR, UserAccountRole.ADMINISTRADOR)
+        "administrador" -> listOf(UserAccountRole.COMPRADOR, UserAccountRole.VENDEDOR)
+        else -> emptyList()
+    }
+
 /** Estatus que calcula el API. Los nombres coinciden con lo que responde. */
 enum class UserAccountStatus(@StringRes val labelRes: Int) {
     ACTIVO(R.string.admin_user_status_active),

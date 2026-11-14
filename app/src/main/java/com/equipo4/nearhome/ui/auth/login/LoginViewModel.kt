@@ -11,6 +11,7 @@ import com.equipo4.nearhome.data.remote.GoogleAuthManager
 import com.equipo4.nearhome.di.NetworkModule
 import com.equipo4.nearhome.network.AuthApi
 import com.equipo4.nearhome.network.LoginRequest
+import com.equipo4.nearhome.ui.appeal.CuentaSuspendida
 import com.equipo4.nearhome.util.AppStrings
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -116,6 +117,12 @@ class LoginViewModel(
                     } catch (e: Exception) {
                         null
                     }
+                    // 403 CUENTA_SUSPENDIDA: se muestra el motivo y, si todavía no apela, el botón "Apelar"
+                    val suspendida = CuentaSuspendida.desdeError(rawError)
+                    if (suspendida != null) {
+                        _uiState.update { it.copy(isLoading = false, cuentaSuspendida = suspendida) }
+                        return@launch
+                    }
                     // 409 = cuenta desactivada (CUENTA_DESACTIVADA) o por eliminarse (CUENTA_EN_ELIMINACION)
                     val errorJson = try { JSONObject(rawError ?: "") } catch (e: Exception) { null }
                     val codigo = errorJson?.optString("codigo").orEmpty()
@@ -154,6 +161,10 @@ class LoginViewModel(
                 }
             }
         }
+    }
+
+    fun onDismissSuspension() {
+        _uiState.update { it.copy(cuentaSuspendida = null) }
     }
 
     fun onDismissReactivateDialog() {

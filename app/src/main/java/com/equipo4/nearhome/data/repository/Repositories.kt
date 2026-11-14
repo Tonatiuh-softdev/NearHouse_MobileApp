@@ -3,6 +3,8 @@ package com.equipo4.nearhome.data.repository
 import android.content.Context
 import com.equipo4.nearhome.domain.repository.AdminListingRepository
 import com.equipo4.nearhome.domain.repository.AdminListingRepositoryApi
+import com.equipo4.nearhome.domain.repository.AppealRepository
+import com.equipo4.nearhome.domain.repository.AppealRepositoryApi
 import com.equipo4.nearhome.domain.repository.PropiedadRepository
 import com.equipo4.nearhome.domain.repository.ReportRepository
 import com.equipo4.nearhome.domain.repository.ReportRepositoryApi
@@ -25,4 +27,5 @@ object Repositories {
     val anuncios: AdminListingRepository by lazy { AdminListingRepositoryApi(ctx()) }
     val users: UserRepository by lazy { UserRepositoryApi(ctx()) }
     val notificaciones: NotificacionesRepository by lazy { NotificacionesRepositoryApi(ctx()) }
+    val apelaciones: AppealRepository by lazy { AppealRepositoryApi(ctx()) }
 }

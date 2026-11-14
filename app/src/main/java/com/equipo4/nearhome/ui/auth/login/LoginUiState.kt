@@ -1,5 +1,7 @@
 package com.equipo4.nearhome.ui.auth.login
 
+import com.equipo4.nearhome.ui.appeal.CuentaSuspendida
+
 data class LoginUiState(
     val email: String = "",
     val isEmailValid: Boolean = false,
@@ -16,7 +18,9 @@ data class LoginUiState(
     /** Mensaje de la API para el diálogo (trae la fecha de eliminación). */
     val reactivateMessage: String? = null,
     val isReactivating: Boolean = false,
-    val reactivateSuccessMessage: String? = null
+    val reactivateSuccessMessage: String? = null,
+    /** La cuenta está suspendida: motivo, hasta cuándo y si puede apelar. Null = no hay aviso. */
+    val cuentaSuspendida: CuentaSuspendida? = null
 ) {
     val isFormValid: Boolean
         get() = isEmailValid && isPasswordValid && !isLoading

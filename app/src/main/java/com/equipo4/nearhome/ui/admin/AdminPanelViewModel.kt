@@ -3,6 +3,7 @@ package com.equipo4.nearhome.ui.admin
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.equipo4.nearhome.data.repository.Repositories
+import com.equipo4.nearhome.domain.model.AppealStatus
 import com.equipo4.nearhome.domain.model.ListingStatus
 import com.equipo4.nearhome.domain.model.ReportStatus
 import kotlinx.coroutines.flow.SharingStarted
@@ -21,7 +22,17 @@ class AdminPanelViewModel : ViewModel() {
     fun refresh() {
         viewModelScope.launch { Repositories.reportes.refresh() }
         viewModelScope.launch { Repositories.anuncios.refresh() }
+        viewModelScope.launch { Repositories.apelaciones.refresh() }
     }
+
+    /** Apelaciones pendientes de revisar. */
+    val pendingAppealsCount: StateFlow<Int> = Repositories.apelaciones.observeAppeals()
+        .map { list -> list.count { it.status == AppealStatus.PENDIENTE } }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = 0
+        )
 
     /** Anuncios pendientes de revisión (la cola del administrador). */
     val pendingListingsCount: StateFlow<Int> = Repositories.anuncios.listings

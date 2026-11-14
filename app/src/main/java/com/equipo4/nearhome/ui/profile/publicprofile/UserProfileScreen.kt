@@ -212,7 +212,8 @@ private fun ProfileHeader(
             }
         }
 
-        if (uiState.viewerIsAdmin) {
+        // Solo si el API dejó ver la cuenta (no sale para cuentas de su mismo nivel)
+        if (uiState.viewerIsAdmin && account != null) {
             Spacer(Modifier.height(16.dp))
             Button(
                 onClick = onManageAccountClick,

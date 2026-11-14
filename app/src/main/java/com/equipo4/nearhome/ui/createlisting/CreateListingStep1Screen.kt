@@ -182,14 +182,15 @@ private fun FieldsCard(state: CreateListingState, vm: CreateListingViewModel) {
 
     val groundFloor = stringResource(R.string.create_listing_ground_floor)
     val groundShort = stringResource(R.string.create_listing_ground_floor_short)
-    val bedrooms = NumField("bedrooms", R.string.create_listing_bedrooms, (1..6).map { NumOption(it, "$it") })
-    val bathrooms = NumField("bathrooms", R.string.create_listing_bathrooms, (1..5).map { NumOption(it, "$it") })
-    val parking = NumField("parking", R.string.create_listing_parking, (0..4).map { NumOption(it, "$it") })
+    // Todos con las mismas opciones: 1, 2, 3, 4 y 5+ (estacionamientos también tiene 0 = sin estacionamiento)
+    val bedrooms = NumField("bedrooms", R.string.create_listing_bedrooms, conteoOptions())
+    val bathrooms = NumField("bathrooms", R.string.create_listing_bathrooms, conteoOptions())
+    val parking = NumField("parking", R.string.create_listing_parking, conteoOptions(desde = 0))
     val floor = NumField(
         "floor", R.string.create_listing_floor,
         (0..20).map { if (it == 0) NumOption(0, groundFloor, groundShort) else NumOption(it, "$it") }
     )
-    val levels = NumField("levels", R.string.create_listing_levels, (1..4).map { NumOption(it, "$it") })
+    val levels = NumField("levels", R.string.create_listing_levels, conteoOptions())
 
     Column(
         Modifier.fillMaxWidth().border(1.dp, cs.primary, RoundedCornerShape(12.dp)).padding(14.dp),
@@ -342,7 +343,7 @@ private fun NumberPair(
     fun header(f: NumField) {
         LabeledField(stringResource(f.labelRes), if (state.isInvalid(f.key)) required else null) {
             DropdownHeader(
-                text = f.options.firstOrNull { it.value == state.numberOf(f.key) }?.label,
+                text = f.options.firstOrNull { it.matches(state.numberOf(f.key)) }?.label,
                 placeholder = placeholder,
                 expanded = openKey == f.key,
                 isError = state.isInvalid(f.key),
