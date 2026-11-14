@@ -35,6 +35,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.equipo4.nearhome.ui.admin.AdminPanelScreen
 import com.equipo4.nearhome.domain.model.ListingAction
+import com.equipo4.nearhome.domain.model.ReportType
 import com.equipo4.nearhome.ui.admin.listings.AdminListingDetailScreen
 import com.equipo4.nearhome.ui.admin.listings.AdminListingsScreen
 import com.equipo4.nearhome.ui.admin.listings.AdminListingsViewModel
@@ -666,6 +667,10 @@ fun NearHouseApp() {
                         }
                         // Tus anuncios (en revisión, rechazado, retirado): "Mi perfil" en la pestaña Perfil
                         route == AppRoutes.MY_LISTINGS -> abrirMiPerfil()
+                        // Reporte a un usuario: su perfil
+                        route.startsWith("${AppRoutes.USER_PROFILE}/") -> {
+                            route.removePrefix("${AppRoutes.USER_PROFILE}/").toIntOrNull()?.let { openUserProfile(it) }
+                        }
                         else -> {
                             navController.navigate(route)
                         }
@@ -1014,7 +1019,7 @@ fun NearHouseApp() {
                     if (!sessionManager.isLoggedIn()) {
                         navController.navigate(AppRoutes.LOGIN)
                     } else {
-                        navController.navigate("${AppRoutes.REPORT_GRAPH}/$publicacionId")
+                        navController.navigate("${AppRoutes.REPORT_GRAPH}/${ReportType.PUBLICACION.name}/$publicacionId")
                     }
                 },
                 onEditClick = {
@@ -1035,6 +1040,18 @@ fun NearHouseApp() {
             UserProfileScreen(
                 userId = userId,
                 onBackClick = { navController.popBackStack() },
+                onReportClick = {
+                    // Bandera del perfil: reportar a este usuario (sin sesión, primero a iniciar sesión)
+                    backStackEntry.siEstaAlFrente {
+                        if (!sessionManager.isLoggedIn()) {
+                            navController.navigate(AppRoutes.LOGIN)
+                        } else {
+                            navController.navigate("${AppRoutes.REPORT_GRAPH}/${ReportType.USUARIO.name}/$userId") {
+                                launchSingleTop = true
+                            }
+                        }
+                    }
+                },
                 onPropertyClick = { propertyId ->
                     navController.navigate("${AppRoutes.PUBLICACION_DETAIL}/$propertyId")
                 },
@@ -1260,23 +1277,28 @@ fun NearHouseApp() {
             )
         }
 
-        // Flujo: Reportar publicación (el ViewModel se comparte entre las dos pantallas)
+        // Flujo: Reportar una publicación (desde su detalle) o a un usuario (desde la bandera de su perfil).
+        // El ViewModel se comparte entre las dos pantallas.
         navigation(
-            route = "${AppRoutes.REPORT_GRAPH}/{publicacionId}",
+            route = RUTA_REPORTE,
             startDestination = AppRoutes.REPORT_CATEGORY,
-            arguments = listOf(navArgument("publicacionId") { type = NavType.StringType })
+            arguments = listOf(
+                navArgument("tipo") { type = NavType.StringType },
+                navArgument("objetivoId") { type = NavType.StringType }
+            )
         ) {
             composable(AppRoutes.REPORT_CATEGORY) { entry ->
-                // El id llega al grafo padre, no a las pantallas hijas
-                val parentEntry = remember(entry) {
-                    navController.getBackStackEntry("${AppRoutes.REPORT_GRAPH}/{publicacionId}")
-                }
-                val publicacionId = parentEntry.arguments?.getString("publicacionId") ?: ""
+                // El tipo y el id llegan al grafo padre, no a las pantallas hijas
+                val parentEntry = remember(entry) { navController.getBackStackEntry(RUTA_REPORTE) }
+                val tipo = parentEntry.arguments?.getString("tipo")
+                    ?.let { valor -> ReportType.entries.firstOrNull { it.name == valor } }
+                    ?: ReportType.PUBLICACION
+                val objetivoId = parentEntry.arguments?.getString("objetivoId") ?: ""
                 val reportViewModel: ReportViewModel = viewModel(parentEntry)
 
-                LaunchedEffect(publicacionId) {
-                    reportViewModel.initPublicacion(publicacionId)
-                }
+                // Antes de dibujar la pantalla, para que no se vean ni un instante las categorías del otro tipo.
+                // Es seguro repetirlo: si ya era el mismo objetivo, no cambia nada.
+                remember(tipo, objetivoId) { reportViewModel.initObjetivo(tipo, objetivoId) }
 
                 ReportCategoryScreen(
                     viewModel = reportViewModel,
@@ -1286,19 +1308,15 @@ fun NearHouseApp() {
             }
 
             composable(AppRoutes.REPORT_REASON) { entry ->
-                val parentEntry = remember(entry) {
-                    navController.getBackStackEntry("${AppRoutes.REPORT_GRAPH}/{publicacionId}")
-                }
-                val publicacionId = parentEntry.arguments?.getString("publicacionId") ?: ""
+                val parentEntry = remember(entry) { navController.getBackStackEntry(RUTA_REPORTE) }
                 val reportViewModel: ReportViewModel = viewModel(parentEntry)
 
                 ReportReasonScreen(
                     viewModel = reportViewModel,
-                    publicacionId = publicacionId,
                     onBackClick = { navController.popBackStack() },
                     onReportSubmitted = {
-                        // Cierra todo el flujo y regresa al detalle de la publicación
-                        navController.popBackStack("${AppRoutes.REPORT_GRAPH}/{publicacionId}", inclusive = true)
+                        // Cierra todo el flujo y regresa a donde se abrió (detalle de la publicación o perfil)
+                        navController.popBackStack(RUTA_REPORTE, inclusive = true)
                     }
                 )
             }
@@ -1381,6 +1399,9 @@ fun NearHouseApp() {
  * Solo navega si esta pantalla es la que está al frente. Si se toca un botón dos veces rápido,
  * el segundo toque ya no abre otra pantalla ni cierra una de más (eso dejaba la app en blanco).
  */
+/** Ruta del flujo de reporte: tipo = PUBLICACION o USUARIO, objetivoId = id de la publicación o del usuario. */
+private const val RUTA_REPORTE = "${AppRoutes.REPORT_GRAPH}/{tipo}/{objetivoId}"
+
 private fun NavBackStackEntry.siEstaAlFrente(accion: () -> Unit) {
     if (lifecycle.currentState == Lifecycle.State.RESUMED) accion()
 }

@@ -9,6 +9,7 @@ import com.equipo4.nearhome.data.remote.ErrorDto
 import com.equipo4.nearhome.data.remote.ReporteCreadoDto
 import com.equipo4.nearhome.data.remote.ReportesApi
 import com.equipo4.nearhome.di.NetworkModule
+import com.equipo4.nearhome.domain.model.ReportType
 import com.equipo4.nearhome.util.AppStrings
 import com.equipo4.nearhome.util.PhotoCompressor
 import com.google.gson.Gson
@@ -38,9 +39,13 @@ class ReporteRepository(context: Context) {
         NetworkModule.provideRetrofit(cliente).create(ReportesApi::class.java)
     }
 
-    /** [fotos]: imágenes elegidas en el selector (máximo 5). Se comprimen antes de subirlas. */
+    /**
+     * Reporta una publicación o a un usuario, según [tipo]. [objetivoId] es el id de uno u otro.
+     * [fotos]: imágenes elegidas en el selector (máximo 5). Se comprimen antes de subirlas.
+     */
     suspend fun reportar(
-        publicacionId: Int,
+        tipo: ReportType,
+        objetivoId: Int,
         categoria: String,
         motivo: String,
         descripcion: String,
@@ -63,14 +68,17 @@ class ReporteRepository(context: Context) {
                 )
             }
 
-            val respuesta = api.crear(publicacionId, datos, imagenes)
+            val respuesta = when (tipo) {
+                ReportType.PUBLICACION -> api.crear(objetivoId, datos, imagenes)
+                ReportType.USUARIO -> api.crearDeUsuario(objetivoId, datos, imagenes)
+            }
             val cuerpo = respuesta.body()
             if (respuesta.isSuccessful && cuerpo != null) {
                 Result.success(cuerpo)
             } else {
                 Result.failure(
                     ReporteException(
-                        mensajeDeError(respuesta.code(), respuesta.errorBody()?.string()),
+                        mensajeDeError(tipo, respuesta.code(), respuesta.errorBody()?.string()),
                         respuesta.code()
                     )
                 )
@@ -94,11 +102,22 @@ class ReporteRepository(context: Context) {
         return destino
     }
 
-    private fun mensajeDeError(codigo: Int, cuerpo: String?): String = when (codigo) {
+    /** Solo para leer el "codigo" del error (por ejemplo NO_REPORTABLE). */
+    private data class CodigoError(val codigo: String? = null)
+
+    private fun mensajeDeError(tipo: ReportType, codigo: Int, cuerpo: String?): String = when (codigo) {
         401 -> AppStrings.get(R.string.create_listing_error_session)
-        403 -> AppStrings.get(R.string.report_error_own)
-        404 -> AppStrings.get(R.string.report_error_not_available)
-        409 -> AppStrings.get(R.string.report_error_duplicate)
+        403 -> when {
+            tipo == ReportType.PUBLICACION -> AppStrings.get(R.string.report_error_own)
+            codigoDe(cuerpo) == "NO_REPORTABLE" -> AppStrings.get(R.string.report_user_error_not_reportable)
+            else -> AppStrings.get(R.string.report_user_error_own)
+        }
+        404 -> AppStrings.get(
+            if (tipo == ReportType.USUARIO) R.string.report_user_error_not_available else R.string.report_error_not_available
+        )
+        409 -> AppStrings.get(
+            if (tipo == ReportType.USUARIO) R.string.report_user_error_duplicate else R.string.report_error_duplicate
+        )
         429 -> AppStrings.get(R.string.report_error_limit)
         400 -> {
             val error = try {
@@ -111,5 +130,11 @@ class ReporteRepository(context: Context) {
                 ?: AppStrings.get(R.string.create_listing_error_generic)
         }
         else -> AppStrings.get(R.string.create_listing_error_generic)
+    }
+
+    private fun codigoDe(cuerpo: String?): String? = try {
+        gson.fromJson(cuerpo, CodigoError::class.java)?.codigo
+    } catch (e: Exception) {
+        null
     }
 }

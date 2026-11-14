@@ -35,29 +35,45 @@ data class PublicacionResumenDto(
     val reportesPendientes: Int
 )
 
-/** Un renglón de la lista. [imagenes] es la cantidad de evidencias, no los ids. */
+/** La cuenta reportada (solo en reportes de usuario). */
+data class UsuarioReportadoDto(
+    val id: Int,
+    val nombre: String,
+    val tieneFoto: Boolean,
+    val reportesPendientes: Int
+)
+
+/**
+ * Un renglón de la lista. [imagenes] es la cantidad de evidencias, no los ids.
+ * [tipo]: PUBLICACION o USUARIO. Según el tipo viene [publicacion] o [usuario]; el otro es null.
+ */
 data class ReporteListaDto(
     val id: Int,
+    val tipo: String?,
     val categoria: String,
     val motivo: String,
     val descripcionCorta: String,
     val fecha: Long,
     val estado: String,
     val imagenes: Int,
-    val publicacion: PublicacionResumenDto
+    val publicacion: PublicacionResumenDto?,
+    val usuario: UsuarioReportadoDto?
 )
 
 /** Detalle completo. [imagenes] son los ids de evidencia (ver [evidenciaReporteUrl]). */
 data class ReporteDetalleDto(
     val id: Int,
+    val tipo: String?,
     val categoria: String,
     val motivo: String,
     val descripcion: String,
     val fecha: Long,
     val estado: String,
     val imagenes: List<Int>,
-    val publicacion: PublicacionResumenDto,
+    val publicacion: PublicacionResumenDto?,
+    val usuario: UsuarioReportadoDto?,
     /** null = la cuenta que reportó ya no existe. */
+    val reportadoPorId: Int?,
     val reportadoPorNombre: String?,
     val reportadoPorCorreo: String?,
     val nota: String?,
@@ -81,6 +97,15 @@ interface ReportesApi {
     @Multipart
     @POST("api/v1/publicaciones/{id}/reportes")
     suspend fun crear(
+        @Path("id") id: Int,
+        @Part datos: MultipartBody.Part,
+        @Part fotos: List<MultipartBody.Part>
+    ): Response<ReporteCreadoDto>
+
+    /** Reportar a un usuario (bandera de su perfil). Mismo formato que el de publicaciones. */
+    @Multipart
+    @POST("api/v1/usuarios/{id}/reportes")
+    suspend fun crearDeUsuario(
         @Path("id") id: Int,
         @Part datos: MultipartBody.Part,
         @Part fotos: List<MultipartBody.Part>

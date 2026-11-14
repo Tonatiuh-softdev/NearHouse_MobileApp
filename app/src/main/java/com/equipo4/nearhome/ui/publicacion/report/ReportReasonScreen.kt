@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import android.content.Context
 import com.equipo4.nearhome.R
+import com.equipo4.nearhome.domain.model.ReportType
 import com.equipo4.nearhome.ui.common.NearHomeDialog
 import com.equipo4.nearhome.ui.publicacion.detail.FullScreenPhotoViewer
 import kotlinx.coroutines.Dispatchers
@@ -48,7 +49,6 @@ import kotlinx.coroutines.withContext
 @Composable
 fun ReportReasonScreen(
     viewModel: ReportViewModel,
-    publicacionId: String,
     onBackClick: () -> Unit,
     onReportSubmitted: () -> Unit
 ) {
@@ -58,7 +58,6 @@ fun ReportReasonScreen(
     // Índice de la evidencia abierta a pantalla completa (null = cerrado)
     var previewIndex by remember { mutableStateOf<Int?>(null) }
 
-    LaunchedEffect(publicacionId) { viewModel.initPublicacion(publicacionId) }
 
     fun handleBack() {
         if (uiState.hasUnsavedChanges) {
@@ -82,7 +81,9 @@ fun ReportReasonScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = stringResource(R.string.report_title),
+                        text = stringResource(
+                            if (uiState.tipo == ReportType.USUARIO) R.string.report_title_user else R.string.report_title
+                        ),
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Normal,
                         color = MaterialTheme.colorScheme.onSurface
@@ -358,11 +359,12 @@ fun ReportReasonScreen(
     // MODAL DE ERROR
     uiState.errorMessage?.let { msg ->
         NearHomeDialog(
-            title = stringResource(R.string.report_error_title),
+            // Todos los errores de aquí son al enviar (las imágenes ya no se rechazan al elegirlas)
+            title = stringResource(R.string.report_send_error_title),
             message = msg,
             confirmText = stringResource(R.string.report_common_ok),
             onConfirm = {
-                val salir = uiState.publicacionNoDisponible
+                val salir = uiState.objetivoNoDisponible
                 viewModel.clearErrorMessage()
                 if (salir) onBackClick()
             },

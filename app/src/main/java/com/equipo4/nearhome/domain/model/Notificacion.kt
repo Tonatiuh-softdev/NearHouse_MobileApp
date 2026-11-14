@@ -34,5 +34,6 @@ data class Notificacion(
     val motivo: String? = null,            // motivo del rechazo o del retiro
     val nombreUsuario: String? = null,     // {nombre}
     val plan: String? = null,              // {plan}
-    val fechaPlanIso: String? = null       // {fecha} en ISO, se formatea en la app
+    val fechaPlanIso: String? = null,      // {fecha} en ISO, se formatea en la app
+    val usuarioReportadoId: String? = null // {usuarioReportado}: reportes a usuarios, para abrir su perfil
 )

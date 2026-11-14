@@ -8,7 +8,9 @@ import com.equipo4.nearhome.data.remote.ReporteDetalleDto
 import com.equipo4.nearhome.data.remote.ReporteListaDto
 import com.equipo4.nearhome.data.remote.ReportesApi
 import com.equipo4.nearhome.data.remote.ResolverReporteDto
+import com.equipo4.nearhome.data.remote.UsuarioReportadoDto
 import com.equipo4.nearhome.data.repository.PublicacionException
+import com.equipo4.nearhome.data.repository.fotoUsuarioAdminUrl
 import com.equipo4.nearhome.di.NetworkModule
 import com.equipo4.nearhome.domain.model.Report
 import com.equipo4.nearhome.domain.model.ReportStatus
@@ -112,44 +114,59 @@ class ReportRepositoryApi(context: Context) : ReportRepository {
 
     private fun ReporteListaDto.toDomain(): Report = Report(
         id = id.toString(),
-        type = ReportType.PUBLICACION,
+        type = tipoDominio(tipo),
         motive = motivoTexto(categoria, motivo),
         description = descripcionCorta,
         date = formatearFecha(fecha),
         status = estadoDominio(estado),
-        result = resultadoTexto(estado, publicacion.estado),
+        result = resultadoTexto(estado, publicacion?.estado),
         // La lista no trae la fecha de resolución: se muestra la de registro hasta abrir el detalle
         attendedDate = null,
         note = null,
         evidences = emptyList(),
         evidenceCount = imagenes,
-        targetId = publicacion.id.toString(),
+        targetId = (publicacion?.id ?: usuario?.id)?.toString(),
         reportedByName = null,
-        reportedByEmail = null
+        reportedByEmail = null,
+        reportedUserName = usuario?.nombre,
+        reportedUserPhotoUrl = usuario?.fotoUrl()
     )
 
     private fun ReporteDetalleDto.toDomain(): Report = Report(
         id = id.toString(),
-        type = ReportType.PUBLICACION,
+        type = tipoDominio(tipo),
         motive = motivoTexto(categoria, motivo),
         description = descripcion,
         date = formatearFecha(fecha),
         status = estadoDominio(estado),
-        result = resultadoTexto(estado, publicacion.estado),
+        result = resultadoTexto(estado, publicacion?.estado),
         attendedDate = fechaResolucion?.let { AppStrings.get(R.string.attended_date_prefix, formatearFecha(it)) },
         note = nota,
         evidences = imagenes,
         evidenceCount = imagenes.size,
-        targetId = publicacion.id.toString(),
+        targetId = (publicacion?.id ?: usuario?.id)?.toString(),
         reportedByName = reportadoPorNombre,
-        reportedByEmail = reportadoPorCorreo
+        reportedByEmail = reportadoPorCorreo,
+        reportedById = reportadoPorId,
+        reportedUserName = usuario?.nombre,
+        reportedUserPhotoUrl = usuario?.fotoUrl()
     )
+
+    private fun tipoDominio(tipo: String?): ReportType =
+        if (tipo == "USUARIO") ReportType.USUARIO else ReportType.PUBLICACION
+
+    /** La foto del panel pide token: la carga AdminImageLoader (UserAvatar). */
+    private fun UsuarioReportadoDto.fotoUrl(): String? =
+        if (tieneFoto) fotoUsuarioAdminUrl(id.toString()) else null
 
     private fun estadoDominio(estado: String): ReportStatus =
         if (estado == "PENDIENTE") ReportStatus.PENDIENTE else ReportStatus.ATENDIDO
 
-    /** PROCEDENTE con la publicación rechazada = se retiró. Descartado = cerrado sin medida. */
-    private fun resultadoTexto(estado: String, estadoPublicacion: String): String? = when (estado) {
+    /**
+     * PROCEDENTE con la publicación rechazada = se retiró. Descartado = cerrado sin medida.
+     * En reportes de usuario no hay publicación ([estadoPublicacion] null): solo "Medida aplicada".
+     */
+    private fun resultadoTexto(estado: String, estadoPublicacion: String?): String? = when (estado) {
         "PROCEDENTE" -> if (estadoPublicacion == "RECHAZADA") {
             AppStrings.get(R.string.report_measure_listing_removed)
         } else {

@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.equipo4.nearhome.R
+import com.equipo4.nearhome.domain.model.UserAccountRole
 import com.equipo4.nearhome.ui.admin.users_crud.AdminImageLoader
 import com.equipo4.nearhome.ui.admin.users_crud.UserRoleTag
 import com.equipo4.nearhome.ui.admin.users_crud.UserStatusBadge
@@ -43,7 +44,8 @@ import com.equipo4.nearhome.ui.common.PropertyListSkeleton
 /**
  * Perfil de otro usuario. Es la misma pantalla que "Mis anuncios", pero de solo lectura:
  * - sin el botón "Crear anuncio",
- * - en vez del lápiz de editar perfil va el ícono de reportar (por ahora solo maquetado),
+ * - en vez del lápiz de editar perfil va la bandera para reportar al usuario
+ *   (no sale en tu propio perfil ni en el del superadministrador),
  * - sin etiquetas de estado y solo con anuncios publicados y activos.
  * Un administrador ve además los datos de la cuenta y puede ir a administrarla.
  */
@@ -52,7 +54,8 @@ fun UserProfileScreen(
     userId: Int,
     onBackClick: () -> Unit,
     onPropertyClick: (String) -> Unit,
-    onManageAccountClick: () -> Unit
+    onManageAccountClick: () -> Unit,
+    onReportClick: () -> Unit = {}
 ) {
     val application = LocalContext.current.applicationContext as Application
     val viewModel: UserProfileViewModel = viewModel(
@@ -78,7 +81,7 @@ fun UserProfileScreen(
                 ProfileHeader(
                     uiState = uiState,
                     onBackClick = onBackClick,
-                    onReportClick = { /* TODO: reportar usuario */ },
+                    onReportClick = onReportClick,
                     onManageAccountClick = onManageAccountClick
                 )
             }
@@ -131,7 +134,8 @@ private fun ProfileHeader(
                     tint = MaterialTheme.colorScheme.onBackground
                 )
             }
-            if (!uiState.isOwnProfile) {
+            // El superadministrador no se puede reportar (el API también lo rechaza)
+            if (!uiState.isOwnProfile && account?.role != UserAccountRole.SUPER_ADMIN) {
                 IconButton(onClick = onReportClick) {
                     Icon(
                         imageVector = Icons.Outlined.Flag,

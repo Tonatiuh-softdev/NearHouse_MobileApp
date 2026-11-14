@@ -22,6 +22,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.equipo4.nearhome.R
+import com.equipo4.nearhome.domain.model.ReportType
 import com.equipo4.nearhome.ui.common.NearHomeDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -49,7 +50,9 @@ fun ReportCategoryScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = stringResource(R.string.report_title),
+                        text = stringResource(
+                            if (uiState.tipo == ReportType.USUARIO) R.string.report_title_user else R.string.report_title
+                        ),
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Normal,
                         color = MaterialTheme.colorScheme.onSurface
@@ -83,7 +86,10 @@ fun ReportCategoryScreen(
 
             // Título principal adaptable a modo oscuro
             Text(
-                text = stringResource(R.string.report_category_question),
+                text = stringResource(
+                    if (uiState.tipo == ReportType.USUARIO) R.string.report_category_question_user
+                    else R.string.report_category_question
+                ),
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground,
@@ -139,7 +145,8 @@ fun ReportCategoryScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column {
-                    ReportCategory.entries.forEachIndexed { index, category ->
+                    val categorias = uiState.categorias
+                    categorias.forEachIndexed { index, category ->
                         CategoryItem(
                             category = category,
                             onClick = {
@@ -147,7 +154,7 @@ fun ReportCategoryScreen(
                                 onCategorySelected(category)
                             }
                         )
-                        if (index < ReportCategory.entries.size - 1) {
+                        if (index < categorias.size - 1) {
                             HorizontalDivider(
                                 color = MaterialTheme.colorScheme.outlineVariant,
                                 thickness = 1.dp

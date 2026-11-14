@@ -990,6 +990,33 @@
     <string name="report_reason_multiple_publishers">Property posted by multiple people</string>
     <string name="report_reason_advance_payment">Requesting payment before viewing the property</string>
     <string name="report_reason_other">Other</string>
+
+    <!-- Report a user (flag on their profile) -->
+    <string name="report_title_user">Report user</string>
+    <string name="report_send_error_title">Couldn\'t send the report</string>
+    <string name="report_category_question_user">Why do you want to report this user?</string>
+    <string name="report_category_fake_profile">Fake profile</string>
+    <string name="report_category_fake_profile_desc">Pretends to be someone else or uses fake details</string>
+    <string name="report_category_behavior">Inappropriate behavior</string>
+    <string name="report_category_behavior_desc">Harassment, insults, threats or discrimination</string>
+    <string name="report_category_scam">Possible scam</string>
+    <string name="report_category_scam_desc">Tries to deceive or charge without the right to</string>
+    <string name="report_reason_impersonation">Pretends to be another person</string>
+    <string name="report_reason_fake_data">Fake name or details</string>
+    <string name="report_reason_inappropriate_photo">Inappropriate profile photo</string>
+    <string name="report_reason_harassment">Harassment or repeated messages</string>
+    <string name="report_reason_threats">Threats</string>
+    <string name="report_reason_discrimination">Discriminatory treatment</string>
+    <string name="report_reason_user_advance_payment">Asks for a payment before showing the property</string>
+    <string name="report_reason_fake_listings">Posts properties that don\'t exist</string>
+    <string name="report_reason_not_owner">Claims to own the property but doesn\'t</string>
+    <string name="report_user_error_duplicate">You already reported this user; it\'s under review.</string>
+    <string name="report_user_error_own">You can\'t report yourself.</string>
+    <string name="report_user_error_not_available">This user is no longer available.</string>
+    <string name="report_user_error_not_reportable">This account can\'t be reported.</string>
+    <string name="report_user_profile_hint">You can manage the account from their profile</string>
+    <string name="report_note_user_notice">The note is internal: neither the reporter nor the reported account can see it. If the account must be suspended, do it from their profile.</string>
+    <string name="admin_conflict_report">You filed this report or it\'s about you or your listing. Another administrator must handle it.</string>
     <!--  Description & Evidence Form  -->
     <string name="report_description_title">Please complete the reason for the report</string>
     <string name="report_description_placeholder">Provide a detailed description of your issue so we can better help you resolve it</string>

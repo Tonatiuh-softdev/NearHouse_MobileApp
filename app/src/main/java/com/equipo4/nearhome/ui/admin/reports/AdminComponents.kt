@@ -148,6 +148,17 @@ fun ReportCardItem(
                 maxLines = 2
             )
 
+            // En reportes de usuario se ve a quién se reportó
+            if (report.type == ReportType.USUARIO && report.reportedUserName != null) {
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    text = report.reportedUserName,
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1
+                )
+            }
+
             if (report.status == ReportStatus.ATENDIDO && !report.result.isNullOrEmpty()) {
                 Spacer(Modifier.height(4.dp))
                 val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f

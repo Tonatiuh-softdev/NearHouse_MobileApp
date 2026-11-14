@@ -996,6 +996,33 @@
     <string name="report_reason_multiple_publishers">Propiedad publicada por más de una persona</string>
     <string name="report_reason_advance_payment">Piden un pago antes de ver la propiedad</string>
     <string name="report_reason_other">Otro</string>
+
+    <!-- Reportar a un usuario (bandera de su perfil) -->
+    <string name="report_title_user">Reportar usuario</string>
+    <string name="report_send_error_title">No se pudo enviar el reporte</string>
+    <string name="report_category_question_user">¿Por qué quieres reportar a este usuario?</string>
+    <string name="report_category_fake_profile">Perfil falso</string>
+    <string name="report_category_fake_profile_desc">Se hace pasar por alguien más o usa datos falsos</string>
+    <string name="report_category_behavior">Comportamiento inapropiado</string>
+    <string name="report_category_behavior_desc">Acoso, insultos, amenazas o discriminación</string>
+    <string name="report_category_scam">Posible estafa</string>
+    <string name="report_category_scam_desc">Intenta engañar o cobrar sin derecho</string>
+    <string name="report_reason_impersonation">Se hace pasar por otra persona</string>
+    <string name="report_reason_fake_data">Nombre o datos falsos</string>
+    <string name="report_reason_inappropriate_photo">Foto de perfil inapropiada</string>
+    <string name="report_reason_harassment">Acoso o mensajes insistentes</string>
+    <string name="report_reason_threats">Amenazas</string>
+    <string name="report_reason_discrimination">Trato discriminatorio</string>
+    <string name="report_reason_user_advance_payment">Pide un pago antes de ver la propiedad</string>
+    <string name="report_reason_fake_listings">Publica propiedades que no existen</string>
+    <string name="report_reason_not_owner">Dice ser dueño de la propiedad sin serlo</string>
+    <string name="report_user_error_duplicate">Ya reportaste a este usuario; está en revisión.</string>
+    <string name="report_user_error_own">No puedes reportarte a ti mismo.</string>
+    <string name="report_user_error_not_available">Este usuario ya no está disponible.</string>
+    <string name="report_user_error_not_reportable">Esta cuenta no se puede reportar.</string>
+    <string name="report_user_profile_hint">Desde su perfil puedes administrar la cuenta</string>
+    <string name="report_note_user_notice">La nota es interna: no la ven quien reportó ni la cuenta reportada. Si hay que suspender la cuenta, hazlo desde su perfil.</string>
+    <string name="admin_conflict_report">Hiciste este reporte o es sobre ti o tu publicación. Lo debe atender otro administrador.</string>
     <!--  Formulario de descripción y evidencia  -->
     <string name="report_description_title">Por favor complete el motivo de la denuncia</string>
     <string name="report_description_placeholder">Proporcione una descripción detallada de su problema para que podamos ayudarlo a resolver el problema de la mejor manera</string>

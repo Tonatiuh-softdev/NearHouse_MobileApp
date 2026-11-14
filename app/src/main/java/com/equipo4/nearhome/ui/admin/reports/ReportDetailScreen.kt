@@ -32,6 +32,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.data.local.SessionManager
+import com.equipo4.nearhome.ui.admin.AvisoAccionBloqueada
 import com.equipo4.nearhome.data.remote.evidenciaReporteUrl
 import com.equipo4.nearhome.domain.model.ReportStatus
 import com.equipo4.nearhome.domain.model.ReportType
@@ -61,6 +62,13 @@ fun ReportDetailScreen(
     val context = LocalContext.current
     // Las evidencias necesitan el token: se manda en el encabezado de cada imagen
     val token = remember { SessionManager(context).getToken().orEmpty() }
+    // Un administrador no atiende reportes que hizo él, sobre su cuenta ni sobre sus publicaciones (el API también lo bloquea)
+    val miId = remember { SessionManager(context).getUserId() }
+    val esPropio = miId != null && (
+        reporterId == miId ||
+            targetProperty?.sellerId == miId ||
+            (report?.type == ReportType.USUARIO && report?.targetId == miId.toString())
+        )
     // Acción elegida: "PROCEDENTE" o "DESCARTADO". Null = no se muestra el diálogo
     var accion by remember { mutableStateOf<String?>(null) }
     // Evidencia abierta a pantalla completa (null = cerrado)
@@ -113,7 +121,9 @@ fun ReportDetailScreen(
             )
         },
         bottomBar = {
-            if (report?.status == ReportStatus.PENDIENTE) {
+            if (report?.status == ReportStatus.PENDIENTE && esPropio) {
+                AvisoAccionBloqueada(stringResource(R.string.admin_conflict_report))
+            } else if (report?.status == ReportStatus.PENDIENTE) {
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
                     color = MaterialTheme.colorScheme.surface,
@@ -403,6 +413,67 @@ fun ReportDetailScreen(
                     }
                 }
 
+                // Usuario reportado: desde su perfil el administrador puede ir a "Administrar cuenta"
+                if (currentReport.type == ReportType.USUARIO) {
+                    val reportedId = currentReport.targetId?.toIntOrNull()
+                    val reportedName = currentReport.reportedUserName
+                        ?: stringResource(R.string.report_account_deleted)
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            text = stringResource(R.string.reported_user),
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(Modifier.height(10.dp))
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .then(
+                                    reportedId?.let { id -> Modifier.clickable { onUserClick(id) } } ?: Modifier
+                                ),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                            elevation = CardDefaults.cardElevation(1.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                UserAvatar(
+                                    name = reportedName,
+                                    photoUrl = currentReport.reportedUserPhotoUrl,
+                                    size = 40.dp
+                                )
+                                Spacer(Modifier.width(12.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = reportedName,
+                                        fontSize = 15.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Spacer(Modifier.height(2.dp))
+                                    Text(
+                                        text = stringResource(R.string.report_user_profile_hint),
+                                        fontSize = 12.sp,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                                if (reportedId != null) {
+                                    Icon(
+                                        imageVector = Icons.Default.ChevronRight,
+                                        contentDescription = stringResource(R.string.user_profile_view),
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
                 // Publicación reportada
                 if (currentReport.type == ReportType.PUBLICACION) {
                     Column(modifier = Modifier.fillMaxWidth()) {
@@ -533,6 +604,8 @@ fun ReportDetailScreen(
     accion?.let { estado ->
         ResolveReportDialog(
             procede = estado == "PROCEDENTE",
+            // Retirar solo existe en reportes de publicación
+            permiteRetirar = report?.type == ReportType.PUBLICACION,
             enviando = sending,
             onDismiss = { accion = null },
             onConfirm = { nota, retirar ->
@@ -546,12 +619,14 @@ fun ReportDetailScreen(
 }
 
 /**
- * Pide la nota (obligatoria). En "Procede" hay un interruptor para retirar la publicación,
- * que pide confirmación antes de enviar.
+ * Pide la nota (obligatoria). En "Procede" de un reporte de publicación hay un interruptor para retirarla,
+ * que pide confirmación antes de enviar. En reportes de usuario no hay interruptor: si hay que suspender
+ * la cuenta, se hace desde su perfil (Administrar cuenta).
  */
 @Composable
 private fun ResolveReportDialog(
     procede: Boolean,
+    permiteRetirar: Boolean,
     enviando: Boolean,
     onDismiss: () -> Unit,
     onConfirm: (nota: String, retirarPublicacion: Boolean) -> Unit
@@ -575,11 +650,13 @@ private fun ResolveReportDialog(
                     modifier = Modifier.fillMaxWidth()
                 )
                 Text(
-                    text = stringResource(R.string.report_note_seller_notice),
+                    text = stringResource(
+                        if (permiteRetirar) R.string.report_note_seller_notice else R.string.report_note_user_notice
+                    ),
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                if (procede) {
+                if (procede && permiteRetirar) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically

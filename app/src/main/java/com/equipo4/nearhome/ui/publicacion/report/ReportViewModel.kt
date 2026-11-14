@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.equipo4.nearhome.R
 import com.equipo4.nearhome.data.repository.ReporteException
 import com.equipo4.nearhome.data.repository.ReporteRepository
+import com.equipo4.nearhome.domain.model.ReportType
 import com.equipo4.nearhome.util.AppStrings
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,7 +18,10 @@ import kotlinx.coroutines.launch
 const val MIN_PALABRAS_DESCRIPCION = 10
 
 data class ReportUiState(
-    val publicacionId: String = "",
+    /** Qué se reporta: una publicación (desde su detalle) o un usuario (desde la bandera de su perfil). */
+    val tipo: ReportType = ReportType.PUBLICACION,
+    /** Id de la publicación o del usuario, según [tipo]. */
+    val objetivoId: String = "",
     val selectedCategory: ReportCategory? = null,
     val selectedReason: ReportReason? = null,
     val description: String = "",
@@ -25,8 +29,8 @@ data class ReportUiState(
     val errorMessage: String? = null,
     /** True mientras se envía. Desactiva el botón para que un doble toque no mande dos reportes. */
     val isSending: Boolean = false,
-    /** True si el API dice que la publicación ya no existe: la pantalla regresa al detalle. */
-    val publicacionNoDisponible: Boolean = false,
+    /** True si el API dice que la publicación o el usuario ya no existe: la pantalla regresa. */
+    val objetivoNoDisponible: Boolean = false,
     val isSubmitted: Boolean = false
 ) {
     /** Cuenta palabras reales (separadas por espacios), no caracteres. */
@@ -38,6 +42,10 @@ data class ReportUiState(
 
     val hasUnsavedChanges: Boolean
         get() = description.isNotEmpty() || evidenceFiles.isNotEmpty()
+
+    /** Solo las categorías de lo que se reporta. */
+    val categorias: List<ReportCategory>
+        get() = ReportCategory.entries.filter { it.tipo == tipo }
 }
 
 class ReportViewModel : ViewModel() {
@@ -45,8 +53,11 @@ class ReportViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(ReportUiState())
     val uiState: StateFlow<ReportUiState> = _uiState.asStateFlow()
 
-    fun initPublicacion(id: String) {
-        _uiState.update { it.copy(publicacionId = id) }
+    /** Lo llama la navegación al abrir el flujo. Si ya era el mismo objetivo, no se borra lo capturado. */
+    fun initObjetivo(tipo: ReportType, id: String) {
+        _uiState.update { state ->
+            if (state.tipo == tipo && state.objetivoId == id) state else ReportUiState(tipo = tipo, objetivoId = id)
+        }
     }
 
     fun selectCategory(category: ReportCategory) {
@@ -84,7 +95,7 @@ class ReportViewModel : ViewModel() {
     }
 
     fun clearErrorMessage() {
-        _uiState.update { it.copy(errorMessage = null, publicacionNoDisponible = false) }
+        _uiState.update { it.copy(errorMessage = null, objetivoNoDisponible = false) }
     }
 
     /**
@@ -96,8 +107,8 @@ class ReportViewModel : ViewModel() {
         if (state.isSending || state.isSubmitted || !state.isSendEnabled) return
         val categoria = state.selectedCategory ?: return
         val motivo = state.selectedReason ?: return
-        val publicacionId = state.publicacionId.toIntOrNull()
-        if (publicacionId == null) {
+        val objetivoId = state.objetivoId.toIntOrNull()
+        if (objetivoId == null) {
             setErrorMessage(AppStrings.get(R.string.create_listing_error_generic))
             return
         }
@@ -107,7 +118,8 @@ class ReportViewModel : ViewModel() {
 
         viewModelScope.launch {
             ReporteRepository(context).reportar(
-                publicacionId = publicacionId,
+                tipo = state.tipo,
+                objetivoId = objetivoId,
                 categoria = categoria.name,
                 motivo = motivo.codigo,
                 descripcion = state.description,
@@ -120,7 +132,7 @@ class ReportViewModel : ViewModel() {
                     it.copy(
                         isSending = false,
                         errorMessage = error.message,
-                        publicacionNoDisponible = codigo == 404
+                        objetivoNoDisponible = codigo == 404
                     )
                 }
             }

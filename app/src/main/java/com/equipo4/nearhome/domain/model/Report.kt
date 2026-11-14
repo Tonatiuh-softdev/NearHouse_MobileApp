@@ -32,9 +32,14 @@ data class Report(
     val evidences: List<Int>,
     /** Cantidad de evidencias. Viene también en la lista. */
     val evidenceCount: Int,
-    /** Id de la publicación reportada. */
+    /** Id de la publicación reportada, o de la cuenta reportada si [type] es USUARIO. */
     val targetId: String?,
     /** Null = la cuenta que reportó ya no existe. */
     val reportedByName: String?,
-    val reportedByEmail: String?
+    val reportedByEmail: String?,
+    /** Id de quien reportó (solo en el detalle). Null si su cuenta ya no existe. */
+    val reportedById: Int? = null,
+    /** Cuenta reportada (solo si [type] es USUARIO). */
+    val reportedUserName: String? = null,
+    val reportedUserPhotoUrl: String? = null
 )

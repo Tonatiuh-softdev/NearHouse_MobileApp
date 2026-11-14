@@ -46,6 +46,8 @@ class ReportDetailViewModel(val reportId: String) : ViewModel() {
             if (r != null && r.type == ReportType.PUBLICACION && !r.targetId.isNullOrEmpty()) {
                 _targetProperty.value = propertyRepository.getById(r.targetId)
             }
+            // El API ya manda el id de quien reportó; si no viene (versión anterior), se busca por correo
+            r?.reportedById?.let { _reporterId.value = it }
             r?.reportedByEmail?.let { buscarReportante(it) }
         }
     }

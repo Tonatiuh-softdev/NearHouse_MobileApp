@@ -3,15 +3,26 @@ package com.equipo4.nearhome.ui.publicacion.report
 import android.net.Uri
 import androidx.annotation.StringRes
 import com.equipo4.nearhome.R
+import com.equipo4.nearhome.domain.model.ReportType
 
-/** El nombre de cada categoría es el código que recibe el API. */
+/**
+ * El nombre de cada categoría es el código que recibe el API.
+ * [tipo] dice si es para reportar una publicación o a un usuario (cada pantalla muestra solo las suyas).
+ */
 enum class ReportCategory(
+    val tipo: ReportType,
     @StringRes val titleRes: Int,
     @StringRes val descriptionRes: Int
 ) {
-    INFORMACION_FALSA(R.string.report_category_false_info, R.string.report_category_false_info_desc),
-    CONTENIDO_OFENSIVO(R.string.report_category_offensive, R.string.report_category_offensive_desc),
-    POSIBLE_FRAUDE(R.string.report_category_fraud, R.string.report_category_fraud_desc)
+    // Publicaciones
+    INFORMACION_FALSA(ReportType.PUBLICACION, R.string.report_category_false_info, R.string.report_category_false_info_desc),
+    CONTENIDO_OFENSIVO(ReportType.PUBLICACION, R.string.report_category_offensive, R.string.report_category_offensive_desc),
+    POSIBLE_FRAUDE(ReportType.PUBLICACION, R.string.report_category_fraud, R.string.report_category_fraud_desc),
+
+    // Usuarios (igual que la migración 15 del API)
+    PERFIL_FALSO(ReportType.USUARIO, R.string.report_category_fake_profile, R.string.report_category_fake_profile_desc),
+    COMPORTAMIENTO_INAPROPIADO(ReportType.USUARIO, R.string.report_category_behavior, R.string.report_category_behavior_desc),
+    ESTAFA(ReportType.USUARIO, R.string.report_category_scam, R.string.report_category_scam_desc)
 }
 
 /**
@@ -42,7 +53,28 @@ enum class ReportReason(
     FRAUDE_DATOS_INCORRECTOS(ReportCategory.POSIBLE_FRAUDE, "DATOS_INCORRECTOS", R.string.report_reason_wrong_data),
     PUBLICADA_POR_VARIOS(ReportCategory.POSIBLE_FRAUDE, "PUBLICADA_POR_VARIOS", R.string.report_reason_multiple_publishers),
     YA_NO_DISPONIBLE(ReportCategory.POSIBLE_FRAUDE, "YA_NO_DISPONIBLE", R.string.report_reason_not_available),
-    FRAUDE_OTRO(ReportCategory.POSIBLE_FRAUDE, "OTRO", R.string.report_reason_other)
+    FRAUDE_OTRO(ReportCategory.POSIBLE_FRAUDE, "OTRO", R.string.report_reason_other),
+
+    // ---------- Usuarios ----------
+
+    // Perfil falso (4 motivos)
+    PERFIL_SUPLANTACION(ReportCategory.PERFIL_FALSO, "SUPLANTACION", R.string.report_reason_impersonation),
+    PERFIL_DATOS_FALSOS(ReportCategory.PERFIL_FALSO, "DATOS_FALSOS", R.string.report_reason_fake_data),
+    PERFIL_FOTO_INAPROPIADA(ReportCategory.PERFIL_FALSO, "FOTO_INAPROPIADA", R.string.report_reason_inappropriate_photo),
+    PERFIL_OTRO(ReportCategory.PERFIL_FALSO, "OTRO", R.string.report_reason_other),
+
+    // Comportamiento inapropiado (5 motivos)
+    CONDUCTA_ACOSO(ReportCategory.COMPORTAMIENTO_INAPROPIADO, "ACOSO", R.string.report_reason_harassment),
+    CONDUCTA_LENGUAJE_OFENSIVO(ReportCategory.COMPORTAMIENTO_INAPROPIADO, "LENGUAJE_OFENSIVO", R.string.report_reason_offensive_language),
+    CONDUCTA_AMENAZAS(ReportCategory.COMPORTAMIENTO_INAPROPIADO, "AMENAZAS", R.string.report_reason_threats),
+    CONDUCTA_DISCRIMINACION(ReportCategory.COMPORTAMIENTO_INAPROPIADO, "CONTENIDO_DISCRIMINATORIO", R.string.report_reason_discrimination),
+    CONDUCTA_OTRO(ReportCategory.COMPORTAMIENTO_INAPROPIADO, "OTRO", R.string.report_reason_other),
+
+    // Posible estafa (4 motivos)
+    ESTAFA_PAGO_ANTICIPADO(ReportCategory.ESTAFA, "PIDE_PAGO_ANTICIPADO", R.string.report_reason_user_advance_payment),
+    ESTAFA_ANUNCIOS_FALSOS(ReportCategory.ESTAFA, "ANUNCIOS_FALSOS", R.string.report_reason_fake_listings),
+    ESTAFA_NO_ES_EL_DUENO(ReportCategory.ESTAFA, "NO_ES_EL_DUENO", R.string.report_reason_not_owner),
+    ESTAFA_OTRO(ReportCategory.ESTAFA, "OTRO", R.string.report_reason_other)
 }
 
 /** Solo imágenes. La compresión se hace al enviar. */
